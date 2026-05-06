@@ -20,15 +20,15 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve giao diện HTML từ thư mục public
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve giao diện HTML từ thư mục views
+app.use(express.static(path.join(__dirname, 'src', 'views')));
 
 // Routes API
 app.use('/api/auth', passwordRoutes);
 
 // Trang chủ
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    res.sendFile(path.join(__dirname, 'src', 'views', 'login.html'));
 });
 
 const PORT = process.env.PORT || 3000;
