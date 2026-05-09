@@ -9,6 +9,7 @@ const OTP = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    // Khoa ngoai lien ket voi bang users
     user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -18,17 +19,26 @@ const OTP = sequelize.define(
       },
       onDelete: 'CASCADE',
     },
-    otp_code: {
+    // Ma OTP 6 chu so
+    code: {
       type: DataTypes.STRING(6),
       allowNull: false,
     },
-    type: {
-      type: DataTypes.ENUM('register', 'forgot_password'),
-      allowNull: false,
-    },
-    expired_at: {
+    // Thoi gian het han cua OTP
+    expires_at: {
       type: DataTypes.DATE,
       allowNull: false,
+    },
+    // Danh dau OTP da duoc su dung chua
+    is_used: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
