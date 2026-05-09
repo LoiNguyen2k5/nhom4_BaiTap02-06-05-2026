@@ -3,30 +3,31 @@ const User = require('../models/User');
 
 async function createAdminAccount() {
   try {
-    // Check if admin already exists
+    // Kiem tra admin da ton tai chua
     const adminExists = await User.findOne({ where: { email: 'admin@example.com' } });
     if (adminExists) {
-      console.log('⚠ Admin đã tồn tại: admin@example.com');
+      console.log('⚠ Admin da ton tai: admin@example.com');
       return;
     }
 
-    // Hash password
+    // Ma hoa mat khau
     const hashedPassword = await bcrypt.hash('Admin@123456', 10);
 
-    // Create admin user
-    const admin = await User.create({
+    // Tao tai khoan admin voi status active
+    await User.create({
+      name: 'Administrator',
       email: 'admin@example.com',
       password: hashedPassword,
       role: 'admin',
-      is_verified: true,
+      status: 'active',
     });
 
-    console.log('✓ Tài khoản admin đã được tạo thành công!');
+    console.log('✓ Tai khoan admin da duoc tao thanh cong!');
     console.log('  Email: admin@example.com');
     console.log('  Password: Admin@123456');
 
   } catch (error) {
-    console.error('✗ Lỗi khi tạo admin:', error.message);
+    console.error('✗ Loi khi tao admin:', error.message);
   }
 }
 
