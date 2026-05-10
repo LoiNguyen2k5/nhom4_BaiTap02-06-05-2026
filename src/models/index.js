@@ -1,41 +1,28 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const User = require('./User');
+const Profile = require('./Profile');
+const OTP = require('./OTP');
 
-const Profile = sequelize.define(
-  'Profile',
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      unique: true,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
-      onDelete: 'CASCADE',
-    },
-    full_name: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-    phone: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
-    },
-    address: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-    },
-  },
-  {
-    tableName: 'profiles',
-    timestamps: false,
-  }
-);
+// Define Associations
+User.hasOne(Profile, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE'
+});
 
-module.exports = Profile;
+Profile.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+
+User.hasMany(OTP, {
+  foreignKey: 'user_id',
+  onDelete: 'CASCADE'
+});
+
+OTP.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+
+module.exports = {
+  User,
+  Profile,
+  OTP
+};

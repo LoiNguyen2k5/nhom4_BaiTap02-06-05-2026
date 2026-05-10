@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 
 const app = express();
 
@@ -7,12 +8,19 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files
+app.use(express.static(path.join(__dirname, '../public')));
+
 // Routes
 const authRoutes = require('./routes/auth.routes');
-app.use('/api/auth', authRoutes);
+const profileRoutes = require('./routes/profile.routes');
 
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+
+// Fallback to index.html for root path
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to API' });
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 module.exports = app;
