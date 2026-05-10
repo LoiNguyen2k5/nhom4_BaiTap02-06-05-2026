@@ -12,6 +12,7 @@ const sequelize = new Sequelize(
     logging: false,
     dialectOptions: {
       charset: 'utf8mb4',
+      socketPath: '/tmp/mysql.sock',
     },
   }
 );

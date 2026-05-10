@@ -14,6 +14,9 @@ const initializeDatabase = async () => {
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: false,
+        dialectOptions: {
+          socketPath: '/tmp/mysql.sock',
+        },
       }
     );
 
@@ -30,9 +33,9 @@ const initializeDatabase = async () => {
     await sequelize.authenticate();
     console.log('✓ Kết nối database thành công');
 
-    // Sync models
-    await sequelize.sync({ force: false });
-    console.log('✓ Database đã được khởi tạo thành công');
+    // Sync models - dung alter:true de tu dong cap nhat schema khi co thay doi
+    await sequelize.sync({ alter: true });
+    console.log('✓ Database da duoc khoi tao thanh cong');
 
     // Create admin account
     await createAdminAccount();
