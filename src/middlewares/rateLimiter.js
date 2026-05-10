@@ -12,6 +12,18 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiter for register: max 5 attempts per 15 minutes
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 requests per IP
+  message: {
+    success: false,
+    message: 'Số lần đăng ký vượt quá giới hạn, vui lòng thử lại sau 15 phút',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Rate limiter for forgot password: max 3 attempts per 30 minutes
 const forgotPasswordLimiter = rateLimit({
   windowMs: 30 * 60 * 1000, // 30 minutes
@@ -38,6 +50,7 @@ const resetPasswordLimiter = rateLimit({
 
 module.exports = { 
   loginLimiter,
+  registerLimiter,
   forgotPasswordLimiter,
   resetPasswordLimiter
 };

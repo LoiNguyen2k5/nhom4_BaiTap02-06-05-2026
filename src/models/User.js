@@ -9,6 +9,11 @@ const User = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    // Tên người dùng
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     email: {
       type: DataTypes.STRING(255),
       allowNull: false,
@@ -26,10 +31,11 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: 'user',
     },
-    is_verified: {
-      type: DataTypes.BOOLEAN,
+    // Trạng thái tài khoản: inactive (chưa xác thực), active (đã xác thực)
+    status: {
+      type: DataTypes.ENUM('inactive', 'active'),
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 'active',
     },
     created_at: {
       type: DataTypes.DATE,
