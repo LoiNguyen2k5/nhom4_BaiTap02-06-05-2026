@@ -8,14 +8,25 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// CORS support
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
+const passwordRoutes = require('./routes/password.routes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', passwordRoutes);
 app.use('/api/profile', profileRoutes);
 
 // Fallback to index.html for root path
