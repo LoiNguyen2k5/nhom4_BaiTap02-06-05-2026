@@ -1,10 +1,43 @@
 const rateLimit = require('express-rate-limit');
+
+// Rate limiter for login: max 5 attempts per 15 minutes
 const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, //15 phút
-    max: 5, // tối đa 5 lần cho mỗi IP trong 15 phút
-    message: {
-        success: false,
-        message: 'Số lần đăng nhập vượt quá giới hạn, vui lòng thử lại sau 15 phút',
-    },
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 requests per IP
+  message: {
+    success: false,
+    message: 'Số lần đăng nhập vượt quá giới hạn, vui lòng thử lại sau 15 phút',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-module.exports = { loginLimiter };
+
+// Rate limiter for forgot password: max 3 attempts per 30 minutes
+const forgotPasswordLimiter = rateLimit({
+  windowMs: 30 * 60 * 1000, // 30 minutes
+  max: 3, // max 3 requests per IP
+  message: {
+    success: false,
+    message: 'Số lần yêu cầu OTP vượt quá giới hạn, vui lòng thử lại sau 30 phút',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter for reset password: max 5 attempts per 15 minutes
+const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // max 5 requests per IP
+  message: {
+    success: false,
+    message: 'Số lần reset mật khẩu vượt quá giới hạn, vui lòng thử lại sau 15 phút',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { 
+  loginLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter
+};
