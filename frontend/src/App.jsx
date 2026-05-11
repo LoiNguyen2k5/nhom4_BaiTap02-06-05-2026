@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
+import Login from './pages/Login';
 
 const App = () => {
   return (
@@ -17,7 +18,7 @@ const App = () => {
       </div>
 
       <Routes>
-        <Route path="/login" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Login</div>} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Register</div>} />
         <Route path="/forgot-password" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Quên MK</div>} />
         <Route path="/profile" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Profile</div>} />
