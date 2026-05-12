@@ -14,9 +14,7 @@ const initializeDatabase = async () => {
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: false,
-        dialectOptions: {
-          socketPath: '/tmp/mysql.sock',
-        },
+        dialectOptions: {},
       }
     );
 
