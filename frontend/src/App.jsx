@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import VerifyOtp from './pages/VerifyOtp';
 import ForgotPassword from './components/ForgotPassword';
+import Profile from './components/Profile';
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/verify-otp" element={<VerifyOtp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/profile" element={<div className="p-8 text-center text-xl font-bold">Đây là chỗ render Trang Profile (Thành viên 4)</div>} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 };
