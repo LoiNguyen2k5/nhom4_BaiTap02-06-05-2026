@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Button = ({ children, onClick, type = 'button', variant = 'primary', className = '' }) => {
   const baseStyle = "w-full py-2 px-4 rounded-lg font-semibold transition duration-200";
   const variants = {

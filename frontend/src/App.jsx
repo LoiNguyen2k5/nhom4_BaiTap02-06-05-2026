@@ -1,28 +1,81 @@
-import React from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchMeThunk } from './redux/authSlice';
+
+import Login from './pages/Login';
+import Register from './pages/Register';
+import VerifyOtp from './pages/VerifyOtp';
+import ForgotPassword from './pages/ForgotPassword';
+
+import DashboardLayout from './components/layout/DashboardLayout';
+import UserProfile from './pages/user/UserProfile';
+import AdminProfile from './pages/admin/AdminProfile';
+import AdminUsers from './pages/admin/AdminUsers';
+import ProtectedRoute from './routes/ProtectedRoute';
+
+// Redirect /profile đến đúng dashboard theo role
+const RoleRedirect = () => {
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  return <Navigate to={user.role === 'admin' ? '/admin/profile' : '/user/profile'} replace />;
+};
 
 const App = () => {
-  return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Trang chủ nhóm 4</h1>
-        <p className="text-gray-600 mb-8">Nền tảng đã được thiết lập. Hãy chia nhau làm các trang dưới đây:</p>
-        
-        <div className="flex flex-col space-y-4">
-          <Link to="/login" className="bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Đăng nhập (Thành viên 1)</Link>
-          <Link to="/register" className="bg-green-500 text-white py-2 rounded-lg hover:bg-green-600">Đăng ký (Thành viên 2)</Link>
-          <Link to="/forgot-password" className="bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600">Quên mật khẩu (Thành viên 3)</Link>
-          <Link to="/profile" className="bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600">Profile (Thành viên 4)</Link>
-        </div>
-      </div>
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-      <Routes>
-        <Route path="/login" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Login</div>} />
-        <Route path="/register" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Register</div>} />
-        <Route path="/forgot-password" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Quên MK</div>} />
-        <Route path="/profile" element={<div className="mt-8 text-xl font-bold">Đây là chỗ render Trang Profile</div>} />
-      </Routes>
-    </div>
+  // Sau hard refresh: token có nhưng user chưa load → fetch lại từ API
+  useEffect(() => {
+    if (isAuthenticated && user === null) {
+      dispatch(fetchMeThunk());
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Routes>
+      {/* Public routes */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/verify-otp" element={<VerifyOtp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      {/* Legacy redirect */}
+      <Route path="/profile" element={<RoleRedirect />} />
+
+      {/* User dashboard */}
+      <Route
+        path="/user"
+        element={
+          <ProtectedRoute allowedRole="user">
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="profile" element={<UserProfile />} />
+      </Route>
+
+      {/* Admin dashboard */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRole="admin">
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="profile" element={<AdminProfile />} />
+        <Route path="users" element={<AdminUsers />} />
+      </Route>
+    </Routes>
   );
 };
 
