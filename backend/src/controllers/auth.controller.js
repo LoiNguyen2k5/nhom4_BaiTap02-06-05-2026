@@ -4,7 +4,7 @@ const User = require('../models/User');
 const OTP = require('../models/OTP');
 const { loginValidation, registerValidation, verifyOtpValidation } = require('../validations/auth.validation');
 const { generateOTP, getOTPExpiryDate } = require('../utils/otp');
-const { sendOTPEmail } = require('../utils/email');
+const { sendOTPEmail } = require('../utils/mailer');
 
 // ============================================================
 // DANG NHAP
@@ -224,4 +224,41 @@ const verifyOtp = async (req, res) => {
   }
 };
 
-module.exports = { login, register, verifyOtp };
+// ============================================================
+// GUI LAI OTP
+// ============================================================
+const resendOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản với email này' });
+    }
+
+    if (user.status === 'active') {
+      return res.status(400).json({ success: false, message: 'Tài khoản này đã được xác thực' });
+    }
+
+    // Xoa OTP cu chua dung
+    await OTP.destroy({ where: { user_id: user.id, is_used: false } });
+
+    // Tao OTP moi
+    const otpCode = generateOTP();
+    const expiresAt = getOTPExpiryDate(10);
+
+    await OTP.create({ user_id: user.id, code: otpCode, expires_at: expiresAt, is_used: false });
+
+    await sendOTPEmail(email, user.name, otpCode);
+
+    return res.status(200).json({ success: true, message: 'Mã OTP mới đã được gửi đến email của bạn.' });
+  } catch (error) {
+    console.error('Resend OTP Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi gửi lại OTP' });
+  }
+};
+
+module.exports = { login, register, verifyOtp, resendOtp };
