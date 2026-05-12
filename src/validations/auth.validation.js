@@ -4,14 +4,14 @@ const Joi = require('joi');
 const loginValidation = (data) => {
   const schema = Joi.object({
     email: Joi.string().email().required().messages({
-      'string.email': 'Email khong hop le',
-      'any.required': 'Vui long nhap email',
-      'string.empty': 'Email khong duoc de trong',
+      'string.email': 'Email không hợp lệ',
+      'any.required': 'Vui lòng nhập email',
+      'string.empty': 'Email không được để trống',
     }),
     password: Joi.string().min(6).required().messages({
-      'string.min': 'Password phai co it nhat 6 ky tu',
-      'any.required': 'Vui long nhap mat khau',
-      'string.empty': 'Mat khau khong duoc de trong',
+      'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+      'any.required': 'Vui lòng nhập mật khẩu',
+      'string.empty': 'Mật khẩu không được để trống',
     }),
   });
   return schema.validate(data);
@@ -22,21 +22,21 @@ const registerValidation = (data) => {
   const schema = Joi.object({
     // Ten nguoi dung: toi thieu 2 ky tu
     name: Joi.string().min(2).required().messages({
-      'string.min': 'Ten phai co it nhat 2 ky tu',
-      'any.required': 'Vui long nhap ten',
-      'string.empty': 'Ten khong duoc de trong',
+      'string.min': 'Tên phải có ít nhất 2 ký tự',
+      'any.required': 'Vui lòng nhập tên',
+      'string.empty': 'Tên không được để trống',
     }),
     // Email hop le
     email: Joi.string().email().required().messages({
-      'string.email': 'Email khong hop le',
-      'any.required': 'Vui long nhap email',
-      'string.empty': 'Email khong duoc de trong',
+      'string.email': 'Email không hợp lệ',
+      'any.required': 'Vui lòng nhập email',
+      'string.empty': 'Email không được để trống',
     }),
     // Mat khau: toi thieu 6 ky tu
     password: Joi.string().min(6).required().messages({
-      'string.min': 'Password phai co it nhat 6 ky tu',
-      'any.required': 'Vui long nhap mat khau',
-      'string.empty': 'Mat khau khong duoc de trong',
+      'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+      'any.required': 'Vui lòng nhập mật khẩu',
+      'string.empty': 'Mật khẩu không được để trống',
     }),
   });
   return schema.validate(data);
@@ -46,15 +46,15 @@ const registerValidation = (data) => {
 const verifyOtpValidation = (data) => {
   const schema = Joi.object({
     email: Joi.string().email().required().messages({
-      'string.email': 'Email khong hop le',
-      'any.required': 'Vui long nhap email',
-      'string.empty': 'Email khong duoc de trong',
+      'string.email': 'Email không hợp lệ',
+      'any.required': 'Vui lòng nhập email',
+      'string.empty': 'Email không được để trống',
     }),
     // OTP phai la chuoi 6 chu so (dung string de giu so 0 dau)
     otp: Joi.string().pattern(/^\d{6}$/).required().messages({
-      'string.pattern.base': 'Ma OTP phai la 6 chu so',
-      'any.required': 'Vui long nhap ma OTP',
-      'string.empty': 'Ma OTP khong duoc de trong',
+      'string.pattern.base': 'Mã OTP phải là 6 chữ số',
+      'any.required': 'Vui lòng nhập mã OTP',
+      'string.empty': 'Mã OTP không được để trống',
     }),
   });
   return schema.validate(data);
