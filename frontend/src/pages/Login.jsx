@@ -1,56 +1,45 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axiosClient from '../services/axiosClient';
-import { loginSuccess } from '../redux/authSlice';
+import { loginThunk } from '../redux/authSlice';
+import Alert from '../components/Alert';
 import Button from '../components/Button';
 
 const Login = () => {
   const [email, setEmail] = useState(localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('rememberedEmail'));
+  const [successMsg, setSuccessMsg] = useState('');
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
+
+  // Fix F4: cleanup setTimeout khi unmount
+  useEffect(() => {
+    if (!successMsg) return;
+    const timer = setTimeout(() => navigate('/profile'), 2000);
+    return () => clearTimeout(timer);
+  }, [successMsg, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
     setSuccessMsg('');
-    setLoading(true);
 
-    try {
-      // Gọi API đăng nhập bạn đã làm tuần trước
-      const response = await axiosClient.post('/auth/login', { email, password });
-
-      // Lưu email nếu người dùng chọn Ghi nhớ tôi
+    const result = await dispatch(loginThunk({ email, password }));
+    if (loginThunk.fulfilled.match(result)) {
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
       } else {
         localStorage.removeItem('rememberedEmail');
       }
-
-      // Đẩy dữ liệu User và Token vào Redux
-      dispatch(loginSuccess(response.data));
       setSuccessMsg('Đăng nhập thành công! Đang chuyển hướng...');
-
-      // Chuyển hướng sang trang Profile sau 1.5s
-      setTimeout(() => {
-        navigate('/profile');
-      }, 2000);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại!');
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 w-full absolute top-0 left-0">
-      {/* Nút quay lại trang phân công */}
       <Link to="/" className="absolute top-6 left-6 text-gray-500 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -66,20 +55,8 @@ const Login = () => {
           <p className="text-gray-500 mt-2">Đăng nhập vào tài khoản của bạn</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
-            {error}
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-xl mb-6 text-sm font-medium flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            {successMsg}
-          </div>
-        )}
+        <Alert type="error" message={error} />
+        <Alert type="success" message={successMsg} />
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
@@ -90,7 +67,7 @@ const Login = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
-              placeholder="nhut@example.com"
+              placeholder="example@gmail.com"
             />
           </div>
 
@@ -126,11 +103,11 @@ const Login = () => {
 
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors font-medium">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4" 
+                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
               />
               Ghi nhớ tôi
             </label>
@@ -141,7 +118,7 @@ const Login = () => {
 
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || !!successMsg}
             className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transform transition hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
           >
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}

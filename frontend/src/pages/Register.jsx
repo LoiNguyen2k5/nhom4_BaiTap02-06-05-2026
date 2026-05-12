@@ -1,46 +1,46 @@
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import axiosClient from '../services/axiosClient';
+import { registerThunk } from '../redux/authSlice';
+import Alert from '../components/Alert';
 import Button from '../components/Button';
 
 const Register = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [localError, setLocalError] = useState('');
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { loading, error } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setError('');
+    setLocalError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setLocalError('');
 
     if (form.password !== form.confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setLocalError('Mật khẩu xác nhận không khớp');
       return;
     }
     if (form.password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setLocalError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
 
-    setLoading(true);
-    try {
-      await axiosClient.post('/auth/register', {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-      });
+    const result = await dispatch(registerThunk({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+    }));
+
+    if (registerThunk.fulfilled.match(result)) {
       navigate('/verify-otp', { state: { email: form.email } });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại!');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -58,10 +58,7 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 w-full absolute top-0 left-0">
-      <Link
-        to="/login"
-        className="absolute top-6 left-6 text-gray-500 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium"
-      >
+      <Link to="/login" className="absolute top-6 left-6 text-gray-500 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
         </svg>
@@ -76,14 +73,9 @@ const Register = () => {
           <p className="text-gray-500 mt-2">Điền thông tin để đăng ký</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm font-medium">
-            {error}
-          </div>
-        )}
+        <Alert type="error" message={localError || error} />
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Họ tên */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Họ và tên</label>
             <input
@@ -97,7 +89,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Email */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
             <input
@@ -111,7 +102,6 @@ const Register = () => {
             />
           </div>
 
-          {/* Mật khẩu */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu</label>
             <div className="relative">
@@ -124,17 +114,12 @@ const Register = () => {
                 className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm pr-12"
                 placeholder="Ít nhất 6 ký tự"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors p-1"
-              >
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors p-1">
                 <EyeIcon open={showPassword} />
               </button>
             </div>
           </div>
 
-          {/* Xác nhận mật khẩu */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Xác nhận mật khẩu</label>
             <div className="relative">
@@ -147,11 +132,7 @@ const Register = () => {
                 className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm pr-12"
                 placeholder="Nhập lại mật khẩu"
               />
-              <button
-                type="button"
-                onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors p-1"
-              >
+              <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors p-1">
                 <EyeIcon open={showConfirm} />
               </button>
             </div>

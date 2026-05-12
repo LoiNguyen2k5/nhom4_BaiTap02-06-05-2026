@@ -1,7 +1,8 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const OTP = require('../models/OTP');
-const { sendEmailOTP } = require('../utils/mailer');
+const { sendPasswordResetEmail } = require('../utils/mailer');
+const { generateOTP, getOTPExpiryDate } = require('../utils/otp');
 
 exports.generateAndSendOTP = async (email) => {
   try {
@@ -11,11 +12,8 @@ exports.generateAndSendOTP = async (email) => {
       throw { status: 404, message: 'Không tìm thấy người dùng với email này.' };
     }
 
-    // Generate 6-digit OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Calculate expiry time (5 minutes from now)
-    const expiryTime = new Date(Date.now() + 5 * 60 * 1000);
+    const otpCode = generateOTP();
+    const expiryTime = getOTPExpiryDate(10);
 
     // Save OTP to database
     await OTP.create({
@@ -24,12 +22,11 @@ exports.generateAndSendOTP = async (email) => {
       expires_at: expiryTime
     });
 
-    // Send email
-    await sendEmailOTP(email, otpCode);
+    await sendPasswordResetEmail(email, otpCode);
 
-    return { 
+    return {
       success: true,
-      message: 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra trong 5 phút.' 
+      message: 'Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra trong 10 phút.'
     };
   } catch (error) {
     throw error;

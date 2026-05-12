@@ -19,8 +19,8 @@ const resetPasswordValidation = (data) => {
       'string.email': 'Email không hợp lệ',
       'any.required': 'Vui lòng nhập email'
     }),
-    otp: Joi.string().length(6).required().messages({
-      'string.length': 'OTP phải có 6 chữ số',
+    otp: Joi.string().pattern(/^\d{6}$/).required().messages({
+      'string.pattern.base': 'Mã OTP phải là 6 chữ số',
       'any.required': 'Vui lòng nhập OTP'
     }),
     newPassword: Joi.string().min(6).required().messages({
