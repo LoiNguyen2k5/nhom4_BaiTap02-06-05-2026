@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { requestOTP, resetPassword, resetPasswordState, clearError } from '../redux/passwordSlice';
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   
   const { step, email: savedEmail, loading, error, successMessage } = useSelector((state) => state.password);
 
@@ -16,12 +15,10 @@ const ForgotPassword = () => {
   const [localError, setLocalError] = useState('');
 
   useEffect(() => {
-    // Reset state khi unmount component
     return () => {
       dispatch(resetPasswordState());
     };
   }, [dispatch]);
-
   const handleRequestOTP = (e) => {
     e.preventDefault();
     setLocalError('');
@@ -31,21 +28,17 @@ const ForgotPassword = () => {
     }
     dispatch(requestOTP(inputEmail));
   };
-
   const handleResetPassword = (e) => {
     e.preventDefault();
     setLocalError('');
-    
     if (newPassword !== confirmPassword) {
       setLocalError('Mật khẩu xác nhận không khớp');
       return;
     }
-    
     if (newPassword.length < 6) {
       setLocalError('Mật khẩu phải có ít nhất 6 ký tự');
       return;
     }
-
     dispatch(resetPassword({ email: savedEmail, otp, newPassword }));
   };
 

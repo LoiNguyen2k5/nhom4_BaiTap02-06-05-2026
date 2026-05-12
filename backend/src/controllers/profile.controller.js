@@ -1,3 +1,5 @@
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 const { updateProfileValidation } = require('../validations/profile.validation');
@@ -142,8 +144,40 @@ const getProfileById = async (req, res) => {
   }
 };
 
-module.exports = { 
-  getProfile, 
-  updateProfile, 
-  getProfileById 
+// Upload ảnh đại diện
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Không có file ảnh' });
+    }
+    const userId = req.user.id;
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+    let profile = await Profile.findOne({ where: { user_id: userId } });
+    if (!profile) {
+      profile = await Profile.create({ user_id: userId, avatar_url: avatarUrl });
+    } else {
+      if (profile.avatar_url) {
+        const oldPath = path.join(__dirname, '../../', profile.avatar_url);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      await profile.update({ avatar_url: avatarUrl });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Cập nhật ảnh đại diện thành công',
+      data: { avatar_url: avatarUrl },
+    });
+  } catch (error) {
+    console.error('Upload Avatar Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi upload ảnh' });
+  }
+};
+
+module.exports = {
+  getProfile,
+  updateProfile,
+  getProfileById,
+  uploadAvatar,
 };

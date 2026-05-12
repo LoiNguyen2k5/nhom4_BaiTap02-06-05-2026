@@ -28,6 +28,15 @@ axiosClient.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers['retry-after'];
+      const waitMsg = retryAfter ? ` Vui lòng chờ ${retryAfter} giây.` : '';
+      error.message = `Quá nhiều lần thử.${waitMsg}`;
+      error.response.data = {
+        ...error.response.data,
+        message: error.message,
+      };
+    }
     return Promise.reject(error);
   }
 );

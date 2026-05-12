@@ -31,6 +31,10 @@ const Profile = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    avatar_url: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
   },
   {
     tableName: 'profiles',

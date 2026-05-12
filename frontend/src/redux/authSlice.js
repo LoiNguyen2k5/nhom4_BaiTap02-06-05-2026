@@ -1,6 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosClient from '../services/axiosClient';
 
+// Khôi phục user từ token sau hard refresh
+export const fetchMeThunk = createAsyncThunk(
+  'auth/fetchMe',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axiosClient.get('/profile/');
+      return res.data.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Phiên đăng nhập hết hạn');
+    }
+  }
+);
+
 export const loginThunk = createAsyncThunk(
   'auth/login',
   async ({ email, password }, { rejectWithValue }) => {
@@ -77,6 +90,16 @@ const authSlice = createSlice({
       .addCase(registerThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchMeThunk.fulfilled, (state, action) => {
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(fetchMeThunk.rejected, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        localStorage.removeItem('token');
       });
   },
 });
