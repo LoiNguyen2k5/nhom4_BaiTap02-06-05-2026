@@ -116,11 +116,7 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors font-medium">
-              <input type="checkbox" className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4" />
-              Ghi nhớ tôi
-            </label>
+          <div className="flex items-center justify-end text-sm">
             <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800 transition-colors font-semibold">
               Quên mật khẩu?
             </Link>
