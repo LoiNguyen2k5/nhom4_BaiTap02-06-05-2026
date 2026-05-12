@@ -20,9 +20,8 @@ exports.generateAndSendOTP = async (email) => {
     // Save OTP to database
     await OTP.create({
       user_id: user.id,
-      otp_code: otpCode,
-      type: 'forgot_password',
-      expired_at: expiryTime
+      code: otpCode,
+      expires_at: expiryTime
     });
 
     // Send email
@@ -49,8 +48,8 @@ exports.verifyOTPAndResetPassword = async (email, otp, newPassword) => {
     const otpRecord = await OTP.findOne({
       where: { 
         user_id: user.id,
-        otp_code: otp,
-        type: 'forgot_password'
+        code: otp,
+        is_used: false
       }
     });
 
@@ -59,7 +58,7 @@ exports.verifyOTPAndResetPassword = async (email, otp, newPassword) => {
     }
 
     // Check if OTP has expired
-    if (new Date() > new Date(otpRecord.expired_at)) {
+    if (new Date() > new Date(otpRecord.expires_at)) {
       await otpRecord.destroy();
       throw { status: 400, message: 'Mã OTP đã hết hạn. Vui lòng yêu cầu OTP mới.' };
     }

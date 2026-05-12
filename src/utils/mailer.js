@@ -1,18 +1,18 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT) || 587,
+    host: process.env.SMTP_HOST || process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || parseInt(process.env.EMAIL_PORT) || 587,
     secure: false,
     auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD
+        user: process.env.SMTP_USER || process.env.EMAIL_USER,
+        pass: process.env.SMTP_PASSWORD || process.env.EMAIL_PASS
     }
 });
 
 const sendEmailOTP = async (email, otp) => {
     const mailOptions = {
-        from: `"HR Management System" <${process.env.SMTP_USER}>`,
+        from: `"HR Management System" <${process.env.SMTP_USER || process.env.EMAIL_USER}>`,
         to: email,
         subject: '🔐 Mã OTP Khôi Phục Mật Khẩu',
         html: `
