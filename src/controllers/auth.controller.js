@@ -27,7 +27,7 @@ const login = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Email hoac password khong chinh xac',
+        message: 'Email hoặc mật khẩu không chính xác',
       });
     }
 
@@ -36,7 +36,7 @@ const login = async (req, res) => {
     if (!validPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Email hoac password khong chinh xac',
+        message: 'Email hoặc mật khẩu không chính xác',
       });
     }
 
@@ -56,7 +56,7 @@ const login = async (req, res) => {
     // Buoc 6: Tra ve Response thanh cong
     return res.status(200).json({
       success: true,
-      message: 'Dang nhap thanh cong',
+      message: 'Đăng nhập thành công',
       token: token,
       redirectUrl: redirectUrl,
       user: {
@@ -70,7 +70,7 @@ const login = async (req, res) => {
     console.error('Login Error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Loi server khi dang nhap',
+      message: 'Lỗi server khi đăng nhập',
     });
   }
 };
@@ -96,7 +96,7 @@ const register = async (req, res) => {
     if (existingUser) {
       return res.status(409).json({
         success: false,
-        message: 'Email nay da duoc dang ky, vui long su dung email khac',
+        message: 'Email này đã được đăng ký, vui lòng sử dụng email khác',
       });
     }
 
@@ -131,7 +131,7 @@ const register = async (req, res) => {
     // Buoc 8: Tra ve Response 201 thanh cong
     return res.status(201).json({
       success: true,
-      message: 'Dang ky thanh cong! Vui long kiem tra email de lay ma OTP xac thuc tai khoan.',
+      message: 'Đăng ký thành công! Vui lòng kiểm tra email để lấy mã OTP xác thực tài khoản.',
       data: {
         id: newUser.id,
         name: newUser.name,
@@ -142,7 +142,7 @@ const register = async (req, res) => {
     console.error('Register Error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Loi server khi dang ky',
+      message: 'Lỗi server khi đăng ký',
     });
   }
 };
@@ -168,7 +168,7 @@ const verifyOtp = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'Khong tim thay tai khoan voi email nay',
+        message: 'Không tìm thấy tài khoản với email này',
       });
     }
 
@@ -176,7 +176,7 @@ const verifyOtp = async (req, res) => {
     if (user.status === 'active') {
       return res.status(400).json({
         success: false,
-        message: 'Tai khoan nay da duoc xac thuc truoc do',
+        message: 'Tài khoản này đã được xác thực từ trước',
       });
     }
 
@@ -192,7 +192,7 @@ const verifyOtp = async (req, res) => {
     if (!otpRecord) {
       return res.status(400).json({
         success: false,
-        message: 'Ma OTP khong chinh xac hoac da duoc su dung',
+        message: 'Mã OTP không chính xác hoặc đã được sử dụng',
       });
     }
 
@@ -200,7 +200,7 @@ const verifyOtp = async (req, res) => {
     if (otpRecord.expires_at <= new Date()) {
       return res.status(400).json({
         success: false,
-        message: 'Ma OTP da het han, vui long dang ky lai de nhan OTP moi',
+        message: 'Mã OTP đã hết hạn, vui lòng đăng ký lại để nhận OTP mới',
       });
     }
 
@@ -213,13 +213,13 @@ const verifyOtp = async (req, res) => {
     // Buoc 8: Tra ve Response thanh cong
     return res.status(200).json({
       success: true,
-      message: 'Xac thuc OTP thanh cong! Tai khoan cua ban da duoc kich hoat.',
+      message: 'Xác thực OTP thành công! Tài khoản của bạn đã được kích hoạt.',
     });
   } catch (error) {
     console.error('Verify OTP Error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Loi server khi xac thuc OTP',
+      message: 'Lỗi server khi xác thực OTP',
     });
   }
 };
