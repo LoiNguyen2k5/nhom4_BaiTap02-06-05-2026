@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Alert = ({ type, message }) => {
   if (!message) return null;
 

@@ -14,6 +14,9 @@ const initializeDatabase = async () => {
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: false,
+        dialectOptions: {
+          socketPath: process.env.DB_SOCKET || '/tmp/mysql.sock',
+        },
       }
     );
 
@@ -29,6 +32,9 @@ const initializeDatabase = async () => {
     const sequelize = require('./database');
     await sequelize.authenticate();
     console.log('✓ Kết nối database thành công');
+
+    // Load all models so they are registered before sync
+    require('../models/index');
 
     // Sync models - dung alter:true de tu dong cap nhat schema khi co thay doi
     await sequelize.sync({ alter: true });

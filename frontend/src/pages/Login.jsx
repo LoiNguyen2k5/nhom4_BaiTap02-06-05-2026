@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginThunk } from '../redux/authSlice';
@@ -11,22 +11,21 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('rememberedEmail'));
   const [successMsg, setSuccessMsg] = useState('');
+  const [redirectTarget, setRedirectTarget] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
 
-  // Fix F4: cleanup setTimeout khi unmount
   useEffect(() => {
-    if (!successMsg) return;
-    const timer = setTimeout(() => navigate('/profile'), 2000);
+    if (!successMsg || !redirectTarget) return;
+    const timer = setTimeout(() => navigate(redirectTarget), 1500);
     return () => clearTimeout(timer);
-  }, [successMsg, navigate]);
+  }, [successMsg, redirectTarget, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setSuccessMsg('');
-
     const result = await dispatch(loginThunk({ email, password }));
     if (loginThunk.fulfilled.match(result)) {
       if (rememberMe) {
@@ -34,19 +33,14 @@ const Login = () => {
       } else {
         localStorage.removeItem('rememberedEmail');
       }
+      const target = result.payload?.redirectUrl || '/user/profile';
+      setRedirectTarget(target);
       setSuccessMsg('Đăng nhập thành công! Đang chuyển hướng...');
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 w-full absolute top-0 left-0">
-      <Link to="/" className="absolute top-6 left-6 text-gray-500 hover:text-indigo-600 flex items-center gap-2 transition-colors font-medium">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-        </svg>
-        Quay lại
-      </Link>
-
       <div className="bg-white/70 backdrop-blur-xl border border-white/60 p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] w-full max-w-md transform transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -54,10 +48,8 @@ const Login = () => {
           </h2>
           <p className="text-gray-500 mt-2">Đăng nhập vào tài khoản của bạn</p>
         </div>
-
         <Alert type="error" message={error} />
         <Alert type="success" message={successMsg} />
-
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
@@ -70,7 +62,6 @@ const Login = () => {
               placeholder="example@gmail.com"
             />
           </div>
-
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu</label>
             <div className="relative">
@@ -100,7 +91,6 @@ const Login = () => {
               </button>
             </div>
           </div>
-
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors font-medium">
               <input
@@ -115,7 +105,6 @@ const Login = () => {
               Quên mật khẩu?
             </Link>
           </div>
-
           <Button
             type="submit"
             disabled={loading || !!successMsg}
@@ -124,7 +113,6 @@ const Login = () => {
             {loading ? 'Đang xử lý...' : 'Đăng nhập'}
           </Button>
         </form>
-
         <p className="mt-8 text-center text-gray-500 text-sm font-medium">
           Chưa có tài khoản?{' '}
           <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-bold transition-colors">
