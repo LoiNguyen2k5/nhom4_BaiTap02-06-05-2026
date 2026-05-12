@@ -6,12 +6,13 @@ import { loginSuccess } from '../redux/authSlice';
 import Button from '../components/Button';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('rememberedEmail'));
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -24,6 +25,13 @@ const Login = () => {
     try {
       // Gọi API đăng nhập bạn đã làm tuần trước
       const response = await axiosClient.post('/auth/login', { email, password });
+
+      // Lưu email nếu người dùng chọn Ghi nhớ tôi
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
 
       // Đẩy dữ liệu User và Token vào Redux
       dispatch(loginSuccess(response.data));
@@ -116,7 +124,16 @@ const Login = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end text-sm">
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors font-medium">
+              <input 
+                type="checkbox" 
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4" 
+              />
+              Ghi nhớ tôi
+            </label>
             <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800 transition-colors font-semibold">
               Quên mật khẩu?
             </Link>
