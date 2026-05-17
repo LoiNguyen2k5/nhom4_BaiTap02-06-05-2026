@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchMeThunk } from './redux/authSlice';
@@ -9,10 +9,16 @@ import VerifyOtp from './pages/VerifyOtp';
 import ForgotPassword from './pages/ForgotPassword';
 
 import DashboardLayout from './components/layout/DashboardLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminUserDetail from './pages/admin/AdminUserDetail';
 import ProtectedRoute from './routes/ProtectedRoute';
+
+import Layout from './components/Layout';
+import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -25,7 +31,7 @@ const RoleRedirect = () => {
       </div>
     );
   }
-  return <Navigate to={user.role === 'admin' ? '/admin/profile' : '/user/profile'} replace />;
+  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/profile'} replace />;
 };
 
 const App = () => {
@@ -41,7 +47,7 @@ const App = () => {
 
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public routes (auth) */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -50,6 +56,12 @@ const App = () => {
 
       {/* Legacy redirect */}
       <Route path="/profile" element={<RoleRedirect />} />
+
+      {/* Public routes với Navbar & Footer (Loi) */}
+      <Route element={<Layout />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+      </Route>
 
       {/* User dashboard */}
       <Route
@@ -72,8 +84,10 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="profile" element={<AdminProfile />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="users/:id" element={<AdminUserDetail />} />
       </Route>
     </Routes>
   );

@@ -31,6 +31,10 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: 'user',
     },
+    department: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
     // Trạng thái tài khoản: inactive (chưa xác thực), active (đã xác thực)
     status: {
       type: DataTypes.ENUM('inactive', 'active'),
