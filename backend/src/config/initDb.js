@@ -5,6 +5,13 @@ const createAdminAccount = require('../utils/createAdmin');
 const initializeDatabase = async () => {
   try {
     // Create connection without database to execute CREATE DATABASE
+    // Chỉ dùng socketPath khi được cấu hình (Linux/Mac)
+    // Trên Windows dùng TCP (host + port) — không cần socketPath
+    const adminDialectOptions = {};
+    if (process.env.DB_SOCKET) {
+      adminDialectOptions.socketPath = process.env.DB_SOCKET;
+    }
+
     const sequelizeAdmin = new Sequelize(
       '',
       process.env.DB_USER || 'root',
@@ -14,9 +21,7 @@ const initializeDatabase = async () => {
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: false,
-        dialectOptions: {
-          socketPath: process.env.DB_SOCKET || '/tmp/mysql.sock',
-        },
+        dialectOptions: adminDialectOptions,
       }
     );
 

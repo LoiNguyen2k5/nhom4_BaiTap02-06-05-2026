@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
 
-// ── Icon components (dùng SVG inline, không cần thư viện ngoài) ──────────────
+// ── Icon components ───────────────────────────────────────────────────────────
 const IconUsers = () => (
   <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
@@ -23,8 +23,18 @@ const IconStar = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
   </svg>
 );
+const IconClock = () => (
+  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+const IconBuilding = () => (
+  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+  </svg>
+);
 
-// ── Cấu hình 4 stat cards ────────────────────────────────────────────────────
+// ── Cấu hình stat cards ───────────────────────────────────────────────────────
 const getCards = (data) => [
   {
     id: 'total',
@@ -69,6 +79,32 @@ const getCards = (data) => [
     text: 'text-violet-600',
     link: '/admin/users',
     linkLabel: 'Xem →',
+  },
+  {
+    id: 'pending',
+    label: 'Yêu cầu chờ duyệt',
+    // Placeholder — sẽ lấy từ API sau khi xây module account_requests
+    value: 0,
+    icon: <IconClock />,
+    bg: 'from-amber-400 to-amber-500',
+    light: 'bg-amber-50',
+    text: 'text-amber-600',
+    link: '/admin/users',
+    linkLabel: 'Xem →',
+    placeholder: true,
+  },
+  {
+    id: 'departments',
+    label: 'Phòng ban',
+    // Placeholder — sẽ lấy từ API sau khi xây module departments
+    value: 0,
+    icon: <IconBuilding />,
+    bg: 'from-teal-400 to-teal-500',
+    light: 'bg-teal-50',
+    text: 'text-teal-600',
+    link: '/admin/departments',
+    linkLabel: 'Quản lý →',
+    placeholder: true,
   },
 ];
 
@@ -194,19 +230,26 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* ── 4 Stat Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* ── Stat Cards (6 cards, 3 cột) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {cards.map((card) => (
           <div
             key={card.id}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4 hover:shadow-md transition-shadow"
+            className={`bg-white rounded-2xl shadow-sm border p-5 flex flex-col gap-4 hover:shadow-md transition-shadow ${
+              card.placeholder ? 'border-dashed border-gray-200 opacity-75' : 'border-gray-100'
+            }`}
           >
             {/* Icon + số liệu */}
             <div className="flex items-center justify-between">
               <div className={`${card.light} p-3 rounded-xl ${card.text}`}>
                 {card.icon}
               </div>
-              <span className="text-3xl font-extrabold text-gray-800">{card.value}</span>
+              <div className="text-right">
+                <span className="text-3xl font-extrabold text-gray-800">{card.value}</span>
+                {card.placeholder && (
+                  <p className="text-[10px] text-gray-400 mt-0.5">Chờ xây dựng</p>
+                )}
+              </div>
             </div>
 
             {/* Thanh gradient nhỏ */}
@@ -226,62 +269,128 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* ── Bảng tài khoản mới nhất ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-        {/* Tiêu đề bảng */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
-            <h2 className="text-base font-bold text-gray-800">Tài khoản mới nhất</h2>
-            <p className="text-xs text-gray-400 mt-0.5">5 tài khoản được tạo gần đây nhất</p>
+      {/* ── 2 bảng dưới: Tài khoản mới + Yêu cầu chờ duyệt ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+        {/* Bảng tài khoản mới nhất */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div>
+              <h2 className="text-base font-bold text-gray-800">Tài khoản mới nhất</h2>
+              <p className="text-xs text-gray-400 mt-0.5">5 tài khoản được tạo gần đây nhất</p>
+            </div>
+            <button
+              onClick={() => navigate('/admin/users')}
+              className="text-sm font-semibold text-blue-600 hover:underline"
+            >
+              Xem tất cả →
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/admin/users')}
-            className="text-sm font-semibold text-blue-600 hover:underline"
-          >
-            Xem tất cả →
-          </button>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  <th className="px-6 py-3">Họ tên</th>
+                  <th className="px-6 py-3">Vai trò</th>
+                  <th className="px-6 py-3">Trạng thái</th>
+                  <th className="px-6 py-3">Ngày tạo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {stats?.recentUsers?.length > 0 ? (
+                  stats.recentUsers.map((u) => (
+                    <tr key={u.id} className="hover:bg-blue-50/40 transition-colors">
+                      <td className="px-6 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                            {(u.name || u.email || '?').charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-800 text-xs">{u.name || '—'}</p>
+                            <p className="text-gray-400 text-xs">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-3.5"><RoleBadge role={u.role} /></td>
+                      <td className="px-6 py-3.5"><StatusBadge status={u.status} /></td>
+                      <td className="px-6 py-3.5 text-gray-400 text-xs">{formatDate(u.created_at)}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-10 text-center text-gray-400">Chưa có tài khoản nào</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Nội dung bảng */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                <th className="px-6 py-3">Họ tên</th>
-                <th className="px-6 py-3">Email</th>
-                <th className="px-6 py-3">Vai trò</th>
-                <th className="px-6 py-3">Trạng thái</th>
-                <th className="px-6 py-3">Ngày tạo</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {stats?.recentUsers?.length > 0 ? (
-                stats.recentUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-blue-50/40 transition-colors">
-                    <td className="px-6 py-3.5">
-                      <div className="flex items-center gap-3">
-                        {/* Avatar chữ cái đầu */}
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                          {(u.name || u.email || '?').charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-medium text-gray-800">{u.name || '—'}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5 text-gray-500">{u.email}</td>
-                    <td className="px-6 py-3.5"><RoleBadge role={u.role} /></td>
-                    <td className="px-6 py-3.5"><StatusBadge status={u.status} /></td>
-                    <td className="px-6 py-3.5 text-gray-400">{formatDate(u.created_at)}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
-                    Chưa có tài khoản nào
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* Bảng yêu cầu cấp tài khoản — Placeholder */}
+        <div className="bg-white rounded-2xl shadow-sm border border-dashed border-amber-200">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-amber-100">
+            <div>
+              <h2 className="text-base font-bold text-gray-800">Yêu cầu cấp tài khoản</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Yêu cầu từ HR đang chờ Admin xác nhận</p>
+            </div>
+            <span className="text-xs bg-amber-100 text-amber-600 font-semibold px-2.5 py-1 rounded-full">Sắp có</span>
+          </div>
+          {/* Placeholder rows */}
+          <div className="px-6 py-4 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 animate-pulse">
+                <div className="w-9 h-9 rounded-full bg-gray-200" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                </div>
+                <div className="h-7 w-20 bg-gray-200 rounded-lg" />
+              </div>
+            ))}
+            <p className="text-center text-xs text-gray-400 pt-2">
+              Chức năng sẽ khả dụng sau khi xây module HR
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Widget Nhật ký hoạt động gần đây (Placeholder) ── */}
+      <div className="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div>
+            <h2 className="text-base font-bold text-gray-800">Nhật ký hoạt động gần đây</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Lịch sử thao tác của tất cả vai trò trong hệ thống</p>
+          </div>
+          <span className="text-xs bg-gray-100 text-gray-500 font-semibold px-2.5 py-1 rounded-full">Sắp có</span>
+        </div>
+
+        {/* Placeholder log items */}
+        <div className="divide-y divide-gray-50">
+          {[
+            { color: 'bg-blue-400',   label: 'Admin', action: 'Khóa tài khoản',       time: '2 phút trước' },
+            { color: 'bg-violet-400', label: 'HR',    action: 'Tạo hồ sơ nhân viên',  time: '15 phút trước' },
+            { color: 'bg-amber-400',  label: 'Manager', action: 'Phê duyệt đơn nghỉ phép', time: '1 giờ trước' },
+            { color: 'bg-teal-400',   label: 'Kế toán', action: 'Tạo bảng lương tháng 5', time: '3 giờ trước' },
+            { color: 'bg-gray-400',   label: 'Employee', action: 'Gửi đơn xin nghỉ phép', time: 'Hôm qua' },
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition-colors opacity-50">
+              {/* Dot màu vai trò */}
+              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.color}`} />
+              {/* Badge role */}
+              <span className="text-xs font-semibold text-gray-500 w-16 shrink-0">{item.label}</span>
+              {/* Nội dung */}
+              <p className="text-sm text-gray-600 flex-1">{item.action}</p>
+              {/* Thời gian */}
+              <span className="text-xs text-gray-400 shrink-0">{item.time}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-6 py-3 border-t border-gray-50 text-center">
+          <p className="text-xs text-gray-400">
+            Dữ liệu minh họa · Chức năng thật sẽ khả dụng sau khi xây module Nhật ký
+          </p>
         </div>
       </div>
 
