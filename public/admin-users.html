@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh Sách Tài Khoản - Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Styling thêm cho Admin Users */
+    .admin-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .filter-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    th {
+      background-color: var(--gray-100);
+      font-weight: 600;
+      color: var(--gray-700);
+    }
+
+    tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge-admin { background-color: #e0e7ff; color: #3730a3; }
+    .badge-user { background-color: #f3f4f6; color: #4b5563; }
+    .badge-active { background-color: #dcfce7; color: #166534; }
+    .badge-inactive { background-color: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container admin-container" style="display: flex; justify-content: space-between; align-items: center;">
+      <a href="/profile.html" class="navbar-brand">Profile Manager <span style="font-size: 14px; color: #ef4444;">(Admin)</span></a>
+      <div class="navbar-menu">
+        <a href="/profile.html" class="btn btn-secondary btn-sm">Về Profile</a>
+        <button class="btn btn-danger btn-sm" onclick="Auth.logout()">Đăng Xuất</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container admin-container">
+    <div id="alert" class="alert"></div>
+
+    <div class="card">
+      <div class="card-header">Danh Sách Tài Khoản</div>
+
+      <!-- Filter Form -->
+      <form id="filterForm" onsubmit="event.preventDefault(); loadUsers();">
+        <div class="filter-section">
+          <div class="form-group">
+            <label>Tìm kiếm</label>
+            <input type="text" id="search" placeholder="Tên hoặc email...">
+          </div>
+          <div class="form-group">
+            <label>Vai trò</label>
+            <select id="role" class="form-control" style="width: 100%; padding: 0.625rem; border: 1px solid var(--gray-300); border-radius: 0.375rem;">
+              <option value="">Tất cả</option>
+              <option value="admin">Admin</option>
+              <option value="user">User</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Trạng thái</label>
+            <select id="status" class="form-control" style="width: 100%; padding: 0.625rem; border: 1px solid var(--gray-300); border-radius: 0.375rem;">
+              <option value="">Tất cả</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Phòng ban</label>
+            <select id="department" class="form-control" style="width: 100%; padding: 0.625rem; border: 1px solid var(--gray-300); border-radius: 0.375rem;">
+              <option value="">Tất cả phòng ban</option>
+              <option value="IT">IT (Công nghệ thông tin)</option>
+              <option value="HR">HR (Nhân sự)</option>
+              <option value="Kế toán">Kế toán</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Kinh doanh">Kinh doanh</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Từ ngày</label>
+            <input type="date" id="created_from">
+          </div>
+          <div class="form-group">
+            <label>Đến ngày</label>
+            <input type="date" id="created_to">
+          </div>
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">🔍 Tìm / Lọc</button>
+          </div>
+        </div>
+      </form>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Họ Tên</th>
+              <th>Email</th>
+              <th>Vai Trò</th>
+              <th>Trạng Thái</th>
+              <th>Phòng Ban</th>
+              <th>Ngày Tạo</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="7" style="text-align:center;">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Kiểm tra đăng nhập
+    if (!Auth.isLoggedIn()) {
+      window.location.href = '/login.html';
+    }
+
+    // Load danh sách người dùng
+    async function loadUsers() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;"><div class="spinner"></div> Đang tải...</td></tr>';
+      
+      try {
+        // Lấy dữ liệu filter
+        const params = new URLSearchParams();
+        const search = document.getElementById('search').value;
+        const role = document.getElementById('role').value;
+        const status = document.getElementById('status').value;
+        const department = document.getElementById('department').value;
+        const created_from = document.getElementById('created_from').value;
+        const created_to = document.getElementById('created_to').value;
+
+        if (search) params.append('search', search);
+        if (role) params.append('role', role);
+        if (status) params.append('status', status);
+        if (department) params.append('department', department);
+        if (created_from) params.append('created_from', created_from);
+        if (created_to) params.append('created_to', created_to);
+
+        // Gọi API với query params
+        const response = await ApiClient.get(`/admin/users?${params.toString()}`);
+        
+        if (response.success && response.data) {
+          renderUsers(response.data);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Không tải được dữ liệu</td></tr>';
+        }
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: red;">Lỗi: ${error.message}</td></tr>`;
+      }
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersTableBody');
+      
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: #6b7280;">Không tìm thấy kết quả nào phù hợp.</td></tr>';
+        return;
+      }
+
+      const html = users.map(u => `
+        <tr>
+          <td>#${u.id}</td>
+          <td style="font-weight: 500;">${u.name || '-'}</td>
+          <td>${u.email}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">${u.role}</span></td>
+          <td><span class="badge ${u.status === 'active' || u.is_active ? 'badge-active' : 'badge-inactive'}">${u.status || (u.is_active ? 'active' : 'inactive')}</span></td>
+          <td>${u.department || '-'}</td>
+          <td>${formatDate(u.created_at)}</td>
+        </tr>
+      `).join('');
+
+      tbody.innerHTML = html;
+    }
+
+    // Khởi chạy khi trang được load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+    });
+  </script>
+</body>
+</html>
