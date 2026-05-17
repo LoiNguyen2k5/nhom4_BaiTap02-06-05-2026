@@ -1,6 +1,5 @@
-import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { ShoppingCart, Search, User } from 'lucide-react';
+import { ShoppingCart, User } from 'lucide-react';
 
 const Layout = () => {
   return (
@@ -12,20 +11,12 @@ const Layout = () => {
           
           <nav className="hidden md:flex space-x-8">
             <Link to="/home" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Trang chủ</Link>
-            <Link to="/search" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Tìm kiếm</Link>
-            <Link to="/admin/users" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Quản lý Tài khoản (Admin)</Link>
             <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium transition-colors">Đăng nhập</Link>
           </nav>
 
           <div className="flex items-center space-x-6 text-gray-500">
-            <Link to="/search" className="hover:text-blue-600 transition-colors">
-              <Search size={22} />
-            </Link>
             <div className="relative cursor-pointer hover:text-blue-600 transition-colors">
               <ShoppingCart size={22} />
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                3
-              </span>
             </div>
             <Link to="/profile" className="hover:text-blue-600 transition-colors">
               <User size={22} />
@@ -50,7 +41,6 @@ const Layout = () => {
             <h4 className="text-lg font-semibold text-white mb-4">Liên kết</h4>
             <ul className="space-y-2">
               <li><Link to="/home" className="hover:text-white transition-colors">Trang chủ</Link></li>
-              <li><Link to="/search" className="hover:text-white transition-colors">Sản phẩm</Link></li>
               <li><Link to="#" className="hover:text-white transition-colors">Về chúng tôi</Link></li>
             </ul>
           </div>

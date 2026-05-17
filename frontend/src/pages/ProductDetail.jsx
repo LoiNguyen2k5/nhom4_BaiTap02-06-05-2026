@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Thumbs } from 'swiper/modules';
-import { Star, Minus, Plus, ShoppingCart, Heart, Share2, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
+import { Navigation, Thumbs } from 'swiper/modules';
+import { Star, Minus, Plus, ShoppingCart, Heart, ShieldCheck, Truck, RotateCcw } from 'lucide-react';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -55,7 +55,7 @@ const ProductDetail = () => {
       <nav className="flex text-sm text-gray-500 mb-8">
         <Link to="/home" className="hover:text-blue-600 transition-colors">Trang chủ</Link>
         <span className="mx-2">/</span>
-        <Link to="/search" className="hover:text-blue-600 transition-colors">{PRODUCT.category}</Link>
+        <span>{PRODUCT.category}</span>
         <span className="mx-2">/</span>
         <span className="text-gray-900 font-medium truncate">{PRODUCT.name}</span>
       </nav>
