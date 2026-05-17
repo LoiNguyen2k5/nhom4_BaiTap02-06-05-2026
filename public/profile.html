@@ -108,6 +108,7 @@
 
         <div class="button-group">
           <a href="/edit-profile.html" class="btn btn-primary">✏️ Chỉnh Sửa</a>
+          ${user.role === 'admin' ? '<a href="/admin-users.html" class="btn btn-primary" style="background-color: var(--warning-color);">🛡️ Quản Lý (Admin)</a>' : ''}
           <button class="btn btn-secondary" onclick="window.location.href='/'">🏠 Về Trang Chủ</button>
         </div>
       `;
