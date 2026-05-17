@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchMeThunk } from './redux/authSlice';
@@ -18,7 +18,6 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import Layout from './components/Layout';
 import Home from './pages/Home';
-import Search from './pages/Search';
 import ProductDetail from './pages/ProductDetail';
 
 // Redirect /profile đến đúng dashboard theo role
@@ -61,7 +60,6 @@ const App = () => {
       {/* Public routes với Navbar & Footer (Loi) */}
       <Route element={<Layout />}>
         <Route path="/home" element={<Home />} />
-        <Route path="/search" element={<Search />} />
         <Route path="/product/:id" element={<ProductDetail />} />
       </Route>
 

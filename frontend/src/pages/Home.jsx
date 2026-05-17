@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Star } from 'lucide-react';
 
@@ -36,7 +35,7 @@ const ProductCard = ({ product }) => (
       <div className="flex items-center space-x-1 mb-2">
         <Star className="text-yellow-400 fill-current" size={16} />
         <span className="text-sm text-gray-600 font-medium">{product.rating}</span>
-        {product.sold && <span className="text-xs text-gray-400 ml-2">({product.sold} đã bán)</span>}
+        {product.sold != null && <span className="text-xs text-gray-400 ml-2">({product.sold} đã bán)</span>}
       </div>
       <Link to={`/product/${product.id}`}>
         <h3 className="font-semibold text-gray-900 text-lg mb-1 truncate hover:text-blue-600 transition-colors">{product.name}</h3>
@@ -63,9 +62,6 @@ const Home = () => {
           <p className="text-lg md:text-xl text-gray-200 mb-10 max-w-xl leading-relaxed">
             Khám phá bộ sưu tập sản phẩm công nghệ mới nhất với ưu đãi lên đến 40%. Độc quyền trong tháng này.
           </p>
-          <Link to="/search" className="inline-block bg-white text-blue-900 font-bold py-4 px-10 rounded-full hover:bg-gray-100 hover:scale-105 transition-all shadow-lg hover:shadow-xl">
-            Mua sắm ngay
-          </Link>
         </div>
       </section>
 
@@ -78,7 +74,6 @@ const Home = () => {
             </h2>
             <p className="text-gray-500">Cập nhật những xu hướng công nghệ mới nhất.</p>
           </div>
-          <Link to="/search" className="text-blue-600 font-semibold hover:underline hidden sm:block">Xem tất cả</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {DUMMY_PRODUCTS.map(product => (
@@ -96,7 +91,6 @@ const Home = () => {
             </h2>
             <p className="text-gray-500">Những sản phẩm được yêu thích nhất bởi khách hàng.</p>
           </div>
-          <Link to="/search" className="text-blue-600 font-semibold hover:underline hidden sm:block">Xem tất cả</Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {BEST_SELLERS.map(product => (
