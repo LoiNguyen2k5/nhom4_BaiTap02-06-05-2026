@@ -41,9 +41,7 @@ const getCards = (data) => [
     label: 'Tổng tài khoản',
     value: data?.totalUsers ?? '—',
     icon: <IconUsers />,
-    bg: 'from-blue-500 to-blue-600',
-    light: 'bg-blue-50',
-    text: 'text-blue-600',
+    bg: 'from-indigo-400 to-indigo-500',
     link: '/admin/users',
     linkLabel: 'Xem tất cả →',
   },
@@ -52,9 +50,7 @@ const getCards = (data) => [
     label: 'Đang hoạt động',
     value: data?.activeUsers ?? '—',
     icon: <IconCheck />,
-    bg: 'from-emerald-400 to-emerald-500',
-    light: 'bg-emerald-50',
-    text: 'text-emerald-600',
+    bg: 'from-emerald-500 to-emerald-600',
     link: '/admin/users?status=active',
     linkLabel: 'Xem →',
   },
@@ -63,9 +59,7 @@ const getCards = (data) => [
     label: 'Bị khóa',
     value: data?.lockedUsers ?? '—',
     icon: <IconLock />,
-    bg: 'from-rose-400 to-rose-500',
-    light: 'bg-rose-50',
-    text: 'text-rose-600',
+    bg: 'from-rose-500 to-rose-600',
     link: '/admin/users?status=inactive',
     linkLabel: 'Xử lý ngay →',
   },
@@ -74,21 +68,16 @@ const getCards = (data) => [
     label: 'Mới tháng này',
     value: data?.newUsersThisMonth ?? '—',
     icon: <IconStar />,
-    bg: 'from-violet-500 to-violet-600',
-    light: 'bg-violet-50',
-    text: 'text-violet-600',
+    bg: 'from-purple-500 to-purple-600',
     link: '/admin/users',
     linkLabel: 'Xem →',
   },
   {
     id: 'pending',
     label: 'Yêu cầu chờ duyệt',
-    // Placeholder — sẽ lấy từ API sau khi xây module account_requests
     value: 0,
     icon: <IconClock />,
-    bg: 'from-amber-400 to-amber-500',
-    light: 'bg-amber-50',
-    text: 'text-amber-600',
+    bg: 'from-amber-400 to-orange-500',
     link: '/admin/users',
     linkLabel: 'Xem →',
     placeholder: true,
@@ -96,12 +85,9 @@ const getCards = (data) => [
   {
     id: 'departments',
     label: 'Phòng ban',
-    // Placeholder — sẽ lấy từ API sau khi xây module departments
     value: 0,
     icon: <IconBuilding />,
-    bg: 'from-teal-400 to-teal-500',
-    light: 'bg-teal-50',
-    text: 'text-teal-600',
+    bg: 'from-teal-500 to-teal-600',
     link: '/admin/departments',
     linkLabel: 'Quản lý →',
     placeholder: true,
@@ -210,65 +196,66 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="min-h-screen bg-slate-100">
 
-      {/* ── Header ── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Tổng quan hệ thống</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Dữ liệu cập nhật theo thời gian thực · {monthYear}</p>
+      {/* ══ HEADER BANNER — gradient xanh đậm ══ */}
+      <div className="bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-8 pt-8 pb-24 relative overflow-hidden">
+        {/* Vòng trang trí nền */}
+        <div className="absolute -top-10 -right-10 w-64 h-64 rounded-full bg-white/5" />
+        <div className="absolute top-20 -right-4 w-32 h-32 rounded-full bg-white/5" />
+        <div className="absolute -bottom-8 left-1/3 w-48 h-48 rounded-full bg-white/5" />
+
+        <div className="relative flex items-start justify-between">
+          <div>
+            <p className="text-blue-200 text-sm font-medium mb-1">Xin chào, Admin 👋</p>
+            <h1 className="text-3xl font-extrabold text-white">Tổng quan hệ thống</h1>
+            <p className="text-blue-200 text-sm mt-1.5">Dữ liệu cập nhật theo thời gian thực · {monthYear}</p>
+          </div>
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/15 hover:bg-white/25 text-white text-sm font-semibold rounded-xl backdrop-blur transition-all border border-white/20"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Quản lý tài khoản
+          </button>
         </div>
-        {/* Nút shortcut sang trang quản lý tài khoản */}
-        <button
-          onClick={() => navigate('/admin/users')}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow transition-all"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Quản lý tài khoản
-        </button>
       </div>
 
-      {/* ── Stat Cards (6 cards, 3 cột) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {cards.map((card) => (
-          <div
-            key={card.id}
-            className={`bg-white rounded-2xl shadow-sm border p-5 flex flex-col gap-4 hover:shadow-md transition-shadow ${
-              card.placeholder ? 'border-dashed border-gray-200 opacity-75' : 'border-gray-100'
-            }`}
-          >
-            {/* Icon + số liệu */}
-            <div className="flex items-center justify-between">
-              <div className={`${card.light} p-3 rounded-xl ${card.text}`}>
-                {card.icon}
+      {/* ══ STAT CARDS — nổi lên đè lên header ══ */}
+      <div className="px-8 -mt-14 relative z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              className={`rounded-2xl p-5 flex flex-col gap-3 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 bg-gradient-to-br ${card.bg}`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-white/20">
+                  {card.icon}
+                </div>
+                <div className="text-right">
+                  <span className="text-3xl font-extrabold text-white">{card.value}</span>
+                  {card.placeholder && (
+                    <p className="text-[10px] text-white/60 mt-0.5">Chưa có dữ liệu</p>
+                  )}
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-3xl font-extrabold text-gray-800">{card.value}</span>
-                {card.placeholder && (
-                  <p className="text-[10px] text-gray-400 mt-0.5">Chờ xây dựng</p>
-                )}
-              </div>
-            </div>
-
-            {/* Thanh gradient nhỏ */}
-            <div className={`h-1 w-12 rounded-full bg-gradient-to-r ${card.bg}`} />
-
-            {/* Label + link */}
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-500">{card.label}</p>
+              <p className="text-sm font-semibold text-white/85">{card.label}</p>
               <button
                 onClick={() => navigate(card.link)}
-                className={`text-xs font-semibold ${card.text} hover:underline`}
+                className="text-xs font-semibold self-start text-white/70 hover:text-white hover:underline underline-offset-2"
               >
                 {card.linkLabel}
               </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
+      {/* ══ NỘI DUNG PHÍA DƯỚI ══ */}
+      <div className="px-8 py-6 space-y-6">
       {/* ── 2 bảng dưới: Tài khoản mới + Yêu cầu chờ duyệt ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
@@ -290,19 +277,19 @@ const AdminDashboard = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  <th className="px-6 py-3">Họ tên</th>
-                  <th className="px-6 py-3">Vai trò</th>
-                  <th className="px-6 py-3">Trạng thái</th>
-                  <th className="px-6 py-3">Ngày tạo</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Họ tên</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Vai trò</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Trạng thái</th>
+                  <th className="px-4 py-3 whitespace-nowrap">Ngày tạo</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {stats?.recentUsers?.length > 0 ? (
                   stats.recentUsers.map((u) => (
                     <tr key={u.id} className="hover:bg-blue-50/40 transition-colors">
-                      <td className="px-6 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                             {(u.name || u.email || '?').charAt(0).toUpperCase()}
                           </div>
                           <div>
@@ -311,9 +298,9 @@ const AdminDashboard = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-3.5"><RoleBadge role={u.role} /></td>
-                      <td className="px-6 py-3.5"><StatusBadge status={u.status} /></td>
-                      <td className="px-6 py-3.5 text-gray-400 text-xs">{formatDate(u.created_at)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap"><RoleBadge role={u.role} /></td>
+                      <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={u.status} /></td>
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">{formatDate(u.created_at)}</td>
                     </tr>
                   ))
                 ) : (
@@ -394,6 +381,7 @@ const AdminDashboard = () => {
         </div>
       </div>
 
+      </div>
     </div>
   );
 };
