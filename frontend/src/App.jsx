@@ -17,8 +17,6 @@ import AdminUserDetail from './pages/admin/AdminUserDetail';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import Layout from './components/Layout';
-import Home from './pages/Home';
-import ProductDetail from './pages/ProductDetail';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -59,8 +57,7 @@ const App = () => {
 
       {/* Public routes với Navbar & Footer (Loi) */}
       <Route element={<Layout />}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
+        {/* Removed Home and ProductDetail routes */}
       </Route>
 
       {/* User dashboard */}
