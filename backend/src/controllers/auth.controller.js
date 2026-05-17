@@ -40,6 +40,14 @@ const login = async (req, res) => {
       });
     }
 
+    // Buoc 3b: Kiem tra tai khoan da kich hoat chua
+    if (user.status === 'inactive') {
+      return res.status(403).json({
+        success: false,
+        message: 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để nhập mã OTP.',
+      });
+    }
+
     // Buoc 4: Tao JWT Token
     const token = jwt.sign(
       { id: user.id, role: user.role },
@@ -50,7 +58,7 @@ const login = async (req, res) => {
     // Buoc 5: Xac dinh URL chuyen huong theo Role
     let redirectUrl = '/user/profile';
     if (user.role === 'admin') {
-      redirectUrl = '/admin/profile';
+      redirectUrl = '/admin/dashboard';
     }
 
     // Buoc 6: Tra ve Response thanh cong
@@ -230,8 +238,12 @@ const verifyOtp = async (req, res) => {
 const resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) {
+    if (!email || typeof email !== 'string') {
       return res.status(400).json({ success: false, message: 'Vui lòng nhập email' });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ success: false, message: 'Email không hợp lệ' });
     }
 
     const user = await User.findOne({ where: { email } });

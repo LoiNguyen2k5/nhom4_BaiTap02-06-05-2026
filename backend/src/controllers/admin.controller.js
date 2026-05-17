@@ -11,17 +11,17 @@ const getDashboardStats = async (req, res) => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    const totalUsers = await User.count();
-    const activeUsers = await User.count({ where: { status: 'active' } });
-    const lockedUsers = await User.count({ where: { status: 'inactive' } });
-    const newUsersThisMonth = await User.count({
-      where: { created_at: { [Op.gte]: startOfMonth } },
-    });
-    const recentUsers = await User.findAll({
-      attributes: ['id', 'name', 'email', 'role', 'status', 'created_at'],
-      order: [['created_at', 'DESC']],
-      limit: 5,
-    });
+    const [totalUsers, activeUsers, lockedUsers, newUsersThisMonth, recentUsers] = await Promise.all([
+      User.count(),
+      User.count({ where: { status: 'active' } }),
+      User.count({ where: { status: 'inactive' } }),
+      User.count({ where: { created_at: { [Op.gte]: startOfMonth } } }),
+      User.findAll({
+        attributes: ['id', 'name', 'email', 'role', 'status', 'created_at'],
+        order: [['created_at', 'DESC']],
+        limit: 5,
+      }),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -33,15 +33,54 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
-// Lấy danh sách user kèm profile (admin)
+// Lấy danh sách user kèm profile (admin) — hỗ trợ search, filter & pagination
 const getUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
+    const { search, role, status, department, created_from, created_to, page, limit } = req.query;
+    const whereClause = {};
+
+    if (search) {
+      whereClause[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+      ];
+    }
+    if (role) whereClause.role = role;
+    if (status) whereClause.status = status;
+    if (department) whereClause.department = department;
+    if (created_from || created_to) {
+      whereClause.created_at = {};
+      if (created_from) whereClause.created_at[Op.gte] = new Date(created_from);
+      if (created_to) {
+        const toDate = new Date(created_to);
+        toDate.setHours(23, 59, 59, 999);
+        whereClause.created_at[Op.lte] = toDate;
+      }
+    }
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const offset = (pageNum - 1) * limitNum;
+
+    const { count: total, rows: users } = await User.findAndCountAll({
+      where: whereClause,
       attributes: { exclude: ['password'] },
       include: [Profile],
       order: [['created_at', 'DESC']],
+      limit: limitNum,
+      offset,
     });
-    return res.status(200).json({ success: true, data: users });
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
   } catch (error) {
     console.error('Get Users Error:', error);
     return res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách người dùng' });

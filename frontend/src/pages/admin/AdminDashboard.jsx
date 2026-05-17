@@ -123,7 +123,7 @@ const RoleBadge = ({ role }) => {
     user:       'bg-gray-100 text-gray-600',
   };
   const labels = {
-    admin: 'Admin', hr: 'HR', manager: 'Manager',
+    admin: 'Quản trị viên', hr: 'HR', manager: 'Manager',
     accountant: 'Kế toán', employee: 'Nhân viên', user: 'Người dùng',
   };
   return (

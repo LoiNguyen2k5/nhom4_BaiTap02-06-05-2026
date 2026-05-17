@@ -11,7 +11,7 @@ import {
 import Alert from '../../components/Alert';
 import Button from '../../components/Button';
 
-const BACKEND = 'http://localhost:3000';
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
 const SkeletonLine = ({ width = 'w-32' }) => (
   <div className={`h-5 ${width} bg-gray-200 rounded-lg animate-pulse`} />
@@ -113,10 +113,13 @@ const AdminProfile = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const prevPreview = avatarPreview;
     setAvatarPreview(URL.createObjectURL(file));
     const result = await dispatch(uploadAvatarThunk(file));
     if (uploadAvatarThunk.fulfilled.match(result)) {
       setAvatarPreview(`${BACKEND}${result.payload.avatar_url}`);
+    } else {
+      setAvatarPreview(prevPreview);
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -125,7 +128,7 @@ const AdminProfile = () => {
     e.preventDefault();
     setLocalError('');
     if (formData.phone && !PHONE_REGEX.test(formData.phone)) {
-      setLocalError('So dien thoai khong hop le (10-11 chu so, bat dau bang 0)');
+      setLocalError('Số điện thoại không hợp lệ (10-11 chữ số, bắt đầu bằng 0)');
       return;
     }
     const result = await dispatch(updateProfileThunk(formData));
@@ -150,7 +153,7 @@ const AdminProfile = () => {
 
   if (!isAuthenticated) return null;
 
-  const displayName = user?.name || user?.email || 'Quan tri vien';
+  const displayName = user?.name || user?.email || 'Quản trị viên';
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const displayError = localError || error;
 
@@ -180,7 +183,7 @@ const AdminProfile = () => {
           )}
           <label
             className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center cursor-pointer hover:bg-purple-700 transition shadow-md"
-            title="Doi anh dai dien"
+            title="Đổi ảnh đại diện"
           >
             <IconCamera />
             <input
@@ -209,7 +212,7 @@ const AdminProfile = () => {
               <h2 className="text-xl font-bold text-gray-800 truncate">{displayName}</h2>
               <p className="text-gray-500 text-sm mt-0.5 truncate">{user?.email}</p>
               <span className="inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
-                Quan tri vien
+                Quản trị viên
               </span>
             </>
           )}
@@ -237,9 +240,9 @@ const AdminProfile = () => {
 
         {!editing ? (
           <div>
-            <FieldRow loading={loading} label="Ho & Ten" value={profile?.full_name} icon={<IconUser />} />
-            <FieldRow loading={loading} label="So dien thoai" value={profile?.phone} icon={<IconPhone />} />
-            <FieldRow loading={loading} label="Dia chi" value={profile?.address} icon={<IconPin />} />
+            <FieldRow loading={loading} label="Họ & Tên" value={profile?.full_name} icon={<IconUser />} />
+            <FieldRow loading={loading} label="Số điện thoại" value={profile?.phone} icon={<IconPhone />} />
+            <FieldRow loading={loading} label="Địa chỉ" value={profile?.address} icon={<IconPin />} />
           </div>
         ) : (
           <form onSubmit={handleSave} className="space-y-5">
@@ -252,7 +255,7 @@ const AdminProfile = () => {
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Nguyen Van A"
+                  placeholder="Nguyễn Văn A"
                 />
               </div>
             </div>
@@ -269,7 +272,7 @@ const AdminProfile = () => {
                   placeholder="0912345678"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">10-11 chu so, bat dau bang 0</p>
+              <p className="text-xs text-gray-400 mt-1">10-11 chữ số, bắt đầu bằng 0</p>
             </div>
 
             <div>
@@ -281,7 +284,7 @@ const AdminProfile = () => {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
-                  placeholder="123 Duong ABC, Quan 1, TP.HCM"
+                  placeholder="123 Đường ABC, Quận 1, TP.HCM"
                 />
               </div>
             </div>
@@ -292,7 +295,7 @@ const AdminProfile = () => {
                 disabled={saveLoading}
                 className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transition disabled:opacity-70"
               >
-                {saveLoading ? 'Dang luu...' : 'Luu thay doi'}
+                {saveLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
               <Button
                 type="button"
@@ -300,7 +303,7 @@ const AdminProfile = () => {
                 disabled={saveLoading}
                 className="flex-1 py-3 border-2 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold transition disabled:opacity-70"
               >
-                Huy
+                Hủy
               </Button>
             </div>
           </form>
