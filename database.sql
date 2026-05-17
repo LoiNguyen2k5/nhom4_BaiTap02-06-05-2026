@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin') DEFAULT 'user',
+    department VARCHAR(100) DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -37,9 +38,9 @@ CREATE TABLE IF NOT EXISTS otps (
 -- ================================================
 
 -- Mật khẩu: 'password123' (đã băm bằng bcrypt)
-INSERT INTO users (name, email, password, role, is_active) VALUES
-('Admin', 'admin@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHerry', 'admin', 1),
-('Test User', 'user@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHerry', 'user', 1);
+INSERT INTO users (name, email, password, role, department, is_active) VALUES
+('Admin', 'admin@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHerry', 'admin', 'IT', 1),
+('Test User', 'user@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHerry', 'user', 'HR', 1);
 
 -- Ghi chú: Thêm email thật của bạn vào đây để test gửi OTP
 -- INSERT INTO users (name, email, password, role, is_active) VALUES
