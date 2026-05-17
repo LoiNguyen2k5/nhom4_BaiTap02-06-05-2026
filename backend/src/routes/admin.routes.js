@@ -1,16 +1,21 @@
 const express = require('express');
 const router = express.Router();
-
-// Middleware xác thực token và kiểm tra quyền admin (đã có sẵn)
 const { authenticateToken, authorizeAdmin } = require('../middlewares/auth');
+const {
+  getDashboardStats,
+  getUsers,
+  getUserById,
+  updateUserStatus,
+  updateUserRole,
+} = require('../controllers/admin.controller');
 
-// Controller vừa tạo
-const { getDashboardStats } = require('../controllers/admin.controller');
-
-// GET /api/admin/dashboard
-// - authenticateToken : kiểm tra token JWT hợp lệ
-// - authorizeAdmin    : kiểm tra role === 'admin'
-// - getDashboardStats : xử lý và trả về số liệu
+// Dashboard stats (Nhut)
 router.get('/dashboard', authenticateToken, authorizeAdmin, getDashboardStats);
+
+// User management (Tan)
+router.get('/users', authenticateToken, authorizeAdmin, getUsers);
+router.get('/users/:userId', authenticateToken, authorizeAdmin, getUserById);
+router.put('/users/:userId/status', authenticateToken, authorizeAdmin, updateUserStatus);
+router.put('/users/:userId/role', authenticateToken, authorizeAdmin, updateUserRole);
 
 module.exports = router;
