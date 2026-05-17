@@ -9,6 +9,7 @@ import VerifyOtp from './pages/VerifyOtp';
 import ForgotPassword from './pages/ForgotPassword';
 
 import DashboardLayout from './components/layout/DashboardLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -25,7 +26,7 @@ const RoleRedirect = () => {
       </div>
     );
   }
-  return <Navigate to={user.role === 'admin' ? '/admin/profile' : '/user/profile'} replace />;
+  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/profile'} replace />;
 };
 
 const App = () => {
@@ -72,6 +73,7 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="profile" element={<AdminProfile />} />
         <Route path="users" element={<AdminUsers />} />
       </Route>
