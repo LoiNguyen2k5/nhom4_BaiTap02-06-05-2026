@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+
 // ── Icon components ───────────────────────────────────────────────────────────
 const IconUsers = () => (
   <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
@@ -259,12 +265,12 @@ const AdminDashboard = () => {
       {/* ── 2 bảng dưới: Tài khoản mới + Yêu cầu chờ duyệt ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
 
-        {/* Bảng tài khoản mới nhất */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        {/* Slider 10 tài khoản mới nhất */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 xl:col-span-2">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-base font-bold text-gray-800">Tài khoản mới nhất</h2>
-              <p className="text-xs text-gray-400 mt-0.5">5 tài khoản được tạo gần đây nhất</p>
+              <h2 className="text-base font-bold text-gray-800">Top 10 Tài khoản mới nhất</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Thành viên mới gia nhập hệ thống</p>
             </div>
             <button
               onClick={() => navigate('/admin/users')}
@@ -273,44 +279,66 @@ const AdminDashboard = () => {
               Xem tất cả →
             </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  <th className="px-4 py-3 whitespace-nowrap">Họ tên</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Vai trò</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Trạng thái</th>
-                  <th className="px-4 py-3 whitespace-nowrap">Ngày tạo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {stats?.recentUsers?.length > 0 ? (
-                  stats.recentUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-blue-50/40 transition-colors">
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                            {(u.name || u.email || '?').charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-800 text-xs">{u.name || '—'}</p>
-                            <p className="text-gray-400 text-xs">{u.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap"><RoleBadge role={u.role} /></td>
-                      <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={u.status} /></td>
-                      <td className="px-4 py-3 whitespace-nowrap text-gray-400 text-xs">{formatDate(u.created_at)}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center text-gray-400">Chưa có tài khoản nào</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          
+          {stats?.recentUsers?.length > 0 ? (
+            <Swiper
+              modules={[Navigation, Pagination]}
+              spaceBetween={20}
+              slidesPerView={1}
+              navigation
+              pagination={{ clickable: true }}
+              breakpoints={{
+                640: { slidesPerView: 2 },
+                768: { slidesPerView: 3 },
+                1024: { slidesPerView: 4 },
+                1280: { slidesPerView: 5 },
+              }}
+              className="pb-10" // padding bottom cho pagination dots
+            >
+              {stats.recentUsers.map((u) => (
+                <SwiperSlide key={u.id} className="h-auto">
+                  <div className="bg-gray-50 border border-gray-100 rounded-2xl p-5 h-full flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all">
+                    {/* Avatar */}
+                    {u.Profile?.avatar_url ? (
+                      <img 
+                        src={`http://localhost:5000${u.Profile.avatar_url}`} 
+                        alt="Avatar" 
+                        className="w-16 h-16 rounded-full object-cover mb-3 shadow-sm border-2 border-white"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xl font-bold mb-3 shadow-sm border-2 border-white">
+                        {(u.name || u.email || '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    
+                    {/* Thông tin */}
+                    <h3 className="font-bold text-gray-800 text-sm truncate w-full" title={u.name || 'Chưa cập nhật'}>
+                      {u.name || 'Chưa cập nhật'}
+                    </h3>
+                    <p className="text-xs text-gray-500 truncate w-full mb-2" title={u.email}>
+                      {u.email}
+                    </p>
+                    
+                    {/* Badge */}
+                    <div className="flex gap-1 mb-3">
+                      <RoleBadge role={u.role} />
+                    </div>
+
+                    <div className="mt-auto pt-3 w-full border-t border-gray-200">
+                      <p className="text-[10px] text-gray-400">Tham gia: {formatDate(u.created_at)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 truncate" title={u.department || 'Chưa xếp phòng ban'}>
+                        {u.department || 'Chưa xếp phòng ban'}
+                      </p>
+                    </div>
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          ) : (
+            <div className="py-10 text-center text-gray-400 border-2 border-dashed border-gray-100 rounded-xl">
+              Chưa có tài khoản nào
+            </div>
+          )}
         </div>
 
         {/* Bảng yêu cầu cấp tài khoản — Placeholder */}
