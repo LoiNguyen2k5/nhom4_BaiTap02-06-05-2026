@@ -2,6 +2,7 @@ const User = require('./User');
 const Profile = require('./Profile');
 const OTP = require('./OTP');
 const Department = require('./Department');
+const ActivityLog = require('./ActivityLog');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -34,9 +35,19 @@ OTP.belongsTo(User, {
   foreignKey: 'user_id'
 });
 
+User.hasMany(ActivityLog, {
+  foreignKey: 'user_id',
+  onDelete: 'SET NULL'
+});
+
+ActivityLog.belongsTo(User, {
+  foreignKey: 'user_id'
+});
+
 module.exports = {
   User,
   Profile,
   OTP,
-  Department
+  Department,
+  ActivityLog,
 };
