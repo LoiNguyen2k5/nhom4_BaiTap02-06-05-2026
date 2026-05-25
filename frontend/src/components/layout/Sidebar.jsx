@@ -26,6 +26,18 @@ const LogoutIcon = () => (
   </svg>
 );
 
+const BuildingIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+  </svg>
+);
+
+const ConfigIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688 0-1.37-.043-2.04-.124m-2.12-.294A14.975 14.975 0 0 1 3.5 13.5m10.84 2.34c.688 0 1.37-.043 2.04-.124m2.12-.294A14.975 14.975 0 0 0 20.5 13.5m-3.5 0a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-7-7v.01m7-.01v.01M12 4.5v.01" />
+  </svg>
+);
+
 const userNavItems = [
   { label: 'Hồ sơ', path: '/user/profile', icon: <UserCircleIcon /> },
 ];
@@ -34,6 +46,8 @@ const adminNavItems = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: <HomeIcon /> },
   { label: 'Hồ sơ', path: '/admin/profile', icon: <UserCircleIcon /> },
   { label: 'Quản lý tài khoản', path: '/admin/users', icon: <UsersIcon /> },
+  { label: 'Phòng ban', path: '/admin/departments', icon: <BuildingIcon /> },
+  { label: 'Cấu hình Thuế/BH', path: '/admin/config', icon: <ConfigIcon /> },
 ];
 
 const Sidebar = () => {

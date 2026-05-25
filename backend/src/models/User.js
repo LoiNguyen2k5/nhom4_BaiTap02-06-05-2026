@@ -27,13 +27,17 @@ const User = sequelize.define(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM('user', 'admin'),
+      type: DataTypes.ENUM('admin', 'hr', 'manager', 'accountant', 'employee'),
       allowNull: false,
-      defaultValue: 'user',
+      defaultValue: 'employee',
     },
-    department: {
-      type: DataTypes.STRING(100),
+    department_id: {
+      type: DataTypes.INTEGER,
       allowNull: true,
+      references: {
+        model: 'departments',
+        key: 'id',
+      },
     },
     // Trạng thái tài khoản: inactive (chưa xác thực), active (đã xác thực)
     status: {

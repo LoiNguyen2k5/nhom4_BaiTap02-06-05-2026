@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosClient from '../../services/axiosClient';
+import { Users, CheckCircle, Lock, Star, Clock, Building2 } from 'lucide-react';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
@@ -8,45 +9,13 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
-// ── Icon components ───────────────────────────────────────────────────────────
-const IconUsers = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-  </svg>
-);
-const IconCheck = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-const IconLock = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-  </svg>
-);
-const IconStar = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-  </svg>
-);
-const IconClock = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-const IconBuilding = () => (
-  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-  </svg>
-);
-
 // ── Cấu hình stat cards ───────────────────────────────────────────────────────
 const getCards = (data) => [
   {
     id: 'total',
     label: 'Tổng tài khoản',
     value: data?.totalUsers ?? '—',
-    icon: <IconUsers />,
+    icon: <Users className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-indigo-400 to-indigo-500',
     link: '/admin/users',
     linkLabel: 'Xem tất cả →',
@@ -55,7 +24,7 @@ const getCards = (data) => [
     id: 'active',
     label: 'Đang hoạt động',
     value: data?.activeUsers ?? '—',
-    icon: <IconCheck />,
+    icon: <CheckCircle className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-emerald-500 to-emerald-600',
     link: '/admin/users?status=active',
     linkLabel: 'Xem →',
@@ -64,7 +33,7 @@ const getCards = (data) => [
     id: 'locked',
     label: 'Bị khóa',
     value: data?.lockedUsers ?? '—',
-    icon: <IconLock />,
+    icon: <Lock className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-rose-500 to-rose-600',
     link: '/admin/users?status=inactive',
     linkLabel: 'Xử lý ngay →',
@@ -73,7 +42,7 @@ const getCards = (data) => [
     id: 'new',
     label: 'Mới tháng này',
     value: data?.newUsersThisMonth ?? '—',
-    icon: <IconStar />,
+    icon: <Star className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-purple-500 to-purple-600',
     link: '/admin/users',
     linkLabel: 'Xem →',
@@ -82,7 +51,7 @@ const getCards = (data) => [
     id: 'pending',
     label: 'Yêu cầu chờ duyệt',
     value: 0,
-    icon: <IconClock />,
+    icon: <Clock className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-amber-400 to-orange-500',
     link: '/admin/users',
     linkLabel: 'Xem →',
@@ -92,7 +61,7 @@ const getCards = (data) => [
     id: 'departments',
     label: 'Phòng ban',
     value: 0,
-    icon: <IconBuilding />,
+    icon: <Building2 className="w-7 h-7" strokeWidth={1.8} />,
     bg: 'from-teal-500 to-teal-600',
     link: '/admin/departments',
     linkLabel: 'Quản lý →',
@@ -146,6 +115,30 @@ const formatDate = (dateStr) => {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return d.toLocaleString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const getRoleDotColor = (role) => {
+  const map = {
+    admin: 'bg-blue-500',
+    hr: 'bg-violet-500',
+    manager: 'bg-amber-500',
+    accountant: 'bg-teal-500',
+    employee: 'bg-gray-500',
+    user: 'bg-gray-500',
+  };
+  return map[role] || 'bg-gray-400';
+};
+
 // ── Component chính ──────────────────────────────────────────────────────────
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -169,6 +162,7 @@ const AdminDashboard = () => {
   }, []);
 
   const cards = getCards(stats);
+  const recentActivities = stats?.recentActivities || [];
   const now = new Date();
   const monthYear = now.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' });
 
@@ -370,43 +364,42 @@ const AdminDashboard = () => {
 
       </div>
 
-      {/* ── Widget Nhật ký hoạt động gần đây (Placeholder) ── */}
-      <div className="bg-white rounded-2xl shadow-sm border border-dashed border-gray-200">
+      {/* ── Widget Nhật ký hoạt động gần đây ── */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-base font-bold text-gray-800">Nhật ký hoạt động gần đây</h2>
             <p className="text-xs text-gray-400 mt-0.5">Lịch sử thao tác của tất cả vai trò trong hệ thống</p>
           </div>
-          <span className="text-xs bg-gray-100 text-gray-500 font-semibold px-2.5 py-1 rounded-full">Sắp có</span>
+          <span className="text-xs bg-gray-100 text-gray-600 font-semibold px-2.5 py-1 rounded-full">Top 10</span>
         </div>
-
-        {/* Placeholder log items */}
-        <div className="divide-y divide-gray-50">
-          {[
-            { color: 'bg-blue-400',   label: 'Admin', action: 'Khóa tài khoản',       time: '2 phút trước' },
-            { color: 'bg-violet-400', label: 'HR',    action: 'Tạo hồ sơ nhân viên',  time: '15 phút trước' },
-            { color: 'bg-amber-400',  label: 'Manager', action: 'Phê duyệt đơn nghỉ phép', time: '1 giờ trước' },
-            { color: 'bg-teal-400',   label: 'Kế toán', action: 'Tạo bảng lương tháng 5', time: '3 giờ trước' },
-            { color: 'bg-gray-400',   label: 'Employee', action: 'Gửi đơn xin nghỉ phép', time: 'Hôm qua' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition-colors opacity-50">
-              {/* Dot màu vai trò */}
-              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${item.color}`} />
-              {/* Badge role */}
-              <span className="text-xs font-semibold text-gray-500 w-16 shrink-0">{item.label}</span>
-              {/* Nội dung */}
-              <p className="text-sm text-gray-600 flex-1">{item.action}</p>
-              {/* Thời gian */}
-              <span className="text-xs text-gray-400 shrink-0">{item.time}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="px-6 py-3 border-t border-gray-50 text-center">
-          <p className="text-xs text-gray-400">
-            Dữ liệu minh họa · Chức năng thật sẽ khả dụng sau khi xây module Nhật ký
-          </p>
-        </div>
+        {recentActivities.length > 0 ? (
+          <div className="divide-y divide-gray-50">
+            {recentActivities.map((item) => {
+              const role = item.User?.role || 'user';
+              const actorLabel = item.User?.name || item.User?.email || 'Hệ thống';
+              const detail = item.detail || item.action;
+              return (
+                <div key={item.id} className="flex items-center gap-4 px-6 py-3.5 hover:bg-gray-50 transition-colors">
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${getRoleDotColor(role)}`} />
+                  <span className="text-xs font-semibold text-gray-600 w-32 shrink-0 truncate" title={actorLabel}>
+                    {actorLabel}
+                  </span>
+                  <p className="text-sm text-gray-700 flex-1">
+                    {detail}
+                  </p>
+                  <span className="text-xs text-gray-400 shrink-0">
+                    {formatDateTime(item.created_at)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="px-6 py-8 text-center text-gray-400">
+            Chưa có hoạt động nào
+          </div>
+        )}
       </div>
 
       </div>

@@ -2,7 +2,9 @@ const path = require('path');
 const fs = require('fs');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
+const ActivityLog = require('../models/ActivityLog');
 const { updateProfileValidation } = require('../validations/profile.validation');
+const { logActivity } = require('../utils/activityLogger');
 
 // Lấy thông tin profile của user hiện tại
 const getProfile = async (req, res) => {
@@ -86,6 +88,13 @@ const updateProfile = async (req, res) => {
     // Lấy thông tin user (không lấy password)
     const user = await User.findByPk(userId, {
       attributes: { exclude: ['password'] }
+    });
+
+    await logActivity({
+      userId,
+      action: 'update_profile',
+      detail: 'Cập nhật thông tin profile',
+      req,
     });
 
     return res.status(200).json({
@@ -175,9 +184,66 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
+// Lấy nhật ký hoạt động của user hiện tại
+const getMyActivities = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+
+    const [logs, unreadCount] = await Promise.all([
+      ActivityLog.findAll({
+        where: { user_id: userId },
+        attributes: ['id', 'action', 'detail', 'created_at', 'is_read'],
+        order: [['created_at', 'DESC']],
+        limit,
+      }),
+      ActivityLog.count({ where: { user_id: userId, is_read: false } }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        logs,
+        unreadCount,
+      },
+    });
+  } catch (error) {
+    console.error('Get My Activities Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi lấy nhật ký hoạt động',
+    });
+  }
+};
+
+// Đánh dấu đã đọc toàn bộ nhật ký của user hiện tại
+const markMyActivitiesRead = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    await ActivityLog.update(
+      { is_read: true },
+      { where: { user_id: userId, is_read: false } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: 'Đã đánh dấu tất cả thông báo là đã đọc',
+    });
+  } catch (error) {
+    console.error('Mark Activities Read Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Lỗi server khi đánh dấu đã đọc',
+    });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
   getProfileById,
   uploadAvatar,
+  getMyActivities,
+  markMyActivitiesRead,
 };
