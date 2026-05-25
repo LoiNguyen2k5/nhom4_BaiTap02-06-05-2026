@@ -1,6 +1,8 @@
 const { Op } = require('sequelize');
+const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
+const { Department } = require('../models');
 
 // ============================================================
 // DASHBOARD ADMIN — Thống kê tổng quan
@@ -17,7 +19,7 @@ const getDashboardStats = async (req, res) => {
       User.count({ where: { status: 'inactive' } }),
       User.count({ where: { created_at: { [Op.gte]: startOfMonth } } }),
       User.findAll({
-        attributes: ['id', 'name', 'email', 'role', 'status', 'created_at', 'department'],
+        attributes: ['id', 'name', 'email', 'role', 'status', 'created_at', 'department_id'],
         include: [{ model: Profile, attributes: ['avatar_url', 'full_name'] }],
         order: [['created_at', 'DESC']],
         limit: 10,
@@ -48,7 +50,7 @@ const getUsers = async (req, res) => {
     }
     if (role) whereClause.role = role;
     if (status) whereClause.status = status;
-    if (department) whereClause.department = department;
+    if (department) whereClause.department_id = department; // department giờ là ID số nguyên
     if (created_from || created_to) {
       whereClause.created_at = {};
       if (created_from) whereClause.created_at[Op.gte] = new Date(created_from);
@@ -66,8 +68,11 @@ const getUsers = async (req, res) => {
     const { count: total, rows: users } = await User.findAndCountAll({
       where: whereClause,
       attributes: { exclude: ['password'] },
-      include: [Profile],
-      order: [['created_at', 'DESC']],
+      include: [
+        { model: Profile },
+        { model: Department, as: 'department', attributes: ['id', 'name'] },
+      ],
+      order: [['id', 'ASC']],
       limit: limitNum,
       offset,
     });
@@ -92,7 +97,10 @@ const getUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findByPk(userId, { attributes: { exclude: ['password'] } });
+    const user = await User.findByPk(userId, { 
+      attributes: { exclude: ['password'] },
+      include: [{ model: Department, as: 'department', attributes: ['id', 'name'] }]
+    });
     if (!user) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
 
     const profile = await Profile.findOne({ where: { user_id: userId } });
@@ -127,7 +135,7 @@ const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
-    if (!['user', 'admin'].includes(role)) {
+    if (!['admin', 'hr', 'manager', 'accountant', 'employee'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Role không hợp lệ' });
     }
     const user = await User.findByPk(userId);
@@ -141,4 +149,80 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardStats, getUsers, getUserById, updateUserStatus, updateUserRole };
+// ============================================================
+// TẠO TÀI KHOẢN NGƯỜI DÙNG MỚI
+// POST /api/admin/users
+// Luồng: Admin tạo tài khoản → hệ thống sinh mật khẩu tạm → gửi mail (TODO)
+// ============================================================
+const createUser = async (req, res) => {
+  try {
+    const { name, email, role, department_id } = req.body;
+
+    // Validate bắt buộc
+    if (!email || !role) {
+      return res.status(400).json({ success: false, message: 'Email và Vai trò là bắt buộc' });
+    }
+
+    // Validate định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, message: 'Email không đúng định dạng' });
+    }
+
+    // Validate role hợp lệ
+    const validRoles = ['admin', 'hr', 'manager', 'accountant', 'employee'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ' });
+    }
+
+    // Kiểm tra email đã tồn tại chưa
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'Email này đã được sử dụng trong hệ thống' });
+    }
+
+    // Kiểm tra phòng ban hợp lệ nếu có truyền vào
+    if (department_id) {
+      const dept = await Department.findByPk(department_id);
+      if (!dept || dept.status === 'inactive') {
+        return res.status(400).json({ success: false, message: 'Phòng ban không tồn tại hoặc đã bị vô hiệu hóa' });
+      }
+    }
+
+    // Tự động sinh mật khẩu tạm: chữ hoa + chữ thường + số + ký tự đặc biệt
+    const tempPassword = `Hrm@${Math.random().toString(36).slice(2, 8)}${Math.floor(Math.random() * 100)}`;
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Tạo user mới
+    const newUser = await User.create({
+      name: name ? name.trim() : null,
+      email: email.trim().toLowerCase(),
+      password: hashedPassword,
+      role,
+      department_id: department_id || null,
+      status: 'active',
+    });
+
+    // TODO: Gửi email thông báo đến nhân viên kèm mật khẩu tạm
+    // await sendWelcomeEmail(email, tempPassword);
+
+    return res.status(201).json({
+      success: true,
+      message: `Tạo tài khoản thành công! Mật khẩu tạm: ${tempPassword}`,
+      data: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        department_id: newUser.department_id,
+        status: newUser.status,
+        tempPassword, // Trả về để Admin thông báo thủ công nếu chưa có email
+      },
+    });
+  } catch (error) {
+    console.error('Create User Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi tạo tài khoản' });
+  }
+};
+
+module.exports = { getDashboardStats, getUsers, getUserById, updateUserStatus, updateUserRole, createUser };
