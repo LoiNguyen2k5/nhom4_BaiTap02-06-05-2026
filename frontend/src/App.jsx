@@ -18,8 +18,6 @@ import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
 import ProtectedRoute from './routes/ProtectedRoute';
 
-import Layout from './components/Layout';
-
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -56,11 +54,6 @@ const App = () => {
 
       {/* Legacy redirect */}
       <Route path="/profile" element={<RoleRedirect />} />
-
-      {/* Public routes với Navbar & Footer (Loi) */}
-      <Route element={<Layout />}>
-        {/* Removed Home and ProductDetail routes */}
-      </Route>
 
       {/* User dashboard */}
       <Route
