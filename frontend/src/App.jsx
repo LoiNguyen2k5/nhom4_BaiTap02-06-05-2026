@@ -15,6 +15,7 @@ import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
 import ProtectedRoute from './routes/ProtectedRoute';
+import ContractManager from './pages/hr/ContractManager';
 
 import Layout from './components/Layout';
 
@@ -85,6 +86,11 @@ const App = () => {
         <Route path="profile" element={<AdminProfile />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="users/:id" element={<AdminUserDetail />} />
+      </Route>
+
+      {/* HR Module */}
+      <Route path="/hr">
+        <Route path="contracts" element={<ContractManager />} />
       </Route>
     </Routes>
   );
