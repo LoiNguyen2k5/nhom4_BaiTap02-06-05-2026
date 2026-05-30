@@ -18,6 +18,8 @@ import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
 import ProtectedRoute from './routes/ProtectedRoute';
 
+import HRDashboard from './pages/hr/HRDashboard';
+
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -29,7 +31,9 @@ const RoleRedirect = () => {
       </div>
     );
   }
-  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/profile'} replace />;
+  if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+  if (user.role === 'hr') return <Navigate to="/hr/dashboard" replace />;
+  return <Navigate to="/user/profile" replace />;
 };
 
 const App = () => {
@@ -55,11 +59,11 @@ const App = () => {
       {/* Legacy redirect */}
       <Route path="/profile" element={<RoleRedirect />} />
 
-      {/* User dashboard */}
+      {/* User dashboard (All non-admin roles can access profile here) */}
       <Route
         path="/user"
         element={
-          <ProtectedRoute allowedRole="user">
+          <ProtectedRoute allowedRoles={['employee', 'hr', 'manager', 'accountant']}>
             <DashboardLayout />
           </ProtectedRoute>
         }
@@ -67,11 +71,23 @@ const App = () => {
         <Route path="profile" element={<UserProfile />} />
       </Route>
 
+      {/* HR dashboard */}
+      <Route
+        path="/hr"
+        element={
+          <ProtectedRoute allowedRoles={['hr']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<HRDashboard />} />
+      </Route>
+
       {/* Admin dashboard */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRole="admin">
+          <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout />
           </ProtectedRoute>
         }

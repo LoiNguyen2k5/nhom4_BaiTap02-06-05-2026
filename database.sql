@@ -34,6 +34,41 @@ CREATE TABLE IF NOT EXISTS otps (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ================================================
+-- Bảng account_requests (Yêu cầu cấp tài khoản từ HR)
+-- ================================================
+CREATE TABLE IF NOT EXISTS account_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    hr_id INT NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    role ENUM('employee', 'manager', 'accountant') DEFAULT 'employee',
+    department_id INT,
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (hr_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (department_id) REFERENCES departments(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ================================================
+-- Bảng contracts (Hợp đồng lao động)
+-- ================================================
+CREATE TABLE IF NOT EXISTS contracts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    contract_type ENUM('Thử việc', 'Chính thức', 'Thời vụ') DEFAULT 'Chính thức',
+    basic_salary INT NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    status ENUM('active', 'expired', 'terminated') DEFAULT 'active',
+    created_by_hr_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by_hr_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ================================================
 -- Dữ liệu mẫu để test
 -- ================================================
 

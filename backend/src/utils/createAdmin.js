@@ -13,11 +13,11 @@ async function createAdminAccount() {
     if (adminExists) {
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
       await adminExists.update({ password: hashedPassword, role: 'admin', status: 'active' });
-      console.log(`✓ Cập nhật tài khoản admin: ${adminEmail}`);
+      console.log(`√ Cập nhật tài khoản admin: ${adminEmail}`);
     } else {
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
       await User.create({ email: adminEmail, password: hashedPassword, role: 'admin', status: 'active' });
-      console.log(`✓ Tài khoản admin đã được tạo: ${adminEmail}`);
+      console.log(`√ Tài khoản admin đã được tạo: ${adminEmail}`);
     }
 
     // Luôn đảm bảo tài khoản user test tồn tại và đúng mật khẩu
@@ -25,14 +25,28 @@ async function createAdminAccount() {
     if (testUserExists) {
       const hashedTestPw = await bcrypt.hash(testUserPassword, 10);
       await testUserExists.update({ password: hashedTestPw, role: 'employee', status: 'active' });
-      console.log(`✓ Cập nhật tài khoản employee test: ${testUserEmail}`);
+      console.log(`√ Cập nhật tài khoản employee test: ${testUserEmail}`);
     } else {
       const hashedTestPw = await bcrypt.hash(testUserPassword, 10);
       await User.create({ email: testUserEmail, password: hashedTestPw, role: 'employee', status: 'active' });
-      console.log(`✓ Tài khoản employee test đã được tạo: ${testUserEmail}`);
+      console.log(`√ Tài khoản employee test đã được tạo: ${testUserEmail}`);
+    }
+
+    // Luôn đảm bảo tài khoản hr tồn tại
+    const hrEmail = 'hr@example.com';
+    const hrPassword = 'Hr@123456';
+    const hrExists = await User.findOne({ where: { email: hrEmail } });
+    if (hrExists) {
+      const hashedHrPw = await bcrypt.hash(hrPassword, 10);
+      await hrExists.update({ password: hashedHrPw, role: 'hr', status: 'active' });
+      console.log(`√ Cập nhật tài khoản hr test: ${hrEmail}`);
+    } else {
+      const hashedHrPw = await bcrypt.hash(hrPassword, 10);
+      await User.create({ email: hrEmail, password: hashedHrPw, role: 'hr', status: 'active' });
+      console.log(`√ Tài khoản hr test đã được tạo: ${hrEmail}`);
     }
   } catch (error) {
-    console.error('✗ Lỗi khi tạo admin:', error.message);
+    console.error('✗ Lỗi khi tạo tài khoản hệ thống:', error.message);
   }
 }
 
