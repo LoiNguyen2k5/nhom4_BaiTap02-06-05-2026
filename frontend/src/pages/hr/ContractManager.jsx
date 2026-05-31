@@ -82,6 +82,8 @@ const ContractManager = () => {
   };
   const [formData, setFormData] = useState(emptyForm);
   const [extendData, setExtendData] = useState({ end_date: '', basic_salary: '', contract_type: '', status: '' });
+  const [empSearch, setEmpSearch] = useState('');
+  const [empDropdownOpen, setEmpDropdownOpen] = useState(false);
 
   const showToast = (type, text) => {
     setToast({ type, text });
@@ -134,6 +136,7 @@ const ContractManager = () => {
       showToast('success', 'Tạo hợp đồng thành công!');
       setShowCreate(false);
       setFormData(emptyForm);
+      setEmpSearch('');
       loadContracts();
     } catch (err) {
       showToast('error', err.response?.data?.message || 'Lỗi khi tạo hợp đồng');
@@ -330,15 +333,64 @@ const ContractManager = () => {
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <label className={labelClass}>Nhân viên</label>
-              <select className={inputClass} required value={formData.user_id}
-                onChange={e => setFormData({ ...formData, user_id: e.target.value })}>
-                <option value="">-- Chọn nhân viên --</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    [{emp.id}] {emp.name || emp.email} {emp.department ? `— ${emp.department}` : ''}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  className={inputClass}
+                  placeholder="Gõ tên hoặc email để tìm..."
+                  value={empSearch}
+                  required={!formData.user_id}
+                  onFocus={() => setEmpDropdownOpen(true)}
+                  onBlur={() => setTimeout(() => setEmpDropdownOpen(false), 150)}
+                  onChange={e => {
+                    setEmpSearch(e.target.value);
+                    setFormData({ ...formData, user_id: '' });
+                    setEmpDropdownOpen(true);
+                  }}
+                />
+                {formData.user_id && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  </span>
+                )}
+                {empDropdownOpen && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                    {employees
+                      .filter(emp => {
+                        const q = empSearch.toLowerCase();
+                        return !q || (emp.name || '').toLowerCase().includes(q) || emp.email.toLowerCase().includes(q);
+                      })
+                      .map(emp => (
+                        <button
+                          key={emp.id}
+                          type="button"
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-indigo-50 flex items-center gap-3 transition"
+                          onMouseDown={() => {
+                            setFormData({ ...formData, user_id: emp.id });
+                            setEmpSearch(`${emp.name || emp.email}${emp.department ? ' — ' + emp.department : ''}`);
+                            setEmpDropdownOpen(false);
+                          }}
+                        >
+                          <span className="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            {(emp.name || emp.email).charAt(0).toUpperCase()}
+                          </span>
+                          <span>
+                            <p className="font-medium text-gray-800">{emp.name || emp.email}</p>
+                            <p className="text-xs text-gray-400">{emp.email}{emp.department ? ` • ${emp.department}` : ''}</p>
+                          </span>
+                        </button>
+                      ))}
+                    {employees.filter(emp => {
+                      const q = empSearch.toLowerCase();
+                      return !q || (emp.name || '').toLowerCase().includes(q) || emp.email.toLowerCase().includes(q);
+                    }).length === 0 && (
+                      <p className="px-4 py-3 text-sm text-gray-400">Không tìm thấy nhân viên</p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>

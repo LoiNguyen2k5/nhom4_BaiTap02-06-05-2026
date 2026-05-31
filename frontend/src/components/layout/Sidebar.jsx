@@ -57,7 +57,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen flex flex-col shrink-0" style={{ backgroundColor: '#1a1a2e' }}>
+    <aside className="w-64 h-screen sticky top-0 flex flex-col shrink-0 overflow-y-auto" style={{ backgroundColor: '#1a1a2e' }}>
       {/* Logo */}
       <div className="px-6 py-6 border-b border-white/10">
         <div className="flex items-center gap-2">
