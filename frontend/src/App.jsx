@@ -30,7 +30,10 @@ const RoleRedirect = () => {
       </div>
     );
   }
-  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/profile'} replace />;
+  let target = '/user/profile';
+  if (user.role === 'admin') target = '/admin/dashboard';
+  else if (user.role === 'hr') target = '/hr/contracts';
+  return <Navigate to={target} replace />;
 };
 
 const App = () => {
@@ -89,7 +92,14 @@ const App = () => {
       </Route>
 
       {/* HR Module */}
-      <Route path="/hr">
+      <Route
+        path="/hr"
+        element={
+          <ProtectedRoute allowedRole="hr">
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="contracts" element={<ContractManager />} />
       </Route>
     </Routes>

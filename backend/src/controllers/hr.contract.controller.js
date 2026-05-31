@@ -1,4 +1,5 @@
 const { Contract, User } = require('../models');
+const { Op } = require('sequelize');
 
 // Lấy danh sách hợp đồng của 1 nhân viên cụ thể (xem lịch sử)
 exports.getEmployeeContracts = async (req, res) => {
@@ -8,6 +9,7 @@ exports.getEmployeeContracts = async (req, res) => {
     // Tìm tất cả hợp đồng của user_id này, sắp xếp hợp đồng mới nhất lên đầu
     const contracts = await Contract.findAll({
       where: { user_id },
+      include: [{ model: User, attributes: ['id', 'name', 'email', 'department'] }],
       order: [['start_date', 'DESC']]
     });
     
@@ -16,6 +18,43 @@ exports.getEmployeeContracts = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi lấy danh sách hợp đồng', error: error.message });
   }
 };
+
+// Lấy tất cả hợp đồng (toàn bộ hệ thống)
+exports.getAllContracts = async (req, res) => {
+  try {
+    const { search } = req.query;
+    const whereClause = {};
+    const userWhere = {};
+    if (search) {
+      userWhere[Op.or] = [
+        { name: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } }
+      ];
+    }
+    const contracts = await Contract.findAll({
+      where: whereClause,
+      include: [{ model: User, attributes: ['id', 'name', 'email', 'department'], where: Object.keys(userWhere).length ? userWhere : undefined }],
+      order: [['start_date', 'DESC']]
+    });
+    res.status(200).json({ contracts });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách hợp đồng', error: error.message });
+  }
+};
+
+// Lấy danh sách tất cả nhân viên
+exports.getAllEmployees = async (req, res) => {
+  try {
+    const employees = await User.findAll({
+      where: { role: ['employee', 'user'] },
+      attributes: ['id', 'name', 'email', 'department', 'status']
+    });
+    res.status(200).json({ employees });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi lấy danh sách nhân viên', error: error.message });
+  }
+};
+
 
 // Tạo hợp đồng mới (thử việc hoặc chính thức)
 exports.createContract = async (req, res) => {

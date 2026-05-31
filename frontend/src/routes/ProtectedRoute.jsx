@@ -18,7 +18,10 @@ const ProtectedRoute = ({ children, allowedRole }) => {
   }
 
   if (allowedRole && user?.role !== allowedRole) {
-    const fallback = user?.role === 'admin' ? '/admin/profile' : '/user/profile';
+    let fallback = '/user/profile';
+    if (user?.role === 'admin') fallback = '/admin/dashboard';
+    else if (user?.role === 'hr') fallback = '/hr/contracts';
+    
     return <Navigate to={fallback} replace />;
   }
 

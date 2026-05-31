@@ -36,12 +36,18 @@ const adminNavItems = [
   { label: 'Quản lý tài khoản', path: '/admin/users', icon: <UsersIcon /> },
 ];
 
+const hrNavItems = [
+  { label: 'Hợp đồng lao động', path: '/hr/contracts', icon: <UsersIcon /> },
+];
+
 const Sidebar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
-  const navItems = user?.role === 'admin' ? adminNavItems : userNavItems;
+  let navItems = userNavItems;
+  if (user?.role === 'admin') navItems = adminNavItems;
+  else if (user?.role === 'hr') navItems = hrNavItems;
   const displayName = user?.name || user?.email || 'Người dùng';
   const initial = displayName.charAt(0).toUpperCase();
 

@@ -1,9 +1,19 @@
 import axiosClient from './axiosClient';
 
 const hrService = {
-  // [GET] Lấy danh sách lịch sử hợp đồng của một nhân viên
+  // [GET] Lấy tất cả hợp đồng trong hệ thống (có thể filter theo search)
+  getAllContracts: (search = '') => {
+    return axiosClient.get('/hr/contracts', { params: search ? { search } : {} });
+  },
+
+  // [GET] Lấy danh sách hợp đồng của một nhân viên
   getEmployeeContracts: (userId) => {
     return axiosClient.get(`/hr/contracts/${userId}`);
+  },
+
+  // [GET] Lấy danh sách tất cả nhân viên
+  getAllEmployees: () => {
+    return axiosClient.get('/hr/employees');
   },
 
   // [POST] Tạo hợp đồng mới (thử việc hoặc chính thức)
