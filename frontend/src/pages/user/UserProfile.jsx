@@ -158,10 +158,13 @@ const UserProfile = () => {
 
   const displayName = user?.name || user?.email || 'Người dùng';
   const avatarInitial = displayName.charAt(0).toUpperCase();
-  const roleLabel = user?.role === 'admin' ? 'Quản trị viên' : 'Người dùng';
-  const roleBadgeClass = user?.role === 'admin'
-    ? 'bg-purple-100 text-purple-700'
-    : 'bg-indigo-100 text-indigo-700';
+  const ROLE_MAP = {
+    admin:      { label: 'Quản trị viên', cls: 'bg-purple-100 text-purple-700' },
+    hr:         { label: 'HR',            cls: 'bg-rose-100 text-rose-700' },
+    manager:    { label: 'Quản lý',       cls: 'bg-amber-100 text-amber-700' },
+    accountant: { label: 'Kế toán',       cls: 'bg-teal-100 text-teal-700' },
+  };
+  const { label: roleLabel, cls: roleBadgeClass } = ROLE_MAP[user?.role] ?? { label: 'Nhân viên', cls: 'bg-indigo-100 text-indigo-700' };
 
   const displayError = localError || error;
 

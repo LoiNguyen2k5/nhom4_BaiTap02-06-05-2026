@@ -143,23 +143,55 @@ const getRoleDotColor = (role) => {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);   // dữ liệu từ API
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Lấy dữ liệu từ API khi component mount
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await axiosClient.get('/admin/dashboard');
-        setStats(res.data.data);
-      } catch (err) {
-        setError('Không thể tải dữ liệu. Vui lòng thử lại.');
-      } finally {
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      const [statsRes, requestsRes] = await Promise.all([
+        axiosClient.get('/admin/dashboard'),
+        axiosClient.get('/admin/account-requests/pending')
+      ]);
+      setStats(statsRes.data.data);
+      if (requestsRes.data.success) {
+        setPendingRequests(requestsRes.data.data);
       }
-    };
-    fetchStats();
+    } catch (err) {
+      setError('Không thể tải dữ liệu. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  const handleApprove = async (id) => {
+    try {
+      const res = await axiosClient.post(`/admin/account-requests/${id}/approve`);
+      if (res.data.success) {
+        alert(`${res.data.message}\nMật khẩu tạm: ${res.data.data.tempPassword}`);
+        fetchData();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!window.confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?')) return;
+    try {
+      const res = await axiosClient.post(`/admin/account-requests/${id}/reject`);
+      if (res.data.success) {
+        fetchData();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+    }
+  };
 
   const cards = getCards(stats);
   const recentActivities = stats?.recentActivities || [];
@@ -335,30 +367,46 @@ const AdminDashboard = () => {
           )}
         </div>
 
-        {/* Bảng yêu cầu cấp tài khoản — Placeholder */}
-        <div className="bg-white rounded-2xl shadow-sm border border-dashed border-amber-200">
+        {/* Bảng yêu cầu cấp tài khoản */}
+        <div className="bg-white rounded-2xl shadow-sm border border-amber-200 h-full flex flex-col">
           <div className="flex items-center justify-between px-6 py-4 border-b border-amber-100">
             <div>
               <h2 className="text-base font-bold text-gray-800">Yêu cầu cấp tài khoản</h2>
               <p className="text-xs text-gray-400 mt-0.5">Yêu cầu từ HR đang chờ Admin xác nhận</p>
             </div>
-            <span className="text-xs bg-amber-100 text-amber-600 font-semibold px-2.5 py-1 rounded-full">Sắp có</span>
+            <span className="text-xs bg-amber-100 text-amber-600 font-semibold px-2.5 py-1 rounded-full">{pendingRequests.length} chờ duyệt</span>
           </div>
-          {/* Placeholder rows */}
-          <div className="px-6 py-4 space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 animate-pulse">
-                <div className="w-9 h-9 rounded-full bg-gray-200" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+          <div className="px-6 py-4 space-y-3 overflow-y-auto flex-1">
+            {pendingRequests.length === 0 ? (
+              <p className="text-center text-sm text-gray-400 pt-8 pb-8">Không có yêu cầu nào đang chờ duyệt</p>
+            ) : (
+              pendingRequests.map((req) => (
+                <div key={req.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-800 text-sm truncate">{req.full_name}</p>
+                    <p className="text-xs text-gray-500 truncate">{req.email}</p>
+                    <div className="flex gap-2 mt-1">
+                      <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded capitalize">{req.role}</span>
+                      {req.department && <span className="text-[10px] bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded">{req.department.name}</span>}
+                    </div>
+                  </div>
+                  <div className="flex sm:flex-col gap-2 shrink-0">
+                    <button 
+                      onClick={() => handleApprove(req.id)}
+                      className="px-3 py-1.5 text-xs font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition"
+                    >
+                      Duyệt
+                    </button>
+                    <button 
+                      onClick={() => handleReject(req.id)}
+                      className="px-3 py-1.5 text-xs font-semibold bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition"
+                    >
+                      Từ chối
+                    </button>
+                  </div>
                 </div>
-                <div className="h-7 w-20 bg-gray-200 rounded-lg" />
-              </div>
-            ))}
-            <p className="text-center text-xs text-gray-400 pt-2">
-              Chức năng sẽ khả dụng sau khi xây module HR
-            </p>
+              ))
+            )}
           </div>
         </div>
 

@@ -33,8 +33,18 @@ const BuildingIcon = () => (
 );
 
 const ConfigIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688 0-1.37-.043-2.04-.124m-2.12-.294A14.975 14.975 0 0 1 3.5 13.5m10.84 2.34c.688 0 1.37-.043 2.04-.124m2.12-.294A14.975 14.975 0 0 0 20.5 13.5m-3.5 0a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-7-7v.01m7-.01v.01M12 4.5v.01" /></svg>
+);
+
+const RecruitmentIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688 0-1.37-.043-2.04-.124m-2.12-.294A14.975 14.975 0 0 1 3.5 13.5m10.84 2.34c.688 0 1.37-.043 2.04-.124m2.12-.294A14.975 14.975 0 0 0 20.5 13.5m-3.5 0a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-7-7v.01m7-.01v.01M12 4.5v.01" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+  </svg>
+);
+
+const DocumentIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
   </svg>
 );
 
@@ -42,12 +52,19 @@ const userNavItems = [
   { label: 'Hồ sơ', path: '/user/profile', icon: <UserCircleIcon /> },
 ];
 
+const hrNavItems = [
+  { label: 'HR Dashboard',       path: '/hr/dashboard',  icon: <HomeIcon /> },
+  { label: 'Hồ sơ cá nhân',     path: '/user/profile',  icon: <UserCircleIcon /> },
+  { label: 'Hợp đồng lao động', path: '/hr/contracts',  icon: <DocumentIcon /> },
+];
+
 const adminNavItems = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: <HomeIcon /> },
-  { label: 'Hồ sơ', path: '/admin/profile', icon: <UserCircleIcon /> },
-  { label: 'Quản lý tài khoản', path: '/admin/users', icon: <UsersIcon /> },
-  { label: 'Phòng ban', path: '/admin/departments', icon: <BuildingIcon /> },
-  { label: 'Cấu hình Thuế/BH', path: '/admin/config', icon: <ConfigIcon /> },
+  { label: 'Dashboard',          path: '/admin/dashboard',    icon: <HomeIcon /> },
+  { label: 'Hồ sơ',             path: '/admin/profile',      icon: <UserCircleIcon /> },
+  { label: 'Quản lý tài khoản', path: '/admin/users',        icon: <UsersIcon /> },
+  { label: 'Phòng ban',         path: '/admin/departments',  icon: <BuildingIcon /> },
+  { label: 'Tuyển dụng',        path: '/admin/recruitment',  icon: <RecruitmentIcon /> },
+  { label: 'Cấu hình Thuế/BH',  path: '/admin/config',       icon: <ConfigIcon /> },
 ];
 
 const Sidebar = () => {
@@ -55,7 +72,10 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
-  const navItems = user?.role === 'admin' ? adminNavItems : userNavItems;
+  let navItems = userNavItems;
+  if (user?.role === 'admin') navItems = adminNavItems;
+  if (user?.role === 'hr') navItems = hrNavItems;
+
   const displayName = user?.name || user?.email || 'Người dùng';
   const initial = displayName.charAt(0).toUpperCase();
 
@@ -65,7 +85,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen flex flex-col shrink-0" style={{ backgroundColor: '#1a1a2e' }}>
+    <aside className="w-64 h-screen sticky top-0 flex flex-col shrink-0 overflow-y-auto" style={{ backgroundColor: '#1a1a2e' }}>
       {/* Logo */}
       <div className="px-6 py-6 border-b border-white/10">
         <div className="flex items-center gap-2">

@@ -8,6 +8,9 @@ const {
   updateUserStatus,
   updateUserRole,
   createUser,
+  getPendingAccountRequests,
+  approveAccountRequest,
+  rejectAccountRequest,
 } = require('../controllers/admin.controller');
 const {
   getDepartments,
@@ -25,6 +28,11 @@ router.post('/users', authenticateToken, authorizeAdmin, createUser);  // Tạo 
 router.get('/users/:userId', authenticateToken, authorizeAdmin, getUserById);
 router.put('/users/:userId/status', authenticateToken, authorizeAdmin, updateUserStatus);
 router.put('/users/:userId/role', authenticateToken, authorizeAdmin, updateUserRole);
+
+// Yêu cầu cấp tài khoản
+router.get('/account-requests/pending', authenticateToken, authorizeAdmin, getPendingAccountRequests);
+router.post('/account-requests/:id/approve', authenticateToken, authorizeAdmin, approveAccountRequest);
+router.post('/account-requests/:id/reject', authenticateToken, authorizeAdmin, rejectAccountRequest);
 
 // ---- Department Management ----
 // Lấy danh sách phòng ban (Admin + HR đều dùng)

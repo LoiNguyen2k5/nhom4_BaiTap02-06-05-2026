@@ -16,7 +16,13 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
+import RecruitmentPage from './pages/admin/RecruitmentPage';
 import ProtectedRoute from './routes/ProtectedRoute';
+
+import HRDashboard from './pages/hr/HRDashboard';
+import ContractManager from './pages/hr/ContractManager';
+
+import Layout from './components/Layout';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -29,7 +35,9 @@ const RoleRedirect = () => {
       </div>
     );
   }
-  return <Navigate to={user.role === 'admin' ? '/admin/dashboard' : '/user/profile'} replace />;
+  if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+  if (user.role === 'hr') return <Navigate to="/hr/dashboard" replace />;
+  return <Navigate to="/user/profile" replace />;
 };
 
 const App = () => {
@@ -55,11 +63,15 @@ const App = () => {
       {/* Legacy redirect */}
       <Route path="/profile" element={<RoleRedirect />} />
 
-      {/* User dashboard */}
+      {/* Public routes với Navbar & Footer */}
+      <Route element={<Layout />}>
+      </Route>
+
+      {/* User dashboard (All non-admin roles can access profile here) */}
       <Route
         path="/user"
         element={
-          <ProtectedRoute allowedRole="user">
+          <ProtectedRoute allowedRoles={['employee', 'manager', 'accountant']}>
             <DashboardLayout />
           </ProtectedRoute>
         }
@@ -67,11 +79,24 @@ const App = () => {
         <Route path="profile" element={<UserProfile />} />
       </Route>
 
+      {/* HR dashboard */}
+      <Route
+        path="/hr"
+        element={
+          <ProtectedRoute allowedRoles={['hr']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<HRDashboard />} />
+        <Route path="contracts" element={<ContractManager />} />
+      </Route>
+
       {/* Admin dashboard */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute allowedRole="admin">
+          <ProtectedRoute allowedRoles={['admin']}>
             <DashboardLayout />
           </ProtectedRoute>
         }
@@ -82,6 +107,7 @@ const App = () => {
         <Route path="users/:id" element={<AdminUserDetail />} />
         <Route path="departments" element={<AdminDepartments />} />
         <Route path="config" element={<AdminConfig />} />
+        <Route path="recruitment" element={<RecruitmentPage />} />
       </Route>
     </Routes>
   );

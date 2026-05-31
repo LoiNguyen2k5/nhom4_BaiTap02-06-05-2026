@@ -210,8 +210,9 @@ const createUser = async (req, res) => {
       }
     }
 
-    // Tự động sinh mật khẩu tạm: chữ hoa + chữ thường + số + ký tự đặc biệt
-    const tempPassword = `Hrm@${Math.random().toString(36).slice(2, 8)}${Math.floor(Math.random() * 100)}`;
+    // Tự động sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
+    const emailPrefix = email.split('@')[0];
+    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Tạo user mới
@@ -229,7 +230,7 @@ const createUser = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: `Tạo tài khoản thành công! Mật khẩu tạm: ${tempPassword}`,
+      message: `Tạo tài khoản thành công!`,
       data: {
         id: newUser.id,
         name: newUser.name,
@@ -246,4 +247,116 @@ const createUser = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardStats, getUsers, getUserById, updateUserStatus, updateUserRole, createUser };
+// ============================================================
+// YÊU CẦU CẤP TÀI KHOẢN TỪ HR
+// ============================================================
+
+const getPendingAccountRequests = async (req, res) => {
+  try {
+    const { AccountRequest, Department } = require('../models');
+    const requests = await AccountRequest.findAll({
+      where: { status: 'pending' },
+      include: [
+        { model: User, as: 'hr', attributes: ['name', 'email'] },
+        { model: Department, as: 'department', attributes: ['name'] }
+      ],
+      order: [['created_at', 'ASC']]
+    });
+    res.status(200).json({ success: true, data: requests });
+  } catch (error) {
+    console.error('Lỗi khi lấy yêu cầu cấp tài khoản:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+const approveAccountRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { AccountRequest } = require('../models');
+    
+    const request = await AccountRequest.findByPk(id);
+    if (!request || request.status !== 'pending') {
+      return res.status(404).json({ success: false, message: 'Yêu cầu không tồn tại hoặc đã được xử lý' });
+    }
+
+    // Kiểm tra email trùng
+    const existingUser = await User.findOne({ where: { email: request.email } });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Email đã tồn tại trong hệ thống' });
+    }
+
+    // Tự sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
+    const emailPrefix = request.email.split('@')[0];
+    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+    // Tạo User
+    const newUser = await User.create({
+      name: request.full_name,
+      email: request.email.toLowerCase(),
+      password: hashedPassword,
+      role: request.role,
+      department_id: request.department_id,
+      status: 'active'
+    });
+
+    // Tạo Profile
+    await Profile.create({
+      user_id: newUser.id,
+      full_name: request.full_name
+    });
+
+    // Update request status
+    request.status = 'approved';
+    await request.save();
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Duyệt yêu cầu tài khoản',
+      detail: `Đã duyệt yêu cầu tạo tài khoản cho ${request.email}`
+    });
+
+    res.status(200).json({ success: true, message: 'Đã duyệt và tạo tài khoản thành công!', data: { tempPassword, user: newUser } });
+  } catch (error) {
+    console.error('Lỗi khi duyệt yêu cầu:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+const rejectAccountRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { AccountRequest } = require('../models');
+    
+    const request = await AccountRequest.findByPk(id);
+    if (!request || request.status !== 'pending') {
+      return res.status(404).json({ success: false, message: 'Yêu cầu không tồn tại hoặc đã được xử lý' });
+    }
+
+    request.status = 'rejected';
+    await request.save();
+
+    await logActivity({
+      userId: req.user.id,
+      action: 'Từ chối yêu cầu tài khoản',
+      detail: `Từ chối yêu cầu tạo tài khoản cho ${request.email}`
+    });
+
+    res.status(200).json({ success: true, message: 'Đã từ chối yêu cầu' });
+  } catch (error) {
+    console.error('Lỗi khi từ chối yêu cầu:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+module.exports = { 
+  getDashboardStats, 
+  getUsers, 
+  getUserById, 
+  updateUserStatus, 
+  updateUserRole, 
+  createUser,
+  getPendingAccountRequests,
+  approveAccountRequest,
+  rejectAccountRequest
+};
