@@ -113,3 +113,18 @@ exports.extendContract = async (req, res) => {
     res.status(500).json({ message: 'Lỗi khi cập nhật hợp đồng', error: error.message });
   }
 };
+
+// Xóa hợp đồng
+exports.deleteContract = async (req, res) => {
+  try {
+    const { contract_id } = req.params;
+    const contract = await Contract.findByPk(contract_id);
+    if (!contract) {
+      return res.status(404).json({ message: 'Không tìm thấy hợp đồng' });
+    }
+    await contract.destroy();
+    res.status(200).json({ message: 'Xóa hợp đồng thành công' });
+  } catch (error) {
+    res.status(500).json({ message: 'Lỗi khi xóa hợp đồng', error: error.message });
+  }
+};

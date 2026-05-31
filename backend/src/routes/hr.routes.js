@@ -14,6 +14,9 @@ router.post('/contracts', hrContractController.createContract);
 // [PUT] Gia hạn hoặc cập nhật hợp đồng
 router.put('/contracts/:contract_id', hrContractController.extendContract);
 
+// [DELETE] Xóa hợp đồng
+router.delete('/contracts/:contract_id', hrContractController.deleteContract);
+
 // [GET] Lấy danh sách tất cả nhân viên
 router.get('/employees', hrContractController.getAllEmployees);
 

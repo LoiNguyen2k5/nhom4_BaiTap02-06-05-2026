@@ -25,6 +25,11 @@ const hrService = {
   // [PUT] Cập nhật, gia hạn hợp đồng (ví dụ: chuyển từ thử việc sang chính thức, đổi mức lương)
   extendContract: (contractId, updateData) => {
     return axiosClient.put(`/hr/contracts/${contractId}`, updateData);
+  },
+
+  // [DELETE] Xóa hợp đồng
+  deleteContract: (contractId) => {
+    return axiosClient.delete(`/hr/contracts/${contractId}`);
   }
 };
 
