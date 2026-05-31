@@ -20,6 +20,9 @@ import RecruitmentPage from './pages/admin/RecruitmentPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import HRDashboard from './pages/hr/HRDashboard';
+import ContractManager from './pages/hr/ContractManager';
+
+import Layout from './components/Layout';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -60,6 +63,10 @@ const App = () => {
       {/* Legacy redirect */}
       <Route path="/profile" element={<RoleRedirect />} />
 
+      {/* Public routes với Navbar & Footer */}
+      <Route element={<Layout />}>
+      </Route>
+
       {/* User dashboard (All non-admin roles can access profile here) */}
       <Route
         path="/user"
@@ -82,6 +89,7 @@ const App = () => {
         }
       >
         <Route path="dashboard" element={<HRDashboard />} />
+        <Route path="contracts" element={<ContractManager />} />
       </Route>
 
       {/* Admin dashboard */}

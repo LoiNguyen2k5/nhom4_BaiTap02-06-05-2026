@@ -48,9 +48,6 @@ ActivityLog.belongsTo(User, {
   foreignKey: 'user_id'
 });
 
-const AccountRequest = require('./AccountRequest');
-const Contract = require('./Contract');
-
 // User and AccountRequest
 User.hasMany(AccountRequest, { foreignKey: 'hr_id', as: 'account_requests' });
 AccountRequest.belongsTo(User, { foreignKey: 'hr_id', as: 'hr' });

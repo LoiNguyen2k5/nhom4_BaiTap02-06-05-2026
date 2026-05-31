@@ -16,6 +16,12 @@ const Contract = sequelize.define(
         model: 'users',
         key: 'id',
       },
+      onDelete: 'CASCADE',
+    },
+    contract_number: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      unique: true,
     },
     contract_type: {
       type: DataTypes.ENUM('Thử việc', 'Chính thức', 'Thời vụ'),

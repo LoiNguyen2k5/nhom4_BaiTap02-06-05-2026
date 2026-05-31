@@ -53,17 +53,18 @@ const userNavItems = [
 ];
 
 const hrNavItems = [
-  { label: 'HR Dashboard', path: '/hr/dashboard', icon: <HomeIcon /> },
-  { label: 'Hồ sơ cá nhân', path: '/user/profile', icon: <UserCircleIcon /> },
+  { label: 'HR Dashboard',       path: '/hr/dashboard',  icon: <HomeIcon /> },
+  { label: 'Hồ sơ cá nhân',     path: '/user/profile',  icon: <UserCircleIcon /> },
+  { label: 'Hợp đồng lao động', path: '/hr/contracts',  icon: <DocumentIcon /> },
 ];
 
 const adminNavItems = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: <HomeIcon /> },
-  { label: 'Hồ sơ', path: '/admin/profile', icon: <UserCircleIcon /> },
-  { label: 'Quản lý tài khoản', path: '/admin/users',       icon: <UsersIcon /> },
+  { label: 'Dashboard',          path: '/admin/dashboard',    icon: <HomeIcon /> },
+  { label: 'Hồ sơ',             path: '/admin/profile',      icon: <UserCircleIcon /> },
+  { label: 'Quản lý tài khoản', path: '/admin/users',        icon: <UsersIcon /> },
   { label: 'Phòng ban',         path: '/admin/departments',  icon: <BuildingIcon /> },
-  { label: 'Tuyển dụng',       path: '/admin/recruitment',  icon: <RecruitmentIcon /> },
-  { label: 'Cấu hình Thuế/BH', path: '/admin/config',       icon: <ConfigIcon /> },
+  { label: 'Tuyển dụng',        path: '/admin/recruitment',  icon: <RecruitmentIcon /> },
+  { label: 'Cấu hình Thuế/BH',  path: '/admin/config',       icon: <ConfigIcon /> },
 ];
 
 const Sidebar = () => {
@@ -84,7 +85,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-64 min-h-screen flex flex-col shrink-0" style={{ backgroundColor: '#1a1a2e' }}>
+    <aside className="w-64 h-screen sticky top-0 flex flex-col shrink-0 overflow-y-auto" style={{ backgroundColor: '#1a1a2e' }}>
       {/* Logo */}
       <div className="px-6 py-6 border-b border-white/10">
         <div className="flex items-center gap-2">
