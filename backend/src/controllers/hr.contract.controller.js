@@ -9,7 +9,7 @@ exports.getEmployeeContracts = async (req, res) => {
     // Tìm tất cả hợp đồng của user_id này, sắp xếp hợp đồng mới nhất lên đầu
     const contracts = await Contract.findAll({
       where: { user_id },
-      include: [{ model: User, attributes: ['id', 'name', 'email', 'department'] }],
+      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }],
       order: [['start_date', 'DESC']]
     });
     
@@ -33,7 +33,7 @@ exports.getAllContracts = async (req, res) => {
     }
     const contracts = await Contract.findAll({
       where: whereClause,
-      include: [{ model: User, attributes: ['id', 'name', 'email', 'department'], where: Object.keys(userWhere).length ? userWhere : undefined }],
+      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'], where: Object.keys(userWhere).length ? userWhere : undefined }],
       order: [['start_date', 'DESC']]
     });
     res.status(200).json({ contracts });
@@ -46,8 +46,8 @@ exports.getAllContracts = async (req, res) => {
 exports.getAllEmployees = async (req, res) => {
   try {
     const employees = await User.findAll({
-      where: { role: ['employee', 'user'] },
-      attributes: ['id', 'name', 'email', 'department', 'status']
+      where: { role: ['employee', 'manager', 'accountant', 'hr'] },
+      attributes: ['id', 'name', 'email', 'status']
     });
     res.status(200).json({ employees });
   } catch (error) {
