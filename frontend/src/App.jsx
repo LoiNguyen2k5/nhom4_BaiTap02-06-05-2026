@@ -16,6 +16,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
+import RecruitmentPage from './pages/admin/RecruitmentPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 // Redirect /profile đến đúng dashboard theo role
@@ -82,6 +83,7 @@ const App = () => {
         <Route path="users/:id" element={<AdminUserDetail />} />
         <Route path="departments" element={<AdminDepartments />} />
         <Route path="config" element={<AdminConfig />} />
+        <Route path="recruitment" element={<RecruitmentPage />} />
       </Route>
     </Routes>
   );

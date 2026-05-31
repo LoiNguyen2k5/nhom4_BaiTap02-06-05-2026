@@ -27,11 +27,13 @@ const profileRoutes = require('./routes/profile.routes');
 const passwordRoutes = require('./routes/password.routes');
 const adminRoutes = require('./routes/admin.routes');
 const configRoutes = require('./routes/configRoutes');
+const recruitmentRoutes = require('./routes/recruitment.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/recruitment', recruitmentRoutes);
 
 module.exports = app;
