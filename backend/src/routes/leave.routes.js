@@ -23,4 +23,17 @@ router.get('/my-requests', leaveController.getMyLeaveRequests);
 // [POST] /api/leaves/request -> Nộp đơn xin nghỉ phép hoặc xin OT
 router.post('/request', leaveController.createLeaveRequest);
 
+// ==========================================
+// API DÀNH CHO QUẢN LÝ (MANAGER)
+// ==========================================
+
+// [GET] /api/leaves/pending -> Lấy danh sách đơn đang chờ duyệt
+router.get('/pending', leaveController.getPendingRequests);
+
+// [PUT] /api/leaves/:id/approve -> Quản lý Duyệt hoặc Từ chối đơn (kèm lý do)
+router.put('/:id/approve', leaveController.approveOrRejectRequest);
+
+// [GET] /api/leaves/schedule -> Lấy danh sách đơn đã duyệt để hiển thị lên Lịch
+router.get('/schedule', leaveController.getTeamSchedule);
+
 module.exports = router;
