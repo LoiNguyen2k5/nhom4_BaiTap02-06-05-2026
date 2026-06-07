@@ -75,9 +75,10 @@ const Sidebar = () => {
 
   let navItems = [...userNavItems];
   
-  // Nếu là Quản lý (Manager), thêm menu Duyệt Đơn
+  // Nếu là Quản lý (Manager), thêm menu Duyệt Đơn và Lịch Team (route /manager/...)
   if (user?.role === 'manager') {
-    navItems.push({ label: 'Duyệt Đơn', path: '/user/leave-approvals', icon: <UsersIcon /> });
+    navItems.push({ label: 'Duyệt Đơn', path: '/manager/leave-approvals', icon: <UsersIcon /> });
+    navItems.push({ label: 'Lịch Team', path: '/manager/team-schedule', icon: <HomeIcon /> });
   }
 
   if (user?.role === 'admin') navItems = adminNavItems;

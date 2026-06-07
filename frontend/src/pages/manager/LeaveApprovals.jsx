@@ -31,7 +31,7 @@ const LeaveApprovals = () => {
     try {
       await LeaveService.approveOrRejectRequest(id, 'approved');
       alert('Đã duyệt đơn thành công!');
-      fetchPendingRequests(); // Tải lại danh sách
+      fetchPendingRequests();
     } catch (error) {
       alert(error.response?.data?.message || 'Có lỗi xảy ra');
     }
@@ -100,16 +100,10 @@ const LeaveApprovals = () => {
                     {req.reason}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <button 
-                      onClick={() => handleApprove(req.id)}
-                      className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 mr-2"
-                    >
+                    <button onClick={() => handleApprove(req.id)} className="bg-green-100 text-green-700 px-3 py-1 rounded hover:bg-green-200 mr-2">
                       Duyệt
                     </button>
-                    <button 
-                      onClick={() => openRejectModal(req.id)}
-                      className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200"
-                    >
+                    <button onClick={() => openRejectModal(req.id)} className="bg-red-100 text-red-700 px-3 py-1 rounded hover:bg-red-200">
                       Từ chối
                     </button>
                   </td>
@@ -128,12 +122,12 @@ const LeaveApprovals = () => {
             <form onSubmit={handleReject}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Lý do từ chối (bắt buộc)</label>
-                <textarea 
-                  value={rejectReason} 
-                  onChange={(e) => setRejectReason(e.target.value)} 
-                  required 
-                  rows="3" 
-                  className="w-full border p-2 rounded focus:ring-red-500 focus:border-red-500"
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  required
+                  rows="3"
+                  className="w-full border p-2 rounded"
                   placeholder="Nhập lý do để nhân viên biết..."
                 ></textarea>
               </div>
