@@ -11,6 +11,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
+import MyLeaves from './pages/user/MyLeaves';
+import LeaveApprovals from './pages/user/LeaveApprovals';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
@@ -77,6 +79,8 @@ const App = () => {
         }
       >
         <Route path="profile" element={<UserProfile />} />
+        <Route path="leaves" element={<MyLeaves />} />
+        <Route path="leave-approvals" element={<LeaveApprovals />} />
       </Route>
 
       {/* HR dashboard */}

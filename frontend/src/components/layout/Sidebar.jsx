@@ -50,6 +50,7 @@ const DocumentIcon = () => (
 
 const userNavItems = [
   { label: 'Hồ sơ', path: '/user/profile', icon: <UserCircleIcon /> },
+  { label: 'Nghỉ phép & OT', path: '/user/leaves', icon: <DocumentIcon /> },
 ];
 
 const hrNavItems = [
@@ -72,7 +73,13 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
-  let navItems = userNavItems;
+  let navItems = [...userNavItems];
+  
+  // Nếu là Quản lý (Manager), thêm menu Duyệt Đơn
+  if (user?.role === 'manager') {
+    navItems.push({ label: 'Duyệt Đơn', path: '/user/leave-approvals', icon: <UsersIcon /> });
+  }
+
   if (user?.role === 'admin') navItems = adminNavItems;
   if (user?.role === 'hr') navItems = hrNavItems;
 
