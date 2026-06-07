@@ -73,16 +73,21 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
 
-  let navItems = [...userNavItems];
+  let navItems = [];
   
-  // Nếu là Quản lý (Manager), thêm menu Duyệt Đơn và Lịch Team (route /manager/...)
-  if (user?.role === 'manager') {
-    navItems.push({ label: 'Duyệt Đơn', path: '/manager/leave-approvals', icon: <UsersIcon /> });
-    navItems.push({ label: 'Lịch Team', path: '/manager/team-schedule', icon: <HomeIcon /> });
+  if (user?.role === 'admin') {
+    navItems = adminNavItems;
+  } else if (user?.role === 'hr') {
+    navItems = hrNavItems;
+  } else if (user?.role === 'manager') {
+    navItems = [
+      { label: 'Hồ sơ', path: '/user/profile', icon: <UserCircleIcon /> },
+      { label: 'Duyệt Đơn', path: '/manager/leave-approvals', icon: <UsersIcon /> },
+      { label: 'Lịch Team', path: '/manager/team-schedule', icon: <HomeIcon /> }
+    ];
+  } else {
+    navItems = [...userNavItems];
   }
-
-  if (user?.role === 'admin') navItems = adminNavItems;
-  if (user?.role === 'hr') navItems = hrNavItems;
 
   const displayName = user?.name || user?.email || 'Người dùng';
   const initial = displayName.charAt(0).toUpperCase();
