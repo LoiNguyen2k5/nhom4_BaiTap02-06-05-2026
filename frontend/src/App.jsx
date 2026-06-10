@@ -16,11 +16,13 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
 import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
+import AdminTasks from './pages/admin/AdminTasks';
 import RecruitmentPage from './pages/admin/RecruitmentPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import HRDashboard from './pages/hr/HRDashboard';
 import ContractManager from './pages/hr/ContractManager';
+import UserTasks from './pages/user/UserTasks';
 
 import Layout from './components/Layout';
 
@@ -71,12 +73,13 @@ const App = () => {
       <Route
         path="/user"
         element={
-          <ProtectedRoute allowedRoles={['employee', 'manager', 'accountant']}>
+          <ProtectedRoute allowedRoles={['user', 'employee', 'manager', 'accountant', 'hr']}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
         <Route path="profile" element={<UserProfile />} />
+        <Route path="tasks" element={<UserTasks />} />
       </Route>
 
       {/* HR dashboard */}
@@ -106,6 +109,7 @@ const App = () => {
         <Route path="users" element={<AdminUsers />} />
         <Route path="users/:id" element={<AdminUserDetail />} />
         <Route path="departments" element={<AdminDepartments />} />
+        <Route path="tasks" element={<AdminTasks />} />
         <Route path="config" element={<AdminConfig />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
       </Route>

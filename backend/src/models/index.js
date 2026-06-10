@@ -7,6 +7,7 @@ const TaxInsuranceConfig = require('./TaxInsuranceConfig');
 const Candidate = require('./Candidate');
 const AccountRequest = require('./AccountRequest');
 const Contract = require('./Contract');
+const Task = require('./Task');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -63,6 +64,13 @@ Contract.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(Contract, { foreignKey: 'created_by_hr_id', as: 'created_contracts' });
 Contract.belongsTo(User, { foreignKey: 'created_by_hr_id', as: 'hr' });
 
+// User and Task
+User.hasMany(Task, { foreignKey: 'assigned_to_id', as: 'assigned_tasks' });
+Task.belongsTo(User, { foreignKey: 'assigned_to_id', as: 'assignee' });
+
+User.hasMany(Task, { foreignKey: 'assigned_by_id', as: 'created_tasks' });
+Task.belongsTo(User, { foreignKey: 'assigned_by_id', as: 'assigner' });
+
 module.exports = {
   User,
   Profile,
@@ -73,4 +81,5 @@ module.exports = {
   Candidate,
   AccountRequest,
   Contract,
+  Task,
 };
