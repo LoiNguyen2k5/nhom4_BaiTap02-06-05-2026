@@ -23,6 +23,7 @@ const EMPTY_FORM = {
   assigned_to_id: '',
   priority: 'medium',
   due_date: '',
+  status: 'todo',
 };
 
 const AdminTasks = () => {
@@ -77,6 +78,7 @@ const AdminTasks = () => {
       assigned_to_id: task.assigned_to_id || '',
       priority: task.priority || 'medium',
       due_date: task.due_date || '',
+      status: task.status || 'todo',
     });
     setShowForm(true);
   };
@@ -311,7 +313,7 @@ const AdminTasks = () => {
                   placeholder="Mô tả ngắn gọn nội dung cần làm"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className={`grid grid-cols-1 ${editingTask ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4`}>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nhân viên</label>
                   <select
@@ -350,6 +352,22 @@ const AdminTasks = () => {
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                   />
                 </div>
+                {editingTask && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                    <select
+                      value={form.status}
+                      onChange={(e) => setForm((prev) => ({ ...prev, status: e.target.value }))}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                      <option value="todo">Cần làm</option>
+                      <option value="in_progress">Đang làm</option>
+                      <option value="review">Chờ duyệt</option>
+                      <option value="done">Hoàn thành</option>
+                      <option value="cancelled">Huỷ</option>
+                    </select>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={closeForm} className="flex-1 py-2.5 border border-gray-300 rounded-xl text-gray-600 hover:bg-gray-50">

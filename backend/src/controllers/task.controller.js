@@ -130,7 +130,12 @@ const updateTask = async (req, res) => {
       task.assigned_to_id = assigned_to_id;
     }
 
-    if (title !== undefined) task.title = title.trim();
+    if (title !== undefined) {
+      if (!title || !title.trim()) {
+        return res.status(400).json({ success: false, message: 'Tiêu đề task không được để trống' });
+      }
+      task.title = title.trim();
+    }
     if (description !== undefined) task.description = description ? description.trim() : null;
     if (priority !== undefined) {
       if (!isValidTaskPriority(priority)) {
