@@ -45,6 +45,19 @@ async function createAdminAccount() {
       await User.create({ email: hrEmail, password: hashedHrPw, role: 'hr', status: 'active' });
       console.log(`√ Tài khoản hr test đã được tạo: ${hrEmail}`);
     }
+    // Luôn đảm bảo tài khoản manager tồn tại
+    const managerEmail = 'manager@example.com';
+    const managerPassword = 'Manager@123456';
+    const managerExists = await User.findOne({ where: { email: managerEmail } });
+    if (managerExists) {
+      const hashedManagerPw = await bcrypt.hash(managerPassword, 10);
+      await managerExists.update({ password: hashedManagerPw, role: 'manager', status: 'active', name: 'Nguyễn Quản Lý' });
+      console.log(`√ Cập nhật tài khoản manager test: ${managerEmail}`);
+    } else {
+      const hashedManagerPw = await bcrypt.hash(managerPassword, 10);
+      await User.create({ email: managerEmail, password: hashedManagerPw, role: 'manager', status: 'active', name: 'Nguyễn Quản Lý' });
+      console.log(`√ Tài khoản manager test đã được tạo: ${managerEmail}`);
+    }
   } catch (error) {
     console.error('✗ Lỗi khi tạo tài khoản hệ thống:', error.message);
   }

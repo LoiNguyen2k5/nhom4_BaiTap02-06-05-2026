@@ -21,8 +21,11 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import HRDashboard from './pages/hr/HRDashboard';
 import ContractManager from './pages/hr/ContractManager';
+import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
+import PromotionManager from './pages/hr/PromotionManager';
 
 import Layout from './components/Layout';
+import PerformanceDashboard from './pages/user/PerformanceDashboard';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -77,6 +80,20 @@ const App = () => {
         }
       >
         <Route path="profile" element={<UserProfile />} />
+        <Route path="performance" element={<PerformanceDashboard />} />
+      </Route>
+
+      {/* Manager dashboard */}
+      <Route
+        path="/manager"
+        element={
+          <ProtectedRoute allowedRoles={['manager']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="evaluation" element={<EmployeeEvaluation />} />
+        <Route path="promotions" element={<PromotionManager />} />
       </Route>
 
       {/* HR dashboard */}
@@ -90,6 +107,8 @@ const App = () => {
       >
         <Route path="dashboard" element={<HRDashboard />} />
         <Route path="contracts" element={<ContractManager />} />
+        <Route path="evaluation" element={<EmployeeEvaluation />} />
+        <Route path="promotions" element={<PromotionManager />} />
       </Route>
 
       {/* Admin dashboard */}

@@ -7,6 +7,10 @@ const TaxInsuranceConfig = require('./TaxInsuranceConfig');
 const Candidate = require('./Candidate');
 const AccountRequest = require('./AccountRequest');
 const Contract = require('./Contract');
+const Task = require('./Task');
+const Attendance = require('./Attendance');
+const PerformanceReview = require('./PerformanceReview');
+const PromotionProposal = require('./PromotionProposal');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -63,6 +67,26 @@ Contract.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(Contract, { foreignKey: 'created_by_hr_id', as: 'created_contracts' });
 Contract.belongsTo(User, { foreignKey: 'created_by_hr_id', as: 'hr' });
 
+// User and Task
+User.hasMany(Task, { foreignKey: 'assignee_id', as: 'tasks' });
+Task.belongsTo(User, { foreignKey: 'assignee_id', as: 'assignee' });
+
+// User and Attendance
+User.hasMany(Attendance, { foreignKey: 'user_id', as: 'attendances' });
+Attendance.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// User and PerformanceReview
+User.hasMany(PerformanceReview, { foreignKey: 'user_id', as: 'performance_reviews' });
+PerformanceReview.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(PerformanceReview, { foreignKey: 'reviewer_id', as: 'reviews_given' });
+PerformanceReview.belongsTo(User, { foreignKey: 'reviewer_id', as: 'reviewer' });
+
+// User and PromotionProposal
+User.hasMany(PromotionProposal, { foreignKey: 'user_id', as: 'promotion_proposals' });
+PromotionProposal.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(PromotionProposal, { foreignKey: 'proposed_by', as: 'proposals_made' });
+PromotionProposal.belongsTo(User, { foreignKey: 'proposed_by', as: 'proposer' });
+
 module.exports = {
   User,
   Profile,
@@ -73,4 +97,8 @@ module.exports = {
   Candidate,
   AccountRequest,
   Contract,
+  Task,
+  Attendance,
+  PerformanceReview,
+  PromotionProposal,
 };

@@ -20,7 +20,7 @@ app.use((req, res, next) => {
   } else if (!origin) {
     res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGINS[0]);
   }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
@@ -34,6 +34,7 @@ const adminRoutes = require('./routes/admin.routes');
 const configRoutes = require('./routes/configRoutes');
 const recruitmentRoutes = require('./routes/recruitment.routes');
 const hrRoutes = require('./routes/hr.routes');
+const performanceRoutes = require('./routes/performance.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
@@ -42,5 +43,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/hr', hrRoutes);
+app.use('/api/performance', performanceRoutes);
 
 module.exports = app;
