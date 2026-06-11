@@ -1,11 +1,15 @@
 const bcrypt = require('bcrypt');
-const User = require('./src/models/User');
-const Profile = require('./src/models/Profile');
+const { User, Profile, Department } = require('./src/models');
 
 async function seed() {
   try {
     console.log('Đang tạo tài khoản mẫu...');
     const hashedPassword = await bcrypt.hash('123456', 10);
+    
+    const [itDept] = await Department.findOrCreate({
+      where: { name: 'IT' },
+      defaults: { description: 'Phòng Công nghệ thông tin', status: 'active' }
+    });
     
     for (let i = 1; i <= 25; i++) {
       const email = `test_it_${i}@example.com`;
@@ -18,8 +22,8 @@ async function seed() {
           name: name,
           email: email,
           password: hashedPassword,
-          role: 'user',
-          department: 'IT',
+          role: 'employee',
+          department_id: itDept.id,
           status: 'active'
         });
         

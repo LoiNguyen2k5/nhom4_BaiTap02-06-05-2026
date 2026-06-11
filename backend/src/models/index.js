@@ -9,6 +9,7 @@ const AccountRequest = require('./AccountRequest');
 const Contract = require('./Contract');
 const LeaveBalance = require('./LeaveBalance');
 const LeaveRequest = require('./LeaveRequest');
+const Task = require('./Task');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -81,6 +82,13 @@ LeaveRequest.belongsTo(User, { foreignKey: 'user_id', as: 'requester' });
 User.hasMany(LeaveRequest, { foreignKey: 'approved_by', as: 'approved_requests' });
 LeaveRequest.belongsTo(User, { foreignKey: 'approved_by', as: 'approver' });
 
+// User and Task
+User.hasMany(Task, { foreignKey: 'assigned_to_id', as: 'assigned_tasks' });
+Task.belongsTo(User, { foreignKey: 'assigned_to_id', as: 'assignee' });
+
+User.hasMany(Task, { foreignKey: 'assigned_by_id', as: 'created_tasks' });
+Task.belongsTo(User, { foreignKey: 'assigned_by_id', as: 'assigner' });
+
 module.exports = {
   User,
   Profile,
@@ -93,4 +101,5 @@ module.exports = {
   Contract,
   LeaveBalance,
   LeaveRequest,
+  Task,
 };

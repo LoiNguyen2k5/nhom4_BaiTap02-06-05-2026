@@ -124,7 +124,7 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role: 'user',
+      role: 'employee',
       status: 'inactive',
     });
 

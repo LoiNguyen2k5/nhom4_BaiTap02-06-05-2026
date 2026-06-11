@@ -35,6 +35,7 @@ const configRoutes = require('./routes/configRoutes');
 const recruitmentRoutes = require('./routes/recruitment.routes');
 const hrRoutes = require('./routes/hr.routes');
 const leaveRoutes = require('./routes/leave.routes');
+const taskRoutes = require('./routes/task.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
@@ -44,5 +45,6 @@ app.use('/api/config', configRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 app.use('/api/hr', hrRoutes);
 app.use('/api/leaves', leaveRoutes);
+app.use('/api/tasks', taskRoutes);
 
 module.exports = app;

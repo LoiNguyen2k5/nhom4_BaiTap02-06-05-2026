@@ -48,14 +48,22 @@ const DocumentIcon = () => (
   </svg>
 );
 
+const TaskIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M7.5 4.5h9A2.25 2.25 0 0 1 18.75 6.75v10.5A2.25 2.25 0 0 1 16.5 19.5h-9a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 7.5 4.5Z" />
+  </svg>
+);
+
 const userNavItems = [
   { label: 'Hồ sơ', path: '/user/profile', icon: <UserCircleIcon /> },
+  { label: 'Việc của tôi', path: '/user/tasks', icon: <TaskIcon /> },
   { label: 'Nghỉ phép & OT', path: '/user/leaves', icon: <DocumentIcon /> },
 ];
 
 const hrNavItems = [
   { label: 'HR Dashboard',       path: '/hr/dashboard',  icon: <HomeIcon /> },
   { label: 'Hồ sơ cá nhân',     path: '/user/profile',  icon: <UserCircleIcon /> },
+  { label: 'Việc của tôi',      path: '/user/tasks',     icon: <TaskIcon /> },
   { label: 'Hợp đồng lao động', path: '/hr/contracts',  icon: <DocumentIcon /> },
 ];
 
@@ -64,6 +72,7 @@ const adminNavItems = [
   { label: 'Hồ sơ',             path: '/admin/profile',      icon: <UserCircleIcon /> },
   { label: 'Quản lý tài khoản', path: '/admin/users',        icon: <UsersIcon /> },
   { label: 'Phòng ban',         path: '/admin/departments',  icon: <BuildingIcon /> },
+  { label: 'Giao việc',         path: '/admin/tasks',        icon: <TaskIcon /> },
   { label: 'Tuyển dụng',        path: '/admin/recruitment',  icon: <RecruitmentIcon /> },
   { label: 'Cấu hình Thuế/BH',  path: '/admin/config',       icon: <ConfigIcon /> },
 ];

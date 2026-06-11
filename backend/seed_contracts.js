@@ -10,6 +10,7 @@ async function seedAll() {
   const User = require('./src/models/User');
   const Profile = require('./src/models/Profile');
   const Contract = require('./src/models/Contract');
+  const Department = require('./src/models/Department');
   require('./src/models/index'); // set up associations
 
   await sequelize.sync({ alter: true });
@@ -32,12 +33,16 @@ async function seedAll() {
   for (const emp of employeeData) {
     let u = await User.findOne({ where: { email: emp.email } });
     if (!u) {
+      const [dept] = await Department.findOrCreate({
+        where: { name: emp.department },
+        defaults: { description: `Phòng ${emp.department}`, status: 'active' }
+      });
       u = await User.create({
         name: emp.name,
         email: emp.email,
         password: hashedPw,
         role: 'employee',
-        department: emp.department,
+        department_id: dept.id,
         status: 'active',
       });
       await Profile.create({ user_id: u.id, full_name: emp.name });

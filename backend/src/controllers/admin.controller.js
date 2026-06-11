@@ -149,7 +149,7 @@ const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
-    if (!['admin', 'hr', 'manager', 'accountant', 'employee'].includes(role)) {
+    if (!['user', 'admin', 'hr', 'manager', 'accountant', 'employee'].includes(role)) {
       return res.status(400).json({ success: false, message: 'Role không hợp lệ' });
     }
     const user = await User.findByPk(userId);
@@ -191,7 +191,7 @@ const createUser = async (req, res) => {
     }
 
     // Validate role hợp lệ
-    const validRoles = ['admin', 'hr', 'manager', 'accountant', 'employee'];
+    const validRoles = ['user', 'admin', 'hr', 'manager', 'accountant', 'employee'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ' });
     }
