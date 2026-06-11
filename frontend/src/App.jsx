@@ -11,6 +11,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
+import MyLeaves from './pages/user/MyLeaves';
+// Trang dành riêng cho Quản lý (Manager)
+import LeaveApprovals from './pages/manager/LeaveApprovals';
+import TeamSchedule from './pages/manager/TeamSchedule';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
@@ -77,6 +81,20 @@ const App = () => {
         }
       >
         <Route path="profile" element={<UserProfile />} />
+        <Route path="leaves" element={<MyLeaves />} />
+      </Route>
+
+      {/* Manager dashboard - Chỉ dành riêng cho role Manager */}
+      <Route
+        path="/manager"
+        element={
+          <ProtectedRoute allowedRoles={['manager']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="leave-approvals" element={<LeaveApprovals />} />
+        <Route path="team-schedule" element={<TeamSchedule />} />
       </Route>
 
       {/* HR dashboard */}

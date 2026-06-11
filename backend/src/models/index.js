@@ -7,6 +7,8 @@ const TaxInsuranceConfig = require('./TaxInsuranceConfig');
 const Candidate = require('./Candidate');
 const AccountRequest = require('./AccountRequest');
 const Contract = require('./Contract');
+const LeaveBalance = require('./LeaveBalance');
+const LeaveRequest = require('./LeaveRequest');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -63,6 +65,22 @@ Contract.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(Contract, { foreignKey: 'created_by_hr_id', as: 'created_contracts' });
 Contract.belongsTo(User, { foreignKey: 'created_by_hr_id', as: 'hr' });
 
+// ==========================================
+// QUẢN LÝ NGHỈ PHÉP & OT (TIME & ATTENDANCE)
+// ==========================================
+
+// 1. Quan hệ giữa User và LeaveBalance (Nhân viên - Quỹ phép)
+User.hasMany(LeaveBalance, { foreignKey: 'user_id', as: 'leave_balances' });
+LeaveBalance.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// 2. Quan hệ giữa User và LeaveRequest (Nhân viên - Đơn xin nghỉ)
+User.hasMany(LeaveRequest, { foreignKey: 'user_id', as: 'leave_requests' });
+LeaveRequest.belongsTo(User, { foreignKey: 'user_id', as: 'requester' });
+
+// 3. Quan hệ giữa LeaveRequest và Quản lý duyệt đơn
+User.hasMany(LeaveRequest, { foreignKey: 'approved_by', as: 'approved_requests' });
+LeaveRequest.belongsTo(User, { foreignKey: 'approved_by', as: 'approver' });
+
 module.exports = {
   User,
   Profile,
@@ -73,4 +91,6 @@ module.exports = {
   Candidate,
   AccountRequest,
   Contract,
+  LeaveBalance,
+  LeaveRequest,
 };
