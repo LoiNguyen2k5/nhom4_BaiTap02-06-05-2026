@@ -27,8 +27,11 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import HRDashboard from './pages/hr/HRDashboard';
 import ContractManager from './pages/hr/ContractManager';
 import UserTasks from './pages/user/UserTasks';
+import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
+import PromotionManager from './pages/hr/PromotionManager';
 
 import Layout from './components/Layout';
+import PerformanceDashboard from './pages/user/PerformanceDashboard';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -85,6 +88,7 @@ const App = () => {
         <Route path="profile" element={<UserProfile />} />
         <Route path="leaves" element={<MyLeaves />} />
         <Route path="tasks" element={<UserTasks />} />
+        <Route path="performance" element={<PerformanceDashboard />} />
       </Route>
 
       {/* Manager dashboard - Chỉ dành riêng cho role Manager */}
@@ -98,6 +102,8 @@ const App = () => {
       >
         <Route path="leave-approvals" element={<LeaveApprovals />} />
         <Route path="team-schedule" element={<TeamSchedule />} />
+        <Route path="evaluation" element={<EmployeeEvaluation />} />
+        <Route path="promotions" element={<PromotionManager />} />
       </Route>
 
       {/* HR dashboard */}
@@ -111,6 +117,8 @@ const App = () => {
       >
         <Route path="dashboard" element={<HRDashboard />} />
         <Route path="contracts" element={<ContractManager />} />
+        <Route path="evaluation" element={<EmployeeEvaluation />} />
+        <Route path="promotions" element={<PromotionManager />} />
       </Route>
 
       {/* Admin dashboard */}

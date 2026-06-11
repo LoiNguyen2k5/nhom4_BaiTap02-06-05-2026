@@ -10,6 +10,9 @@ const Contract = require('./Contract');
 const LeaveBalance = require('./LeaveBalance');
 const LeaveRequest = require('./LeaveRequest');
 const Task = require('./Task');
+const Attendance = require('./Attendance');
+const PerformanceReview = require('./PerformanceReview');
+const PromotionProposal = require('./PromotionProposal');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -82,12 +85,28 @@ LeaveRequest.belongsTo(User, { foreignKey: 'user_id', as: 'requester' });
 User.hasMany(LeaveRequest, { foreignKey: 'approved_by', as: 'approved_requests' });
 LeaveRequest.belongsTo(User, { foreignKey: 'approved_by', as: 'approver' });
 
-// User and Task
+// User and Task (dùng schema của tan: assigned_to_id / assigned_by_id)
 User.hasMany(Task, { foreignKey: 'assigned_to_id', as: 'assigned_tasks' });
 Task.belongsTo(User, { foreignKey: 'assigned_to_id', as: 'assignee' });
 
 User.hasMany(Task, { foreignKey: 'assigned_by_id', as: 'created_tasks' });
 Task.belongsTo(User, { foreignKey: 'assigned_by_id', as: 'assigner' });
+
+// User and Attendance
+User.hasMany(Attendance, { foreignKey: 'user_id', as: 'attendances' });
+Attendance.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// User and PerformanceReview
+User.hasMany(PerformanceReview, { foreignKey: 'user_id', as: 'performance_reviews' });
+PerformanceReview.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(PerformanceReview, { foreignKey: 'reviewer_id', as: 'reviews_given' });
+PerformanceReview.belongsTo(User, { foreignKey: 'reviewer_id', as: 'reviewer' });
+
+// User and PromotionProposal
+User.hasMany(PromotionProposal, { foreignKey: 'user_id', as: 'promotion_proposals' });
+PromotionProposal.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(PromotionProposal, { foreignKey: 'proposed_by', as: 'proposals_made' });
+PromotionProposal.belongsTo(User, { foreignKey: 'proposed_by', as: 'proposer' });
 
 module.exports = {
   User,
@@ -102,4 +121,7 @@ module.exports = {
   LeaveBalance,
   LeaveRequest,
   Task,
+  Attendance,
+  PerformanceReview,
+  PromotionProposal,
 };
