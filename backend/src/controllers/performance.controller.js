@@ -9,14 +9,15 @@ exports.getDashboardData = async (req, res) => {
     const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
     const currentYear = year ? parseInt(year) : new Date().getFullYear();
 
-    // 1. Task Statistics
-    const tasks = await Task.findAll({ where: { assignee_id: userId } });
+    // 1. Task Statistics (dùng schema của tan: assigned_to_id, ENUM: todo/in_progress/review/done/cancelled)
+    const tasks = await Task.findAll({ where: { assigned_to_id: userId } });
     const taskStats = {
       total: tasks.length,
-      completed: tasks.filter(t => t.status === 'Completed').length,
-      overdue: tasks.filter(t => t.status === 'Overdue').length,
-      pending: tasks.filter(t => t.status === 'Pending').length,
-      inProgress: tasks.filter(t => t.status === 'In Progress').length,
+      completed: tasks.filter(t => t.status === 'done').length,
+      cancelled: tasks.filter(t => t.status === 'cancelled').length,
+      pending: tasks.filter(t => t.status === 'todo').length,
+      inProgress: tasks.filter(t => t.status === 'in_progress').length,
+      inReview: tasks.filter(t => t.status === 'review').length,
     };
 
     // 2. Attendance Statistics
