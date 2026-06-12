@@ -38,13 +38,7 @@ const EmployeeEvaluation = () => {
       else if (Array.isArray(res.data)) setEmployees(res.data);
       else setEmployees([]);
     } catch {
-      setEmployees([
-        { id: 5, name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', role: 'employee', department: { name: 'Backend' } },
-        { id: 6, name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev', role: 'employee', department: { name: 'Backend' } },
-        { id: 7, name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', role: 'employee', department: { name: 'Frontend' } },
-        { id: 9, name: 'Lý Thanh Xuân', email: 'xuan@atria.dev', role: 'employee', department: { name: 'DevOps' } },
-        { id: 10, name: 'Mai Thị Thu', email: 'thu@atria.dev', role: 'employee', department: { name: 'Data' } },
-      ]);
+      setEmployees([]);
     }
   };
 

@@ -38,18 +38,7 @@ const HREmployees = () => {
       const list = res.data?.data || res.data || [];
       setEmployees(Array.isArray(list) ? list : []);
     } catch {
-      setEmployees([
-        { id: 1, name: 'Nguyễn Văn An', email: 'an.nv@atria.dev', role: 'admin', status: 'active', department: { name: 'IT' }, created_at: '2024-01-15T00:00:00Z' },
-        { id: 2, name: 'Ngọc HR', email: 'hr@atria.dev', role: 'hr', status: 'active', department: { name: 'Nhân sự' }, created_at: '2024-02-01T00:00:00Z' },
-        { id: 3, name: 'Tuấn Manager', email: 'manager@atria.dev', role: 'manager', status: 'active', department: { name: 'Kỹ thuật' }, created_at: '2024-02-15T00:00:00Z' },
-        { id: 4, name: 'Linh Kế toán', email: 'accountant@atria.dev', role: 'accountant', status: 'active', department: { name: 'Tài chính' }, created_at: '2024-03-01T00:00:00Z' },
-        { id: 5, name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', role: 'employee', status: 'active', department: { name: 'Backend' }, created_at: '2024-03-15T00:00:00Z' },
-        { id: 6, name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev', role: 'employee', status: 'active', department: { name: 'Backend' }, created_at: '2024-04-01T00:00:00Z' },
-        { id: 7, name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', role: 'employee', status: 'active', department: { name: 'Frontend' }, created_at: '2024-04-15T00:00:00Z' },
-        { id: 8, name: 'Trần Thị Hương', email: 'huong@atria.dev', role: 'hr', status: 'active', department: { name: 'Nhân sự' }, created_at: '2024-05-01T00:00:00Z' },
-        { id: 9, name: 'Lý Thanh Xuân', email: 'xuan@atria.dev', role: 'employee', status: 'active', department: { name: 'DevOps' }, created_at: '2024-05-15T00:00:00Z' },
-        { id: 10, name: 'Mai Thị Thu', email: 'thu@atria.dev', role: 'employee', status: 'locked', department: { name: 'Data' }, created_at: '2024-06-01T00:00:00Z' },
-      ]);
+      setEmployees([]);
     } finally {
       setLoading(false);
     }

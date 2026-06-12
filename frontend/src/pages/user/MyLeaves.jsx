@@ -71,13 +71,8 @@ const MyLeaves = () => {
       setBalance(balanceRes.data?.data || null);
       setRequests(requestsRes.data?.data || []);
     } catch {
-      setBalance({ year: 2026, total_days: 12, used_days: 4, pending_days: 2 });
-      setRequests([
-        { id: 1, type: 'leave', status: 'approved', start_date: '2026-05-10', end_date: '2026-05-12', total_days: 3, reason: 'Nghỉ phép năm', created_at: '2026-05-01T08:00:00Z' },
-        { id: 2, type: 'ot', status: 'pending', ot_hours: 3, start_time: '18:00', end_time: '21:00', reason: 'Xử lý incident sản phẩm', created_at: '2026-05-20T14:00:00Z' },
-        { id: 3, type: 'leave', status: 'rejected', start_date: '2026-04-28', end_date: '2026-04-28', total_days: 1, reason: 'Việc cá nhân', created_at: '2026-04-25T09:00:00Z' },
-        { id: 4, type: 'leave', status: 'pending', start_date: '2026-06-15', end_date: '2026-06-17', total_days: 3, reason: 'Du lịch gia đình', created_at: '2026-06-01T10:00:00Z' },
-      ]);
+      setBalance(null);
+      setRequests([]);
     } finally {
       setLoading(false);
     }

@@ -24,12 +24,7 @@ const TeamSchedule = () => {
       const res = await LeaveService.getTeamSchedule();
       setSchedules(res.data.data || []);
     } catch {
-      setSchedules([
-        { id: 1, type: 'leave', status: 'approved', start_date: '2026-06-10', end_date: '2026-06-12', total_days: 3, reason: 'Nghỉ phép năm', requester: { name: 'Vũ Minh Khôi', email: 'khoi@atria.dev' } },
-        { id: 2, type: 'ot', status: 'approved', ot_hours: 4, start_date: '2026-06-15', end_date: '2026-06-15', start_time: '18:00', end_time: '22:00', reason: 'Sprint release', requester: { name: 'Nguyễn Thị Linh', email: 'linh@atria.dev' } },
-        { id: 3, type: 'leave', status: 'approved', start_date: '2026-06-20', end_date: '2026-06-20', total_days: 1, reason: 'Khám sức khỏe', requester: { name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev' } },
-        { id: 4, type: 'leave', status: 'pending', start_date: '2026-06-25', end_date: '2026-06-27', total_days: 3, reason: 'Du lịch gia đình', requester: { name: 'Lý Thanh Xuân', email: 'xuan@atria.dev' } },
-      ]);
+      setSchedules([]);
     } finally {
       setLoading(false);
     }

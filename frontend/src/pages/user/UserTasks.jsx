@@ -55,18 +55,7 @@ const UserTasks = () => {
         setDraftStatus(drafts);
       }
     } catch {
-      const mockTasks = [
-        { id: 1, title: 'Optimize API response time', description: 'Giảm thời gian phản hồi xuống <200ms', priority: 'high', status: 'in_progress', due_date: '2026-06-21' },
-        { id: 2, title: 'Review pull request #142', description: 'Code review module auth', priority: 'medium', status: 'todo', due_date: '2026-06-15' },
-        { id: 3, title: 'Write unit tests for auth', description: 'Coverage tối thiểu 80%', priority: 'medium', status: 'in_progress', due_date: '2026-06-25' },
-        { id: 4, title: 'Fix login redirect bug', description: 'Bug: redirect vòng lặp sau đăng nhập', priority: 'critical', status: 'review', due_date: '2026-06-10' },
-        { id: 5, title: 'Deploy v2.3.1 to staging', description: 'Deploy và test trước khi lên prod', priority: 'high', status: 'done', due_date: '2026-06-08' },
-        { id: 6, title: 'Update API documentation', description: 'Cập nhật Swagger docs', priority: 'low', status: 'todo', due_date: '2026-06-30' },
-      ];
-      setTasks(mockTasks);
-      const drafts = {};
-      mockTasks.forEach((t) => { drafts[t.id] = t.status; });
-      setDraftStatus(drafts);
+      setTasks([]);
     } finally {
       setLoading(false);
     }

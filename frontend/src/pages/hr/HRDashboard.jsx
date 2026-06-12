@@ -18,7 +18,6 @@ const PIPELINE_STAGES = [
   { label: 'Offer',             key: 'offer',      color: 'bg-accent-500' },
 ];
 
-const MOCK_PIPELINE = [45, 28, 15, 8, 3];
 
 const HRDashboard = () => {
   const navigate = useNavigate();
@@ -64,7 +63,8 @@ const HRDashboard = () => {
   };
 
   const pending = requests.filter((r) => r.status === 'pending');
-  const maxPipeline = Math.max(...MOCK_PIPELINE, 1);
+  const pipelineData = [0, 0, 0, 0, 0];
+  const maxPipeline = Math.max(...pipelineData, 1);
 
   return (
     <div className="space-y-5">
@@ -116,8 +116,8 @@ const HRDashboard = () => {
           </div>
           <div className="space-y-3">
             {PIPELINE_STAGES.map((stage, i) => {
-              const count = MOCK_PIPELINE[i];
-              const pct = Math.round((count / MOCK_PIPELINE[0]) * 100);
+              const count = pipelineData[i];
+              const pct = pipelineData[0] > 0 ? Math.round((count / pipelineData[0]) * 100) : 0;
               return (
                 <div key={stage.key}>
                   <div className="flex items-center justify-between mb-1">

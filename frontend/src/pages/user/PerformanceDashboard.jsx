@@ -12,17 +12,7 @@ const RATING_BADGE = {
 
 const PerformanceDashboard = () => {
   const { user } = useSelector((state) => state.auth);
-  const MOCK_DATA = {
-    taskStats: { total: 15, completed: 12, overdue: 1, inProgress: 2 },
-    attendanceStats: { workingDays: 22, lateDays: 1, leaveDays: 2, absentDays: 0 },
-    reviews: [
-      { month: 5, year: 2026, kpi_score: 8.7, rating: 'A', comments: 'Hoàn thành xuất sắc sprint tháng 5. Tiếp tục phát huy.' },
-      { month: 4, year: 2026, kpi_score: 8.4, rating: 'A', comments: 'Tốt, hoàn thành đúng tiến độ' },
-      { month: 3, year: 2026, kpi_score: 8.5, rating: 'A', comments: 'Rất tốt, vượt mục tiêu' },
-      { month: 2, year: 2026, kpi_score: 8.2, rating: 'B', comments: 'Tốt, cần cải thiện deadline' },
-    ],
-  };
-  const [data, setData] = useState(MOCK_DATA);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => { fetchData(); }, []);
@@ -32,16 +22,7 @@ const PerformanceDashboard = () => {
       const res = await performanceService.getDashboardData();
       setData(res.data.data);
     } catch {
-      setData({
-        taskStats: { total: 15, completed: 12, overdue: 1, inProgress: 2 },
-        attendanceStats: { workingDays: 22, lateDays: 1, leaveDays: 2, absentDays: 0 },
-        reviews: [
-          { month: 5, year: 2026, kpi_score: 8.7, rating: 'A', comments: 'Hoàn thành xuất sắc sprint tháng 5. Tiếp tục phát huy.' },
-          { month: 4, year: 2026, kpi_score: 8.4, rating: 'A', comments: 'Tốt, hoàn thành đúng tiến độ' },
-          { month: 3, year: 2026, kpi_score: 8.5, rating: 'A', comments: 'Rất tốt, vượt mục tiêu' },
-          { month: 2, year: 2026, kpi_score: 8.2, rating: 'B', comments: 'Tốt, cần cải thiện deadline' },
-        ],
-      });
+      setData(null);
     } finally {
       setLoading(false);
     }

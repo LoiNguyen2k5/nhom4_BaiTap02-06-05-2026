@@ -51,14 +51,7 @@ const AdminTasks = () => {
       const res = await taskService.getAllTasks(params);
       if (res.success) setTasks(res.data || []);
     } catch {
-      setTasks([
-        { id: 1, title: 'Optimize API response time', description: 'Giảm thời gian phản hồi API xuống dưới 200ms', assigned_to_id: 5, priority: 'high', status: 'in_progress', due_date: '2026-06-21', AssignedUser: { name: 'Nguyễn Văn An' } },
-        { id: 2, title: 'Implement OAuth2 flow', description: 'Tích hợp đăng nhập Google và Microsoft', assigned_to_id: 6, priority: 'urgent', status: 'todo', due_date: '2026-06-23', AssignedUser: { name: 'Lê Minh Đức' } },
-        { id: 3, title: 'Setup Monitoring Dashboard', description: 'Cài đặt Grafana + Prometheus', assigned_to_id: 7, priority: 'medium', status: 'review', due_date: '2026-06-20', AssignedUser: { name: 'Trần Thị Hương' } },
-        { id: 4, title: 'Migrate Database to PostgreSQL 16', description: 'Nâng cấp database từ v14 lên v16', assigned_to_id: 8, priority: 'high', status: 'done', due_date: '2026-06-18', AssignedUser: { name: 'Phạm Thị Lan' } },
-        { id: 5, title: 'Write unit tests for auth module', description: 'Coverage tối thiểu 80%', assigned_to_id: 5, priority: 'medium', status: 'in_progress', due_date: '2026-06-25', AssignedUser: { name: 'Nguyễn Văn An' } },
-        { id: 6, title: 'Deploy staging environment', description: 'Cấu hình CI/CD pipeline cho staging', assigned_to_id: 9, priority: 'low', status: 'todo', due_date: '2026-06-30', AssignedUser: { name: 'Vũ Minh Khôi' } },
-      ]);
+      setTasks([]);
     } finally {
       setLoading(false);
     }

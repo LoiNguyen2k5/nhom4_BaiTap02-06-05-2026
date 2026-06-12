@@ -37,8 +37,7 @@ const AdminUserDetail = () => {
           setProfile(res.data.profile || null);
         }
       } catch {
-        setUser({ id: Number(id) || 1, name: 'Nguyễn Văn An', email: 'an.nv@atria.dev', role: 'employee', status: 'active', department: { name: 'Backend' }, created_at: '2024-03-15T00:00:00Z' });
-        setProfile({ full_name: 'Nguyễn Văn An', phone: '0901234567', address: 'Hà Nội', avatar_url: null });
+        setError('Không tìm thấy người dùng.');
       } finally {
         setLoading(false);
       }

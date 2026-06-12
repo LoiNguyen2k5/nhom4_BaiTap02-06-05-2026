@@ -45,12 +45,7 @@ const PromotionManager = () => {
       const res = await performanceService.getPromotions();
       setProposals(res.data.data || []);
     } catch {
-      setProposals([
-        { id: 1, user_id: 5, current_position: 'Junior Developer', proposed_position: 'Senior Developer', reason: 'Hoàn thành xuất sắc 3 dự án liên tiếp, KPI tháng 5 đạt 9.2/10', status: 'Pending', created_at: '2026-05-15T08:00:00Z', user: { name: 'Vũ Minh Khôi', email: 'khoi@atria.dev' } },
-        { id: 2, user_id: 8, current_position: 'HR Specialist', proposed_position: 'HR Lead', reason: 'Dẫn dắt tuyển dụng thành công 15 vị trí trong Q1/2026', status: 'Approved', created_at: '2026-04-10T08:00:00Z', user: { name: 'Trần Thị Hương', email: 'huong@atria.dev' } },
-        { id: 3, user_id: 7, current_position: 'Frontend Developer', proposed_position: 'Tech Lead', reason: 'Dẫn dắt team frontend, cải thiện performance 40%', status: 'Pending', created_at: '2026-05-20T08:00:00Z', user: { name: 'Nguyễn Thị Linh', email: 'linh@atria.dev' } },
-        { id: 4, user_id: 11, current_position: 'QA Engineer', proposed_position: 'QA Lead', reason: 'Xây dựng quy trình kiểm thử tự động', status: 'Rejected', created_at: '2026-03-05T08:00:00Z', user: { name: 'Trần Văn Bảo', email: 'bao@atria.dev' } },
-      ]);
+      setProposals([]);
     } finally {
       setLoading(false);
     }

@@ -12,7 +12,6 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import MyLeaves from './pages/user/MyLeaves';
-// Trang dành riêng cho Quản lý (Manager)
 import LeaveApprovals from './pages/manager/LeaveApprovals';
 import TeamSchedule from './pages/manager/TeamSchedule';
 import AdminProfile from './pages/admin/AdminProfile';
@@ -35,8 +34,6 @@ import AccountantDashboard from './pages/accountant/AccountantDashboard';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
-import PreviewShell from './pages/PreviewShell';
-import PlaceholderPage from './pages/PlaceholderPage';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -60,7 +57,6 @@ const App = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
-  // Sau hard refresh: token có nhưng user chưa load → fetch lại từ API
   useEffect(() => {
     if (isAuthenticated && user === null) {
       dispatch(fetchMeThunk());
@@ -83,7 +79,7 @@ const App = () => {
       <Route element={<Layout />}>
       </Route>
 
-      {/* User dashboard (All non-admin roles can access profile here) */}
+      {/* User dashboard */}
       <Route
         path="/user"
         element={
@@ -96,12 +92,9 @@ const App = () => {
         <Route path="leaves"      element={<MyLeaves />} />
         <Route path="tasks"       element={<UserTasks />} />
         <Route path="performance" element={<PerformanceDashboard />} />
-        <Route path="today"       element={<PlaceholderPage title="Hôm nay" />} />
-        <Route path="attendance"  element={<PlaceholderPage title="Chấm công" />} />
-        <Route path="payslip"     element={<PlaceholderPage title="Phiếu lương" />} />
       </Route>
 
-      {/* Manager dashboard - Chỉ dành riêng cho role Manager */}
+      {/* Manager dashboard */}
       <Route
         path="/manager"
         element={
@@ -111,14 +104,13 @@ const App = () => {
         }
       >
         <Route index element={<ManagerDashboard />} />
-        <Route path="dashboard"        element={<ManagerDashboard />} />
-        <Route path="leave-approvals"  element={<LeaveApprovals />} />
-        <Route path="team-schedule"    element={<TeamSchedule />} />
-        <Route path="evaluation"       element={<EmployeeEvaluation />} />
-        <Route path="promotions"       element={<PromotionManager />} />
-        <Route path="tasks"            element={<AdminTasks />} />
-        <Route path="approval-history" element={<PlaceholderPage title="Lịch sử phê duyệt" />} />
-        <Route path="kpi"              element={<EmployeeEvaluation />} />
+        <Route path="dashboard"       element={<ManagerDashboard />} />
+        <Route path="leave-approvals" element={<LeaveApprovals />} />
+        <Route path="team-schedule"   element={<TeamSchedule />} />
+        <Route path="evaluation"      element={<EmployeeEvaluation />} />
+        <Route path="promotions"      element={<PromotionManager />} />
+        <Route path="tasks"           element={<AdminTasks />} />
+        <Route path="kpi"             element={<EmployeeEvaluation />} />
       </Route>
 
       {/* Accountant dashboard */}
@@ -132,8 +124,6 @@ const App = () => {
       >
         <Route index element={<AccountantDashboard />} />
         <Route path="dashboard" element={<AccountantDashboard />} />
-        <Route path="payroll"   element={<PlaceholderPage title="Bảng lương" />} />
-        <Route path="advances"  element={<PlaceholderPage title="Tạm ứng" />} />
       </Route>
 
       {/* HR dashboard */}
@@ -151,55 +141,7 @@ const App = () => {
         <Route path="evaluation"  element={<EmployeeEvaluation />} />
         <Route path="promotions"  element={<PromotionManager />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
-        <Route path="interviews"  element={<PlaceholderPage title="Lịch phỏng vấn" />} />
-        <Route path="reports"     element={<PlaceholderPage title="Báo cáo HR" />} />
       </Route>
-
-      {/* ─── PREVIEW (no auth) ───────────────────────────────────────── */}
-      {/* URL: /preview/<path>?role=admin|hr|manager|accountant|user     */}
-      <Route path="/preview" element={<PreviewShell />}>
-        {/* Admin */}
-        <Route path="admin/dashboard"  element={<AdminDashboard />} />
-        <Route path="admin/profile"    element={<AdminProfile />} />
-        <Route path="admin/users"      element={<AdminUsers />} />
-        <Route path="admin/users/:id"  element={<AdminUserDetail />} />
-        <Route path="admin/departments" element={<AdminDepartments />} />
-        <Route path="admin/tasks"      element={<AdminTasks />} />
-        <Route path="admin/config"     element={<AdminConfig />} />
-        <Route path="admin/recruitment" element={<RecruitmentPage />} />
-        {/* HR */}
-        <Route path="hr/dashboard"   element={<HRDashboard />} />
-        <Route path="hr/employees"   element={<HREmployees />} />
-        <Route path="hr/contracts"   element={<ContractManager />} />
-        <Route path="hr/evaluation"  element={<EmployeeEvaluation />} />
-        <Route path="hr/promotions"  element={<PromotionManager />} />
-        <Route path="hr/recruitment" element={<RecruitmentPage />} />
-        <Route path="hr/interviews"  element={<PlaceholderPage title="Lịch phỏng vấn" />} />
-        <Route path="hr/reports"     element={<PlaceholderPage title="Báo cáo HR" />} />
-        {/* Manager */}
-        <Route path="manager/dashboard"        element={<ManagerDashboard />} />
-        <Route path="manager/leave-approvals"  element={<LeaveApprovals />} />
-        <Route path="manager/team-schedule"    element={<TeamSchedule />} />
-        <Route path="manager/evaluation"       element={<EmployeeEvaluation />} />
-        <Route path="manager/promotions"       element={<PromotionManager />} />
-        <Route path="manager/tasks"            element={<AdminTasks />} />
-        <Route path="manager/approval-history" element={<PlaceholderPage title="Lịch sử phê duyệt" />} />
-        <Route path="manager/kpi"              element={<EmployeeEvaluation />} />
-        {/* Accountant */}
-        <Route path="accountant/dashboard" element={<AccountantDashboard />} />
-        <Route path="accountant/payroll"   element={<PlaceholderPage title="Bảng lương" />} />
-        <Route path="accountant/advances"  element={<PlaceholderPage title="Tạm ứng" />} />
-        {/* User */}
-        <Route path="user/profile"     element={<UserProfile />} />
-        <Route path="user/leaves"      element={<MyLeaves />} />
-        <Route path="user/tasks"       element={<UserTasks />} />
-        <Route path="user/performance" element={<PerformanceDashboard />} />
-        <Route path="user/today"       element={<PlaceholderPage title="Hôm nay" />} />
-        <Route path="user/attendance"  element={<PlaceholderPage title="Chấm công" />} />
-        <Route path="user/payslip"     element={<PlaceholderPage title="Phiếu lương" />} />
-      </Route>
-
-      {/* ─────────────────────────────────────────────────────────────── */}
 
       {/* Admin dashboard */}
       <Route
@@ -210,13 +152,13 @@ const App = () => {
           </ProtectedRoute>
         }
       >
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="profile" element={<AdminProfile />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="users/:id" element={<AdminUserDetail />} />
+        <Route path="dashboard"   element={<AdminDashboard />} />
+        <Route path="profile"     element={<AdminProfile />} />
+        <Route path="users"       element={<AdminUsers />} />
+        <Route path="users/:id"   element={<AdminUserDetail />} />
         <Route path="departments" element={<AdminDepartments />} />
-        <Route path="tasks" element={<AdminTasks />} />
-        <Route path="config" element={<AdminConfig />} />
+        <Route path="tasks"       element={<AdminTasks />} />
+        <Route path="config"      element={<AdminConfig />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
       </Route>
     </Routes>

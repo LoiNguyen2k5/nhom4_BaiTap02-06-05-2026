@@ -26,16 +26,7 @@ const AdminDepartments = () => {
       const data = await adminService.getDepartments();
       if (data.success) setDepartments(data.data);
     } catch {
-      setDepartments([
-        { id: 1, name: 'IT & Backend', description: 'Phát triển hệ thống và API', status: 'active', member_count: 52, created_at: '2022-01-01' },
-        { id: 2, name: 'Frontend', description: 'Phát triển giao diện người dùng', status: 'active', member_count: 41, created_at: '2022-01-01' },
-        { id: 3, name: 'QA & Testing', description: 'Kiểm thử chất lượng phần mềm', status: 'active', member_count: 28, created_at: '2022-03-01' },
-        { id: 4, name: 'DevOps', description: 'Hạ tầng và CI/CD', status: 'active', member_count: 22, created_at: '2022-06-01' },
-        { id: 5, name: 'Mobile', description: 'Phát triển ứng dụng di động', status: 'active', member_count: 19, created_at: '2022-09-01' },
-        { id: 6, name: 'Data Science', description: 'Phân tích dữ liệu và ML', status: 'active', member_count: 15, created_at: '2023-01-01' },
-        { id: 7, name: 'Nhân sự', description: 'Quản lý nguồn nhân lực', status: 'active', member_count: 8, created_at: '2022-01-01' },
-        { id: 8, name: 'Tài chính', description: 'Kế toán và kiểm soát tài chính', status: 'active', member_count: 6, created_at: '2022-01-01' },
-      ]);
+      setDepartments([]);
     } finally {
       setLoading(false);
     }

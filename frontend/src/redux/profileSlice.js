@@ -7,8 +7,8 @@ export const fetchProfileThunk = createAsyncThunk(
     try {
       const res = await axiosClient.get('/profile/');
       return res.data.data;
-    } catch {
-      return { full_name: '', phone: '', address: '', avatar_url: null };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Lỗi tải hồ sơ');
     }
   }
 );

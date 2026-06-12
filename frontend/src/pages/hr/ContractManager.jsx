@@ -77,15 +77,8 @@ const ContractManager = () => {
       setAllContracts(data);
       setContracts(data);
     } catch {
-      const mockData = [
-        { id: 1, contract_number: 'HĐ-2024-001', contract_type: 'official', status: 'active', start_date: '2024-01-15', end_date: '2026-01-15', basic_salary: 25000000, User: { id: 5, name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', department: { name: 'Backend' } } },
-        { id: 2, contract_number: 'HĐ-2024-002', contract_type: 'probation', status: 'active', start_date: '2024-05-01', end_date: '2026-07-10', basic_salary: 12000000, User: { id: 7, name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', department: { name: 'Frontend' } } },
-        { id: 3, contract_number: 'HĐ-2023-015', contract_type: 'official', status: 'active', start_date: '2023-03-01', end_date: '2026-07-25', basic_salary: 30000000, User: { id: 3, name: 'Lê Minh Đức', email: 'duc@atria.dev', department: { name: 'Kỹ thuật' } } },
-        { id: 4, contract_number: 'HĐ-2024-008', contract_type: 'official', status: 'active', start_date: '2024-02-01', end_date: '2026-08-01', basic_salary: 22000000, User: { id: 10, name: 'Mai Thị Thu', email: 'thu@atria.dev', department: { name: 'Data' } } },
-        { id: 5, contract_number: 'HĐ-2022-003', contract_type: 'official', status: 'expired', start_date: '2022-06-01', end_date: '2024-06-01', basic_salary: 18000000, User: { id: 8, name: 'Trần Văn Bảo', email: 'bao@atria.dev', department: { name: 'QA' } } },
-      ];
-      setAllContracts(mockData);
-      setContracts(mockData);
+      setAllContracts([]);
+      setContracts([]);
     } finally {
       setLoading(false);
     }

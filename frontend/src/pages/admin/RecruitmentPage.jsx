@@ -395,18 +395,9 @@ export default function RecruitmentPage() {
       setStats(statsRes.data);
       setPositions(posRes.data || []);
     } catch {
-      setBoard({
-        new:      [{ id: 1, name: 'Nguyễn Văn Hùng', position: 'Frontend Developer', stage: 'new', skills: ['React', 'TypeScript'], experience_years: 3, created_at: '2026-06-01T08:00:00Z' },
-                   { id: 2, name: 'Trần Thị Lan', position: 'Backend Developer', stage: 'new', skills: ['Node.js', 'PostgreSQL'], experience_years: 2, created_at: '2026-06-02T09:00:00Z' }],
-        screening:[{ id: 3, name: 'Lê Minh Tú', position: 'DevOps Engineer', stage: 'screening', skills: ['Docker', 'K8s', 'CI/CD'], experience_years: 4, created_at: '2026-05-25T08:00:00Z' }],
-        interview1:[{ id: 4, name: 'Phạm Văn Đức', position: 'Frontend Developer', stage: 'interview1', skills: ['Vue.js', 'CSS'], experience_years: 2, created_at: '2026-05-20T08:00:00Z' }],
-        interview2:[],
-        offer:    [{ id: 5, name: 'Hoàng Thị Mai', position: 'Product Manager', stage: 'offer', skills: ['Agile', 'Jira'], experience_years: 5, created_at: '2026-05-15T08:00:00Z' }],
-        hired:    [],
-        rejected: [],
-      });
-      setStats({ total: 5, newThisMonth: 2, conversionRate: 20, offerAcceptRate: 100 });
-      setPositions(['Frontend Developer', 'Backend Developer', 'DevOps Engineer', 'Product Manager']);
+      setBoard({ new: [], screening: [], interview1: [], interview2: [], offer: [], hired: [], rejected: [] });
+      setStats(null);
+      setPositions([]);
     } finally {
       setLoading(false);
     }

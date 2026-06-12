@@ -22,18 +22,6 @@ const ROLE_BADGE = {
   employee:   { label: 'Nhân viên',   variant: 'neutral' },
 };
 
-const MOCK_USERS_DATA = [
-  { id: 1, name: 'Nguyễn Văn An', email: 'an.nv@atria.dev', role: 'admin', status: 'active', department: { name: 'IT' }, created_at: '2024-01-15T00:00:00Z' },
-  { id: 2, name: 'Trần Thị Hương', email: 'huong.tt@atria.dev', role: 'hr', status: 'active', department: { name: 'Nhân sự' }, created_at: '2024-02-01T00:00:00Z' },
-  { id: 3, name: 'Lê Minh Đức', email: 'duc.lm@atria.dev', role: 'manager', status: 'active', department: { name: 'Kỹ thuật' }, created_at: '2024-01-20T00:00:00Z' },
-  { id: 4, name: 'Phạm Thị Lan', email: 'lan.pt@atria.dev', role: 'accountant', status: 'active', department: { name: 'Tài chính' }, created_at: '2024-03-10T00:00:00Z' },
-  { id: 5, name: 'Vũ Minh Khôi', email: 'khoi.vm@atria.dev', role: 'employee', status: 'active', department: { name: 'Kỹ thuật' }, created_at: '2024-04-05T00:00:00Z' },
-  { id: 6, name: 'Đỗ Thanh Tùng', email: 'tung.dt@atria.dev', role: 'employee', status: 'active', department: { name: 'Backend' }, created_at: '2024-04-12T00:00:00Z' },
-  { id: 7, name: 'Nguyễn Thị Linh', email: 'linh.nt@atria.dev', role: 'employee', status: 'active', department: { name: 'Frontend' }, created_at: '2024-05-01T00:00:00Z' },
-  { id: 8, name: 'Trần Văn Bảo', email: 'bao.tv@atria.dev', role: 'employee', status: 'inactive', department: { name: 'QA' }, created_at: '2024-02-20T00:00:00Z' },
-  { id: 9, name: 'Lý Thanh Xuân', email: 'xuan.lt@atria.dev', role: 'employee', status: 'active', department: { name: 'DevOps' }, created_at: '2024-06-01T00:00:00Z' },
-  { id: 10, name: 'Mai Thị Thu', email: 'thu.mt@atria.dev', role: 'employee', status: 'active', department: { name: 'Data' }, created_at: '2024-06-15T00:00:00Z' },
-];
 
 const AdminUsers = () => {
   const [searchParams] = useSearchParams();
@@ -72,8 +60,7 @@ const AdminUsers = () => {
         if (data.pagination) setPagination(data.pagination);
       }
     } catch {
-      setUsers(MOCK_USERS_DATA);
-      setPagination({ total: MOCK_USERS_DATA.length, page: 1, totalPages: 1 });
+      setUsers([]);
     } finally {
       setLoading(false);
     }

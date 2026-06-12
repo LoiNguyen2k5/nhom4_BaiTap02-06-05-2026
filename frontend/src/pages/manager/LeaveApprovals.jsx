@@ -37,13 +37,8 @@ const LeaveApprovals = () => {
       setRequests(data);
       if (data.length > 0) setSelected(data[0]);
     } catch {
-      const data = [
-        { id: 1, type: 'leave', status: 'pending', start_date: '2026-05-26', end_date: '2026-05-28', total_days: 3, reason: 'Đám cưới họ hàng', created_at: '2026-05-20T08:00:00Z', requester: { name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', role: 'employee', department: 'Backend' }, leave_balance: { total: 12, used: 4, remaining: 8 } },
-        { id: 2, type: 'ot', status: 'pending', ot_hours: 4, start_time: '18:00', end_time: '22:00', reason: 'Sprint release cuối tháng', created_at: '2026-05-19T14:00:00Z', requester: { name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', role: 'employee', department: 'Frontend' }, leave_balance: { total: 12, used: 2, remaining: 10 } },
-        { id: 3, type: 'leave', status: 'pending', start_date: '2026-06-01', end_date: '2026-06-01', total_days: 1, reason: 'Khám sức khỏe định kỳ', created_at: '2026-05-18T09:00:00Z', requester: { name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev', role: 'employee', department: 'Backend' }, leave_balance: { total: 12, used: 6, remaining: 6 } },
-      ];
-      setRequests(data);
-      if (data.length > 0) setSelected(data[0]);
+      setRequests([]);
+      setSelected(null);
     } finally {
       setLoading(false);
     }

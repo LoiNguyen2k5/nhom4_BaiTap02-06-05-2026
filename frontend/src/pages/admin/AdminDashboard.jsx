@@ -37,30 +37,9 @@ const formatDateTime = (dateStr) => {
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
-const MOCK_STATS = {
-  totalUsers: 247,
-  lockedUsers: 3,
-  activeUsers: 128,
-  departmentStats: [
-    { name: 'Backend', count: 52, max: 52 },
-    { name: 'Frontend', count: 41, max: 52 },
-    { name: 'QA', count: 28, max: 52 },
-    { name: 'DevOps', count: 22, max: 52 },
-    { name: 'Mobile', count: 19, max: 52 },
-    { name: 'Data', count: 15, max: 52 },
-  ],
-  recentActivities: [
-    { id: 1, User: { name: 'Nguyễn Văn A' }, action: 'Đăng nhập thành công', ip: '192.168.1.5', created_at: new Date(Date.now() - 3 * 60000).toISOString() },
-    { id: 2, User: { name: 'Trần Thị B' }, action: 'Sửa hồ sơ cá nhân', ip: '10.0.0.12', created_at: new Date(Date.now() - 15 * 60000).toISOString() },
-    { id: 3, User: { name: 'Lê Văn C' }, action: 'Đăng nhập thất bại', ip: '192.168.1.8', created_at: new Date(Date.now() - 32 * 60000).toISOString() },
-    { id: 4, User: { name: 'Admin System' }, action: 'Tạo tài khoản nhân viên', ip: '127.0.0.1', created_at: new Date(Date.now() - 60 * 60000).toISOString() },
-    { id: 5, User: { name: 'Phạm Thị D' }, action: 'Đổi mật khẩu', ip: '10.0.0.25', created_at: new Date(Date.now() - 90 * 60000).toISOString() },
-  ],
-};
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState(MOCK_STATS);
+  const [stats, setStats] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -76,7 +55,7 @@ const AdminDashboard = () => {
       setStats(statsRes.data.data);
       if (requestsRes.data.success) setPendingRequests(requestsRes.data.data);
     } catch {
-      // Keep mock data, just clear loading
+      setStats(null);
     } finally {
       setLoading(false);
     }
