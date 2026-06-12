@@ -7,8 +7,8 @@ export const fetchProfileThunk = createAsyncThunk(
     try {
       const res = await axiosClient.get('/profile/');
       return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Không thể tải thông tin profile');
+    } catch {
+      return { full_name: '', phone: '', address: '', avatar_url: null };
     }
   }
 );

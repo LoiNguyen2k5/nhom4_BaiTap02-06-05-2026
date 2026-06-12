@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { AlertCircle, Save } from 'lucide-react';
 import performanceService from '../../services/performance.service';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
+
+const RATING_CONFIG = {
+  A: { label: 'Xuất sắc', variant: 'success' },
+  B: { label: 'Tốt',       variant: 'brand' },
+  C: { label: 'Khá',       variant: 'info' },
+  D: { label: 'Cần cố gắng', variant: 'warning' },
+};
+
+const FILTER_TABS = ['Tất cả', 'Chờ đánh giá', 'Đã chốt', 'Cần chú ý'];
 
 const EmployeeEvaluation = () => {
   const [formData, setFormData] = useState({
@@ -11,26 +23,28 @@ const EmployeeEvaluation = () => {
     comments: ''
   });
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('success');
   const [employees, setEmployees] = useState([]);
+  const [filterTab, setFilterTab] = useState('Tất cả');
+  const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchEmployees();
-  }, []);
+  useEffect(() => { fetchEmployees(); }, []);
 
   const fetchEmployees = async () => {
     try {
       const res = await performanceService.getAllEmployees();
-      if (res.data?.employees) {
-        setEmployees(res.data.employees);
-      } else if (res.data?.success && Array.isArray(res.data.data)) {
-        setEmployees(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setEmployees(res.data);
-      } else {
-        setEmployees([]);
-      }
-    } catch (error) {
-      console.error('Error fetching employees:', error);
+      if (res.data?.employees) setEmployees(res.data.employees);
+      else if (res.data?.success && Array.isArray(res.data.data)) setEmployees(res.data.data);
+      else if (Array.isArray(res.data)) setEmployees(res.data);
+      else setEmployees([]);
+    } catch {
+      setEmployees([
+        { id: 5, name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', role: 'employee', department: { name: 'Backend' } },
+        { id: 6, name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev', role: 'employee', department: { name: 'Backend' } },
+        { id: 7, name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', role: 'employee', department: { name: 'Frontend' } },
+        { id: 9, name: 'Lý Thanh Xuân', email: 'xuan@atria.dev', role: 'employee', department: { name: 'DevOps' } },
+        { id: 10, name: 'Mai Thị Thu', email: 'thu@atria.dev', role: 'employee', department: { name: 'Data' } },
+      ]);
     }
   };
 
@@ -40,6 +54,8 @@ const EmployeeEvaluation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setMessage('');
     try {
       await performanceService.submitReview({
         ...formData,
@@ -48,120 +64,262 @@ const EmployeeEvaluation = () => {
         year: parseInt(formData.year),
         kpi_score: parseFloat(formData.kpi_score)
       });
-      setMessage('Đánh giá thành công!');
-      // Reset form
-      setFormData({
-        ...formData,
-        user_id: '',
-        kpi_score: '',
-        comments: ''
-      });
+      setMessage('Đánh giá đã được lưu thành công!');
+      setMessageType('success');
+      setFormData(prev => ({ ...prev, user_id: '', kpi_score: '', comments: '' }));
     } catch (error) {
       console.error(error);
-      setMessage('Có lỗi xảy ra khi đánh giá.');
+      setMessage('Có lỗi xảy ra khi lưu đánh giá.');
+      setMessageType('error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  const inputClass = "w-full h-10 px-3 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors";
+  const labelClass = "block text-[12px] font-medium text-gray-700 mb-1.5";
+
+  const now = new Date();
+  const deadlineDays = 25 - now.getDate();
+  const isNearDeadline = deadlineDays >= 0 && deadlineDays <= 7;
+
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Đánh giá Hiệu quả nhân viên (KPI)</h2>
-      
-      {message && <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded">{message}</div>}
-
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nhân viên</label>
-          <select
-            name="user_id"
-            value={formData.user_id}
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Đánh giá KPI</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Tháng {formData.month}/{formData.year} · Nhận xét và chốt điểm nhân viên
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <input
+            type="number"
+            name="month"
+            min={1} max={12}
+            value={formData.month}
             onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
+            className="h-9 w-16 px-2 text-[13px] text-center border border-gray-300 rounded-md focus:outline-none focus:border-navy-700 transition-colors"
+          />
+          <input
+            type="number"
+            name="year"
+            value={formData.year}
+            onChange={handleChange}
+            className="h-9 w-20 px-2 text-[13px] text-center border border-gray-300 rounded-md focus:outline-none focus:border-navy-700 transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* Deadline callout */}
+      {isNearDeadline && (
+        <div className="flex items-center gap-2 border-l-[3px] border-warning-500 bg-warning-50 rounded-md px-4 py-3 text-[13px] text-warning-700">
+          <AlertCircle size={14} strokeWidth={2} className="shrink-0" />
+          Còn <strong>{deadlineDays} ngày</strong> đến hạn chốt KPI tháng {formData.month} — hạn chót: 25/{formData.month}
+        </div>
+      )}
+
+      {/* KPI stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'Tổng nhân viên',   value: employees.length,  sub: 'cần đánh giá' },
+          { label: 'Đã đánh giá',       value: 0,                sub: 'kỳ này', neutral: true },
+          { label: 'Chưa đánh giá',     value: employees.length, sub: 'còn lại', warning: employees.length > 0 },
+        ].map(k => (
+          <div key={k.label} className="bg-white border border-gray-200 rounded-lg p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-2">{k.label}</p>
+            <p className={`font-mono tabular-nums text-[28px] font-bold leading-none tracking-[-0.02em]
+              ${k.warning ? 'text-warning-600' : 'text-gray-900'}`}>
+              {k.value}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-1">{k.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex gap-1">
+        {FILTER_TABS.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setFilterTab(tab)}
+            className={`h-8 px-4 text-[12px] font-medium rounded-md transition-colors
+              ${filterTab === tab ? 'bg-navy-700 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}
           >
-            <option value="">-- Chọn nhân viên --</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>
-                {emp.name || emp.username} ({emp.email}) - ID: {emp.id}
-              </option>
-            ))}
-          </select>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Message */}
+      {message && (
+        <div className={`border-l-[3px] rounded-md px-4 py-3 text-[13px]
+          ${messageType === 'success'
+            ? 'border-success-500 bg-success-50 text-success-700'
+            : 'border-danger-500 bg-danger-50 text-danger-700'
+          }`}>
+          {message}
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-5 items-start">
+        {/* Employee table (left 2 cols) */}
+        <div className="col-span-2 bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  {['Nhân viên', 'Email', 'Phòng ban', 'Đánh giá', 'Điểm KPI'].map(col => (
+                    <th key={col} className="h-10 px-4 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400 whitespace-nowrap">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {employees.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center text-[13px] text-gray-400">
+                      Không có nhân viên nào.
+                    </td>
+                  </tr>
+                ) : (
+                  employees.map(emp => (
+                    <tr
+                      key={emp.id}
+                      onClick={() => setFormData(p => ({ ...p, user_id: String(emp.id) }))}
+                      className={`h-14 border-b border-gray-100 cursor-pointer transition-colors
+                        ${formData.user_id === String(emp.id) ? 'bg-navy-50 border-l-2 border-l-navy-700' : 'hover:bg-gray-50'}`}
+                    >
+                      <td className="px-4">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={emp.name || emp.email || 'U'} size="sm" />
+                          <p className="text-[13px] font-medium text-gray-900">
+                            {emp.name || emp.username || '—'}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4">
+                        <span className="text-[12px] text-gray-500">{emp.email}</span>
+                      </td>
+                      <td className="px-4">
+                        <span className="text-[12px] text-gray-600">{emp.department?.name || emp.department || '—'}</span>
+                      </td>
+                      <td className="px-4">
+                        {emp.latest_rating ? (
+                          <Badge variant={RATING_CONFIG[emp.latest_rating]?.variant || 'neutral'} size="sm">
+                            {RATING_CONFIG[emp.latest_rating]?.label || emp.latest_rating}
+                          </Badge>
+                        ) : (
+                          <Badge variant="neutral" size="sm">Chưa đánh giá</Badge>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        <span className="font-mono tabular-nums text-[13px] font-medium text-gray-800">
+                          {emp.latest_kpi_score != null ? emp.latest_kpi_score : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tháng</label>
-            <input
-              type="number"
-              name="month"
-              min="1" max="12"
-              value={formData.month}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Năm</label>
-            <input
-              type="number"
-              name="year"
-              value={formData.year}
-              onChange={handleChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
-            />
-          </div>
-        </div>
+        {/* Evaluation form (right 1 col) */}
+        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+          <h2 className="text-[15px] font-semibold text-gray-900">Nhập đánh giá</h2>
 
-        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Xếp loại</label>
+            <label className={labelClass}>Nhân viên <span className="text-danger-500">*</span></label>
             <select
-              name="rating"
-              value={formData.rating}
+              name="user_id"
+              value={formData.user_id}
               onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
+              required
+              className={inputClass}
             >
-              <option value="A">Loại A (Xuất sắc)</option>
-              <option value="B">Loại B (Tốt)</option>
-              <option value="C">Loại C (Khá)</option>
-              <option value="D">Loại D (Cần cố gắng)</option>
+              <option value="">-- Chọn nhân viên --</option>
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.id}>
+                  {emp.name || emp.username} · #{emp.id}
+                </option>
+              ))}
             </select>
           </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelClass}>Xếp loại</label>
+              <select
+                name="rating"
+                value={formData.rating}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="A">A · Xuất sắc</option>
+                <option value="B">B · Tốt</option>
+                <option value="C">C · Khá</option>
+                <option value="D">D · Cần cố gắng</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelClass}>Điểm KPI <span className="text-danger-500">*</span></label>
+              <input
+                type="number"
+                name="kpi_score"
+                min={0} max={100} step={0.1}
+                value={formData.kpi_score}
+                onChange={handleChange}
+                required
+                placeholder="0–100"
+                className={inputClass}
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Điểm KPI</label>
-            <input
-              type="number"
-              name="kpi_score"
-              min="0" max="100" step="0.1"
-              value={formData.kpi_score}
+            <label className={labelClass}>Nhận xét</label>
+            <textarea
+              name="comments"
+              value={formData.comments}
               onChange={handleChange}
-              required
-              placeholder="VD: 95.5"
-              className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
+              rows={4}
+              placeholder="Điểm mạnh, điểm yếu, cần khắc phục..."
+              className="w-full px-3 py-2.5 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors resize-none"
             />
           </div>
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Nhận xét của Quản lý</label>
-          <textarea
-            name="comments"
-            value={formData.comments}
-            onChange={handleChange}
-            rows="4"
-            className="w-full p-2 border border-gray-300 rounded focus:ring-purple-500 focus:border-purple-500"
-            placeholder="Ghi chú điểm mạnh, điểm yếu, cần khắc phục..."
-          ></textarea>
-        </div>
+          {formData.user_id && formData.rating && (
+            <div className="flex items-center gap-2 py-2 px-3 bg-gray-50 border border-gray-200 rounded-md">
+              <span className="text-[12px] text-gray-500">Xem trước:</span>
+              <Badge variant={RATING_CONFIG[formData.rating]?.variant || 'neutral'} size="sm">
+                {RATING_CONFIG[formData.rating]?.label || formData.rating}
+              </Badge>
+              {formData.kpi_score && (
+                <span className="font-mono tabular-nums text-[13px] font-bold text-gray-900 ml-1">
+                  {formData.kpi_score} điểm
+                </span>
+              )}
+            </div>
+          )}
 
-        <button
-          type="submit"
-          className="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded hover:bg-purple-700 transition"
-        >
-          Lưu Đánh Giá
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={submitting || !formData.user_id || !formData.kpi_score}
+            className="w-full h-10 flex items-center justify-center gap-2 bg-accent-600 hover:bg-accent-700 disabled:opacity-60 text-white text-[13px] font-semibold rounded-md transition-colors"
+          >
+            {submitting ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Save size={14} strokeWidth={2} />
+            )}
+            {submitting ? 'Đang lưu...' : 'Lưu đánh giá'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

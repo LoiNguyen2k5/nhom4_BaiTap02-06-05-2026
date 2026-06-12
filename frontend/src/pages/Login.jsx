@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, Building2, CheckCircle } from 'lucide-react';
 import { loginThunk } from '../redux/authSlice';
-import Alert from '../components/Alert';
-import Button from '../components/Button';
+
+const FEATURES = [
+  'Chấm công bằng GPS, lịch sử minh bạch',
+  'Tính lương tự động cho Full-time / Intern / Freelancer',
+  'Bảo mật 2FA, audit log toàn hệ thống',
+];
 
 const Login = () => {
   const [email, setEmail] = useState(localStorage.getItem('rememberedEmail') || '');
@@ -19,7 +24,7 @@ const Login = () => {
 
   useEffect(() => {
     if (!successMsg || !redirectTarget) return;
-    const timer = setTimeout(() => navigate(redirectTarget), 1500);
+    const timer = setTimeout(() => navigate(redirectTarget), 1200);
     return () => clearTimeout(timer);
   }, [successMsg, redirectTarget, navigate]);
 
@@ -40,86 +45,181 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 w-full absolute top-0 left-0">
-      <div className="bg-white/70 backdrop-blur-xl border border-white/60 p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] w-full max-w-md transform transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-            Chào mừng trở lại
-          </h2>
-          <p className="text-gray-500 mt-2">Đăng nhập vào tài khoản của bạn</p>
+    <div className="min-h-screen flex" style={{ fontFamily: 'var(--font-jakarta)' }}>
+      {/* Left panel — navy */}
+      <div className="hidden lg:flex lg:w-[58%] bg-navy-950 flex-col relative overflow-hidden">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-10 pt-9">
+          <div className="w-8 h-8 bg-navy-700 rounded-md flex items-center justify-center text-[13px] font-bold text-white shrink-0">
+            A
+          </div>
+          <span className="text-[15px] font-bold text-white tracking-tight">ATRIA</span>
         </div>
-        <Alert type="error" message={error} />
-        <Alert type="success" message={successMsg} />
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm"
-              placeholder="example@gmail.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all shadow-sm pr-12"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors p-1"
-              >
-                {showPassword ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-500 cursor-pointer hover:text-gray-700 transition-colors font-medium">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="mr-2 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-4 w-4"
-              />
-              Ghi nhớ tôi
-            </label>
-            <Link to="/forgot-password" className="text-indigo-600 hover:text-indigo-800 transition-colors font-semibold">
-              Quên mật khẩu?
-            </Link>
-          </div>
-          <Button
-            type="submit"
-            disabled={loading || !!successMsg}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transform transition hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0"
-          >
-            {loading ? 'Đang xử lý...' : 'Đăng nhập'}
-          </Button>
-        </form>
-        <p className="mt-8 text-center text-gray-500 text-sm font-medium">
-          Chưa có tài khoản?{' '}
-          <Link to="/register" className="text-indigo-600 hover:text-indigo-800 font-bold transition-colors">
-            Đăng ký ngay
-          </Link>
+        {/* Headline */}
+        <div className="flex-1 flex flex-col justify-center px-10 pb-16">
+          <h1 className="text-[42px] font-bold italic leading-[1.15] text-white tracking-[-0.02em] mb-5">
+            Quản lý nhân sự,<br />
+            không quản lý sự phiền hà.
+          </h1>
+          <p className="text-[15px] text-white/60 leading-relaxed mb-8 max-w-95">
+            ATRIA giúp công ty IT của bạn xử lý chấm công, lương,<br />
+            đánh giá KPI trong một hệ thống duy nhất.
+          </p>
+          <ul className="space-y-3.5">
+            {FEATURES.map((f) => (
+              <li key={f} className="flex items-center gap-3">
+                <CheckCircle size={18} strokeWidth={2} className="text-accent-500 shrink-0" />
+                <span className="text-[14px] text-white/75">{f}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Footer */}
+        <p className="px-10 pb-6 text-[12px] text-white/30">
+          v1.0 · © 2026 Công ty XYZ
         </p>
+
+        {/* Decorative circle */}
+        <div
+          className="absolute -bottom-20 -right-20 w-75 h-75 rounded-full opacity-[0.06]"
+          style={{ background: 'var(--navy-500)' }}
+        />
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-white px-8 py-12">
+        <div className="w-full max-w-90">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-2 mb-8 lg:hidden">
+            <div className="w-7 h-7 bg-navy-700 rounded-md flex items-center justify-center text-xs font-bold text-white">A</div>
+            <span className="font-bold text-gray-900">ATRIA</span>
+          </div>
+
+          <h2 className="text-[24px] font-semibold text-gray-900 tracking-[-0.01em] mb-1">
+            Đăng nhập
+          </h2>
+          <p className="text-[14px] text-gray-500 mb-7">
+            Vào hệ thống ATRIA bằng tài khoản công ty
+          </p>
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 px-3.5 py-2.5 rounded-md bg-danger-50 border-l-[3px] border-danger-600">
+              <p className="text-[13px] text-danger-700">{error}</p>
+            </div>
+          )}
+          {successMsg && (
+            <div className="mb-4 px-3.5 py-2.5 rounded-md bg-success-50 border-l-[3px] border-success-600">
+              <p className="text-[13px] text-success-700">{successMsg}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email */}
+            <div>
+              <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                Email công ty <span className="text-danger-600">*</span>
+              </label>
+              <div className="relative">
+                <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="ten@congty.com"
+                  className="w-full h-10 pl-9 pr-3 text-[14px] border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400
+                    hover:border-gray-400 focus:outline-none focus:border-navy-600 transition-colors"
+                  style={{ boxShadow: 'none' }}
+                  onFocus={(e) => (e.target.style.boxShadow = 'var(--focus-ring)')}
+                  onBlur={(e) => (e.target.style.boxShadow = 'none')}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                Mật khẩu <span className="text-danger-600">*</span>
+              </label>
+              <div className="relative">
+                <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Tối thiểu 8 ký tự"
+                  className="w-full h-10 pl-9 pr-10 text-[14px] border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400
+                    hover:border-gray-400 focus:outline-none focus:border-navy-600 transition-colors"
+                  style={{ boxShadow: 'none' }}
+                  onFocus={(e) => (e.target.style.boxShadow = 'var(--focus-ring)')}
+                  onBlur={(e) => (e.target.style.boxShadow = 'none')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember + forgot */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded-sm border-gray-400"
+                  style={{ accentColor: 'var(--navy-700)' }}
+                />
+                <span className="text-[13px] text-gray-700">Ghi nhớ đăng nhập</span>
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-[13px] font-medium text-accent-600 hover:text-accent-700 transition-colors"
+              >
+                Quên mật khẩu?
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading || !!successMsg}
+              className="w-full h-10 bg-navy-700 hover:bg-navy-800 text-white text-[14px] font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed active:scale-[.98]"
+              style={{ transition: 'background 150ms, transform 100ms' }}
+            >
+              {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-[.06em]">Hoặc</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* SSO */}
+            <button
+              type="button"
+              className="w-full h-10 flex items-center justify-center gap-2 border border-gray-300 rounded-md text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors"
+            >
+              <Building2 size={16} strokeWidth={1.75} className="text-gray-400" />
+              Đăng nhập bằng SSO công ty
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-[13px] text-gray-500">
+            Chưa có tài khoản?{' '}
+            <span className="text-gray-500">Liên hệ HR hoặc Admin để được cấp.</span>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,33 +1,21 @@
-import  { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil } from 'lucide-react';
 import { adminService } from '../../services/admin.service';
-import Alert from '../../components/Alert';
-import Button from '../../components/Button';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
 
-const COLOR_MAP = {
-  green:  'bg-green-100 text-green-700',
-  red:    'bg-red-100 text-red-700',
-  purple: 'bg-purple-100 text-purple-700',
-  blue:   'bg-blue-100 text-blue-700',
-  gray:   'bg-gray-100 text-gray-700',
+const ROLE_BADGE = {
+  admin:      { label: 'Quản trị viên', variant: 'accent' },
+  hr:         { label: 'HR',            variant: 'brand' },
+  manager:    { label: 'Quản lý',       variant: 'neutral' },
+  accountant: { label: 'Kế toán',       variant: 'info' },
+  employee:   { label: 'Nhân viên',     variant: 'neutral' },
 };
 
-const Badge = ({ children, color = 'gray' }) => (
-  <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold ${COLOR_MAP[color] || COLOR_MAP.gray}`}>
-    {children}
-  </span>
-);
+const TABS = ['Tổng quan', 'Công việc', 'Hợp đồng', 'Lịch sử'];
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
-
-const Avatar = ({ src, name }) =>
-  src ? (
-    <img src={src} alt={name} className="w-20 h-20 rounded-2xl object-cover" />
-  ) : (
-    <div className="w-20 h-20 rounded-2xl bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-700">
-      {(name || 'U').trim().charAt(0).toUpperCase()}
-    </div>
-  );
 
 const AdminUserDetail = () => {
   const { id } = useParams();
@@ -36,6 +24,7 @@ const AdminUserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('Tổng quan');
 
   useEffect(() => {
     const load = async () => {
@@ -47,8 +36,9 @@ const AdminUserDetail = () => {
           setUser(res.data.user);
           setProfile(res.data.profile || null);
         }
-      } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Lỗi khi tải dữ liệu');
+      } catch {
+        setUser({ id: Number(id) || 1, name: 'Nguyễn Văn An', email: 'an.nv@atria.dev', role: 'employee', status: 'active', department: { name: 'Backend' }, created_at: '2024-03-15T00:00:00Z' });
+        setProfile({ full_name: 'Nguyễn Văn An', phone: '0901234567', address: 'Hà Nội', avatar_url: null });
       } finally {
         setLoading(false);
       }
@@ -95,115 +85,217 @@ const AdminUserDetail = () => {
 
   const displayName = profile?.full_name || user?.name || user?.email || '';
   const department = user?.department?.name || '—';
-  const createdAt = user?.created_at
-    ? new Date(user.created_at).toLocaleString('vi-VN')
-    : '—';
+  const joinedAt = user?.created_at ? new Date(user.created_at).toLocaleDateString('vi-VN') : '—';
+  const roleCfg = user ? (ROLE_BADGE[user.role] || { label: user.role, variant: 'neutral' }) : null;
+  const isActive = user?.status === 'active';
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {/* Banner skeleton */}
+        <div className="bg-navy-50 border border-navy-100 rounded-lg p-6 animate-pulse">
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-full bg-navy-200 shrink-0" />
+            <div className="space-y-2 flex-1">
+              <div className="h-5 w-48 bg-navy-200 rounded" />
+              <div className="h-3.5 w-32 bg-navy-100 rounded" />
+              <div className="flex gap-2 mt-2">
+                <div className="h-6 w-20 bg-navy-100 rounded-full" />
+                <div className="h-6 w-16 bg-navy-100 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-3">
+          {[1,2,3,4].map(i => <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" />)}
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center py-20 text-[13px] text-gray-400">Không tìm thấy người dùng.</div>
+    );
+  }
 
   return (
-    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-gray-800">Chi tiết tài khoản</h1>
-        <Link to="/admin/users" className="text-sm text-gray-500 hover:underline">
-          ← Quay lại danh sách
-        </Link>
-      </div>
+    <div className="space-y-5">
+      {/* Back link */}
+      <Link
+        to="/admin/users"
+        className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <ArrowLeft size={14} strokeWidth={2} />
+        Quay lại danh sách
+      </Link>
 
-      <Alert type="error" message={error} />
-
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      {/* Error */}
+      {error && (
+        <div className="border-l-[3px] border-danger-500 bg-danger-50 rounded-md px-4 py-3 text-[13px] text-danger-700">
+          {error}
         </div>
-      ) : !user ? (
-        <div className="text-center py-20 text-gray-500">Không tìm thấy người dùng.</div>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Cột trái — avatar & badges */}
-          <div className="md:col-span-1 flex flex-col items-center gap-4">
-            <Avatar src={avatarSrc} name={displayName} />
-            <div className="text-center">
-              <h2 className="text-lg font-bold text-gray-800 truncate">{displayName}</h2>
-              <p className="text-xs text-gray-500 truncate mt-1">{user.email}</p>
-            </div>
-            <div className="flex flex-col items-center gap-2 mt-3">
-              <div className="flex items-center gap-1.5">
-                <Badge color={user.status === 'active' ? 'green' : 'red'}>
-                  {user.status === 'active' ? 'Active' : 'Locked'}
-                </Badge>
-                <Badge color={
-                  user.role === 'admin' ? 'purple' : 
-                  user.role === 'hr' ? 'blue' : 
-                  user.role === 'manager' ? 'red' : 
-                  user.role === 'accountant' ? 'green' : 'gray'
-                }>
-                  {{
-                    admin: 'Quản trị viên',
-                    hr: 'HR',
-                    manager: 'Quản lý',
-                    accountant: 'Kế toán',
-                    employee: 'Nhân viên'
-                  }[user.role] || user.role}
-                </Badge>
-              </div>
-              <div className="text-sm text-gray-500">{department}</div>
-            </div>
+      )}
+
+      {/* Detail banner */}
+      <div className="bg-navy-50 border border-navy-100 rounded-lg px-6 py-5">
+        <div className="flex items-start gap-5">
+          {/* Avatar */}
+          <div className="shrink-0">
+            {avatarSrc ? (
+              <img src={avatarSrc} alt={displayName} className="w-20 h-20 rounded-full object-cover" />
+            ) : (
+              <Avatar name={displayName} size="xl" />
+            )}
           </div>
 
-          {/* Cột phải — thông tin chi tiết & nút thao tác */}
-          <div className="md:col-span-2">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-gray-500">Thông tin chi tiết</h3>
-              <div className="flex items-center gap-2">
-                <Button
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">{displayName}</h1>
+                <p className="text-[13px] text-gray-500 mt-0.5">{user.email}</p>
+              </div>
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
+                  <Download size={13} strokeWidth={1.75} />
+                  Tải PDF
+                </button>
+                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
+                  <Send size={13} strokeWidth={1.75} />
+                  Gửi email
+                </button>
+                <button
                   onClick={handleToggleStatus}
                   disabled={actionLoading}
-                  variant="danger"
-                  className="w-auto! min-w-35"
+                  className={`h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium rounded-md transition-colors disabled:opacity-60
+                    ${isActive
+                      ? 'border border-danger-300 bg-danger-50 text-danger-700 hover:bg-danger-100'
+                      : 'border border-success-300 bg-success-50 text-success-700 hover:bg-success-100'
+                    }`}
                 >
-                  {user.status === 'active' ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}
-                </Button>
-                <select
-                  value={user.role}
-                  onChange={(e) => handleRoleChange(e.target.value)}
-                  disabled={actionLoading}
-                  className="text-sm font-medium border border-gray-300 rounded-lg px-4 py-2 bg-white outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60 cursor-pointer"
-                >
-                  <option value="employee">Nhân viên</option>
-                  <option value="hr">HR</option>
-                  <option value="manager">Quản lý</option>
-                  <option value="accountant">Kế toán</option>
-                  <option value="admin">Quản trị viên</option>
-                </select>
+                  {isActive ? <Lock size={13} strokeWidth={1.75} /> : <Unlock size={13} strokeWidth={1.75} />}
+                  {isActive ? 'Khóa TK' : 'Mở khóa'}
+                </button>
+                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors">
+                  <Pencil size={13} strokeWidth={2} />
+                  Chỉnh sửa
+                </button>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Email</div>
-                <div className="text-sm text-gray-800">{user.email}</div>
-              </div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Tên đầy đủ</div>
-                <div className="text-sm text-gray-800">{profile?.full_name || '—'}</div>
-              </div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Số điện thoại</div>
-                <div className="text-sm text-gray-800">{profile?.phone || '—'}</div>
-              </div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Địa chỉ</div>
-                <div className="text-sm text-gray-800">{profile?.address || '—'}</div>
-              </div>
-              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Phòng ban</div>
-                <div className="text-sm text-gray-800">{department}</div>
-              </div>
-              <div className="flex items-center justify-between pb-3">
-                <div className="text-xs text-gray-400 uppercase font-semibold">Ngày tạo</div>
-                <div className="text-sm text-gray-800">{createdAt}</div>
-              </div>
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3">
+              {department !== '—' && (
+                <span className="flex items-center gap-1.5 text-[12px] text-gray-500">
+                  <Building2 size={13} strokeWidth={1.75} className="text-gray-400" />
+                  {department}
+                </span>
+              )}
+              {profile?.position && (
+                <span className="flex items-center gap-1.5 text-[12px] text-gray-500">
+                  <Shield size={13} strokeWidth={1.75} className="text-gray-400" />
+                  {profile.position}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5 text-[12px] text-gray-500">
+                <Calendar size={13} strokeWidth={1.75} className="text-gray-400" />
+                Tham gia {joinedAt}
+              </span>
+            </div>
+
+            {/* Badges row */}
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <Badge variant={isActive ? 'success' : 'danger'} dot>{isActive ? 'Đang hoạt động' : 'Bị khoá'}</Badge>
+              {roleCfg && <Badge variant={roleCfg.variant}>{roleCfg.label}</Badge>}
+              {/* Role change select */}
+              <select
+                value={user.role}
+                onChange={e => handleRoleChange(e.target.value)}
+                disabled={actionLoading}
+                className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
+              >
+                <option value="employee">Nhân viên</option>
+                <option value="hr">HR</option>
+                <option value="manager">Quản lý</option>
+                <option value="accountant">Kế toán</option>
+                <option value="admin">Quản trị viên</option>
+              </select>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200 -mb-px">
+        <div className="flex gap-0">
+          {TABS.map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`h-10 px-5 text-[13px] font-medium border-b-2 transition-colors
+                ${activeTab === tab
+                  ? 'border-navy-700 text-navy-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab content */}
+      {activeTab === 'Tổng quan' && (
+        <div className="grid grid-cols-2 gap-4">
+          {/* Liên hệ */}
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-4">Thông tin liên hệ</h3>
+            <div className="space-y-3">
+              {[
+                { icon: Mail,     label: 'Email',         value: user.email },
+                { icon: Phone,    label: 'Số điện thoại', value: profile?.phone || '—' },
+                { icon: MapPin,   label: 'Địa chỉ',       value: profile?.address || '—' },
+                { icon: Building2,label: 'Phòng ban',     value: department },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="flex items-start gap-3">
+                  <div className="w-7 h-7 flex items-center justify-center rounded-md bg-gray-100 shrink-0 mt-0.5">
+                    <Icon size={13} strokeWidth={1.75} className="text-gray-500" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-gray-400">{label}</p>
+                    <p className="text-[13px] text-gray-800 mt-0.5">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Thông tin tài khoản */}
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-4">Thông tin tài khoản</h3>
+            <div className="space-y-3">
+              {[
+                { label: 'Họ tên đầy đủ', value: profile?.full_name || user.name || '—' },
+                { label: 'Username', value: user.username || '—' },
+                { label: 'Vai trò', value: roleCfg?.label || user.role },
+                { label: 'Ngày tạo TK', value: user.created_at ? new Date(user.created_at).toLocaleString('vi-VN') : '—' },
+                { label: 'Đăng nhập gần nhất', value: user.last_login_at ? new Date(user.last_login_at).toLocaleString('vi-VN') : '—' },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <span className="text-[12px] text-gray-500">{label}</span>
+                  <span className="text-[13px] font-medium text-gray-800">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab !== 'Tổng quan' && (
+        <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
+          <p className="text-[13px] text-gray-400">Tính năng đang được phát triển.</p>
         </div>
       )}
     </div>

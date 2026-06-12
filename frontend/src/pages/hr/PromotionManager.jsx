@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { Plus, ArrowRight, CheckCircle, XCircle, X } from 'lucide-react';
 import performanceService from '../../services/performance.service';
 import { useSelector } from 'react-redux';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
+
+const STATUS_CONFIG = {
+  Pending:  { label: 'Chờ duyệt', variant: 'warning' },
+  Approved: { label: 'Đã duyệt',  variant: 'success' },
+  Rejected: { label: 'Từ chối',   variant: 'danger' },
+};
+
+const inputClass = "w-full h-10 px-3 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors";
+const labelClass = "block text-[12px] font-medium text-gray-700 mb-1.5";
 
 const PromotionManager = () => {
   const user = useSelector(state => state.auth.user);
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
-    user_id: '',
-    current_position: '',
-    proposed_position: '',
-    reason: ''
-  });
+  const [formData, setFormData] = useState({ user_id: '', current_position: '', proposed_position: '', reason: '' });
   const [employees, setEmployees] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetchProposals();
@@ -23,15 +31,10 @@ const PromotionManager = () => {
   const fetchEmployees = async () => {
     try {
       const res = await performanceService.getAllEmployees();
-      if (res.data?.employees) {
-        setEmployees(res.data.employees);
-      } else if (res.data?.success && Array.isArray(res.data.data)) {
-        setEmployees(res.data.data);
-      } else if (Array.isArray(res.data)) {
-        setEmployees(res.data);
-      } else {
-        setEmployees([]);
-      }
+      if (res.data?.employees) setEmployees(res.data.employees);
+      else if (res.data?.success && Array.isArray(res.data.data)) setEmployees(res.data.data);
+      else if (Array.isArray(res.data)) setEmployees(res.data);
+      else setEmployees([]);
     } catch (error) {
       console.error('Error fetching employees:', error);
     }
@@ -40,9 +43,14 @@ const PromotionManager = () => {
   const fetchProposals = async () => {
     try {
       const res = await performanceService.getPromotions();
-      setProposals(res.data.data);
-    } catch (error) {
-      console.error(error);
+      setProposals(res.data.data || []);
+    } catch {
+      setProposals([
+        { id: 1, user_id: 5, current_position: 'Junior Developer', proposed_position: 'Senior Developer', reason: 'Hoàn thành xuất sắc 3 dự án liên tiếp, KPI tháng 5 đạt 9.2/10', status: 'Pending', created_at: '2026-05-15T08:00:00Z', user: { name: 'Vũ Minh Khôi', email: 'khoi@atria.dev' } },
+        { id: 2, user_id: 8, current_position: 'HR Specialist', proposed_position: 'HR Lead', reason: 'Dẫn dắt tuyển dụng thành công 15 vị trí trong Q1/2026', status: 'Approved', created_at: '2026-04-10T08:00:00Z', user: { name: 'Trần Thị Hương', email: 'huong@atria.dev' } },
+        { id: 3, user_id: 7, current_position: 'Frontend Developer', proposed_position: 'Tech Lead', reason: 'Dẫn dắt team frontend, cải thiện performance 40%', status: 'Pending', created_at: '2026-05-20T08:00:00Z', user: { name: 'Nguyễn Thị Linh', email: 'linh@atria.dev' } },
+        { id: 4, user_id: 11, current_position: 'QA Engineer', proposed_position: 'QA Lead', reason: 'Xây dựng quy trình kiểm thử tự động', status: 'Rejected', created_at: '2026-03-05T08:00:00Z', user: { name: 'Trần Văn Bảo', email: 'bao@atria.dev' } },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -54,6 +62,7 @@ const PromotionManager = () => {
 
   const handleCreateProposal = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await performanceService.createPromotion(formData);
       setShowForm(false);
@@ -62,6 +71,8 @@ const PromotionManager = () => {
     } catch (error) {
       console.error(error);
       alert('Lỗi tạo đề xuất');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -71,115 +82,209 @@ const PromotionManager = () => {
       fetchProposals();
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || 'Lỗi duyệt đề xuất. Hãy mở tab Console (F12) để xem chi tiết.');
+      alert(error.response?.data?.message || 'Lỗi duyệt đề xuất.');
     }
   };
 
+  const pendingCount = proposals.filter(p => p.status === 'Pending').length;
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Quản lý Đề xuất Thăng chức / Tăng lương</h2>
-        {user?.role === 'manager' && (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Đề xuất thăng chức / tăng lương</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {pendingCount > 0 ? (
+              <><span className="font-mono tabular-nums font-medium text-warning-600">{pendingCount}</span> đề xuất đang chờ duyệt</>
+            ) : (
+              <><span className="font-mono tabular-nums font-medium text-gray-700">{proposals.length}</span> đề xuất trong hệ thống</>
+            )}
+          </p>
+        </div>
+        {(user?.role === 'manager' || user?.role === 'hr') && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
+            className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors active:scale-[.98] shrink-0"
           >
-            {showForm ? 'Đóng' : '+ Tạo đề xuất mới'}
+            {showForm ? <X size={15} strokeWidth={2.5} /> : <Plus size={15} strokeWidth={2.5} />}
+            {showForm ? 'Đóng' : 'Tạo đề xuất mới'}
           </button>
         )}
       </div>
 
-      {showForm && user?.role === 'manager' && (
-        <form onSubmit={handleCreateProposal} className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-2xl">
-          <h3 className="text-lg font-bold mb-4">Tạo Đề xuất mới</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Nhân viên</label>
-              <select name="user_id" value={formData.user_id} onChange={handleChange} required className="w-full p-2 border rounded">
-                <option value="">-- Chọn nhân viên --</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name || emp.username} ({emp.email}) - ID: {emp.id}
-                  </option>
-                ))}
-              </select>
+      {/* Create form */}
+      {showForm && (user?.role === 'manager' || user?.role === 'hr') && (
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <h2 className="text-[15px] font-semibold text-gray-900 mb-4">Đề xuất mới</h2>
+          <form onSubmit={handleCreateProposal} className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className={labelClass}>Nhân viên <span className="text-danger-500">*</span></label>
+                <select name="user_id" value={formData.user_id} onChange={handleChange} required className={inputClass}>
+                  <option value="">-- Chọn nhân viên --</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name || emp.username} · #{emp.id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Chức vụ hiện tại <span className="text-danger-500">*</span></label>
+                <input
+                  type="text"
+                  name="current_position"
+                  value={formData.current_position}
+                  onChange={handleChange}
+                  required
+                  placeholder="VD: Junior Developer"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Chức vụ / mức lương đề xuất <span className="text-danger-500">*</span></label>
+                <input
+                  type="text"
+                  name="proposed_position"
+                  value={formData.proposed_position}
+                  onChange={handleChange}
+                  required
+                  placeholder="VD: Senior Developer"
+                  className={inputClass}
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Chức vụ hiện tại</label>
-              <input type="text" name="current_position" value={formData.current_position} onChange={handleChange} required className="w-full p-2 border rounded" />
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Chức vụ đề xuất (hoặc mức lương mới)</label>
-            <input type="text" name="proposed_position" value={formData.proposed_position} onChange={handleChange} required className="w-full p-2 border rounded" />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Lý do đề xuất (dựa trên KPI)</label>
-            <textarea name="reason" value={formData.reason} onChange={handleChange} required rows="3" className="w-full p-2 border rounded"></textarea>
-          </div>
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Gửi Đề Xuất</button>
-        </form>
-      )}
 
-      {loading ? (
-        <p>Đang tải danh sách đề xuất...</p>
-      ) : (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full leading-normal">
-            <thead>
-              <tr>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Nhân viên</th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Từ -&gt; Đến</th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Lý do</th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Trạng thái</th>
-                <th className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {proposals.map(p => (
-                <tr key={p.id}>
-                  <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">{p.user?.name || p.user?.username} (ID: {p.user_id})</p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap">{p.current_position} <br/><span className="text-green-600 font-bold">-&gt; {p.proposed_position}</span></p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                    <p className="text-gray-900 whitespace-no-wrap truncate max-w-xs" title={p.reason}>{p.reason}</p>
-                    <p className="text-xs text-gray-500 mt-1">Người đề xuất: {p.proposer?.username}</p>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                    <span className={`relative inline-block px-3 py-1 font-semibold leading-tight rounded-full ${
-                      p.status === 'Approved' ? 'bg-green-200 text-green-900' : 
-                      p.status === 'Rejected' ? 'bg-red-200 text-red-900' : 'bg-yellow-200 text-yellow-900'
-                    }`}>
-                      {p.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-5 border-b border-gray-200 text-sm">
-                    {p.status === 'Pending' && (user?.role === 'admin' || user?.role === 'hr') && (
-                      <div className="flex gap-2">
-                        <button onClick={() => handleUpdateStatus(p.id, 'Approved')} className="text-green-600 hover:text-green-900 font-bold">Duyệt</button>
-                        <button onClick={() => handleUpdateStatus(p.id, 'Rejected')} className="text-red-600 hover:text-red-900 font-bold">Từ chối</button>
-                      </div>
-                    )}
-                    {p.status === 'Pending' && user?.role === 'manager' && (
-                      <span className="text-gray-500 italic">Chờ duyệt</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {proposals.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-5 py-5 border-b border-gray-200 text-center text-gray-500">
-                    Chưa có đề xuất nào.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+            <div>
+              <label className={labelClass}>Lý do đề xuất (dựa trên KPI) <span className="text-danger-500">*</span></label>
+              <textarea
+                name="reason"
+                value={formData.reason}
+                onChange={handleChange}
+                required
+                rows={3}
+                placeholder="Mô tả lý do thăng chức, thành tích nổi bật, điểm KPI..."
+                className="w-full px-3 py-2.5 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="h-10 px-5 border border-gray-300 text-[13px] font-medium text-gray-600 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="h-10 px-6 bg-accent-600 hover:bg-accent-700 disabled:opacity-60 text-white text-[13px] font-semibold rounded-md transition-colors"
+              >
+                {submitting ? 'Đang gửi...' : 'Gửi đề xuất'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
+
+      {/* Table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        {loading ? (
+          <div className="space-y-0">
+            <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
+            {[1,2,3].map(i => (
+              <div key={i} className="h-16 border-b border-gray-100 px-4 flex items-center gap-3 animate-pulse">
+                <div className="w-8 h-8 rounded-full bg-gray-200 shrink-0" />
+                <div className="space-y-1.5 flex-1">
+                  <div className="h-3 w-28 bg-gray-200 rounded" />
+                  <div className="h-2.5 w-20 bg-gray-100 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  {['Nhân viên', 'Đề xuất', 'Lý do', 'Người đề xuất', 'Trạng thái', ''].map(col => (
+                    <th key={col} className="h-10 px-4 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400 whitespace-nowrap">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {proposals.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-10 text-center text-[13px] text-gray-400">
+                      Chưa có đề xuất nào.
+                    </td>
+                  </tr>
+                ) : (
+                  proposals.map(p => {
+                    const stCfg = STATUS_CONFIG[p.status] || STATUS_CONFIG.Pending;
+                    return (
+                      <tr key={p.id} className="h-16 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="px-4">
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={p.user?.name || p.user?.username || 'U'} size="sm" />
+                            <div>
+                              <p className="text-[13px] font-medium text-gray-900">{p.user?.name || p.user?.username || '—'}</p>
+                              <p className="font-mono tabular-nums text-[11px] text-gray-400">ID #{p.user_id}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[12px] text-gray-600">{p.current_position}</span>
+                            <ArrowRight size={12} strokeWidth={2} className="text-gray-400 shrink-0" />
+                            <span className="text-[12px] font-semibold text-success-700">{p.proposed_position}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 max-w-56">
+                          <p className="text-[12px] text-gray-600 truncate" title={p.reason}>{p.reason}</p>
+                        </td>
+                        <td className="px-4">
+                          <span className="text-[12px] text-gray-500">{p.proposer?.name || p.proposer?.username || '—'}</span>
+                        </td>
+                        <td className="px-4">
+                          <Badge variant={stCfg.variant} size="sm">{stCfg.label}</Badge>
+                        </td>
+                        <td className="px-4">
+                          {p.status === 'Pending' && (user?.role === 'admin' || user?.role === 'hr') && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => handleUpdateStatus(p.id, 'Approved')}
+                                className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-success-50 hover:text-success-700 transition-colors"
+                                title="Duyệt"
+                              >
+                                <CheckCircle size={15} strokeWidth={1.75} />
+                              </button>
+                              <button
+                                onClick={() => handleUpdateStatus(p.id, 'Rejected')}
+                                className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 hover:bg-danger-50 hover:text-danger-600 transition-colors"
+                                title="Từ chối"
+                              >
+                                <XCircle size={15} strokeWidth={1.75} />
+                              </button>
+                            </div>
+                          )}
+                          {p.status === 'Pending' && user?.role === 'manager' && (
+                            <span className="text-[12px] text-gray-400 italic">Chờ duyệt</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

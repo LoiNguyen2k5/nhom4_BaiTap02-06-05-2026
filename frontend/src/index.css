@@ -1,6 +1,156 @@
 @import "tailwindcss";
 
-/* Custom base styles can be added here */
+:root {
+  /* NAVY */
+  --navy-950: #061224;
+  --navy-900: #0b1f3d;
+  --navy-800: #142b52;
+  --navy-700: #1e3a6b;
+  --navy-600: #2b4a85;
+  --navy-500: #3b5ba0;
+  --navy-300: #8fa4c7;
+  --navy-100: #dce4f2;
+  --navy-50: #f0f4fa;
+
+  /* NEUTRALS */
+  --white: #ffffff;
+  --gray-50: #f7f8fa;
+  --gray-100: #eef0f4;
+  --gray-200: #e1e5ec;
+  --gray-300: #c7cdd8;
+  --gray-400: #98a1b2;
+  --gray-500: #6b7588;
+  --gray-700: #3a4456;
+  --gray-900: #0f172a;
+
+  /* ACCENT */
+  --accent-700: #b45309;
+  --accent-600: #d97706;
+  --accent-500: #f59e0b;
+  --accent-100: #fef3c7;
+  --accent-50: #fffbeb;
+
+  /* SEMANTIC */
+  --success-700: #15803d;
+  --success-600: #16a34a;
+  --success-100: #dcfce7;
+  --success-50: #f0fdf4;
+  --warning-700: #a16207;
+  --warning-600: #ca8a04;
+  --warning-100: #fef9c3;
+  --warning-50: #fefce8;
+  --danger-700: #b91c1c;
+  --danger-600: #dc2626;
+  --danger-100: #fee2e2;
+  --danger-50: #fef2f2;
+  --info-700: #1d4ed8;
+  --info-600: #2563eb;
+  --info-100: #dbeafe;
+  --info-50: #eff6ff;
+
+  /* SHADOWS */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 24px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.12);
+  --focus-ring: 0 0 0 3px rgba(30, 58, 107, 0.2);
+
+  /* RADII */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+  --r-pill: 999px;
+
+  /* FONTS */
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* MOTION */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+}
+
+@theme {
+  /* Navy */
+  --color-navy-950: #061224;
+  --color-navy-900: #0b1f3d;
+  --color-navy-800: #142b52;
+  --color-navy-700: #1e3a6b;
+  --color-navy-600: #2b4a85;
+  --color-navy-500: #3b5ba0;
+  --color-navy-300: #8fa4c7;
+  --color-navy-100: #dce4f2;
+  --color-navy-50:  #f0f4fa;
+
+  /* Neutrals */
+  --color-white:    #ffffff;
+  --color-gray-50:  #f7f8fa;
+  --color-gray-100: #eef0f4;
+  --color-gray-200: #e1e5ec;
+  --color-gray-300: #c7cdd8;
+  --color-gray-400: #98a1b2;
+  --color-gray-500: #6b7588;
+  --color-gray-700: #3a4456;
+  --color-gray-900: #0f172a;
+
+  /* Accent (amber) */
+  --color-accent-700: #b45309;
+  --color-accent-600: #d97706;
+  --color-accent-500: #f59e0b;
+  --color-accent-100: #fef3c7;
+  --color-accent-50:  #fffbeb;
+
+  /* Success */
+  --color-success-700: #15803d;
+  --color-success-600: #16a34a;
+  --color-success-100: #dcfce7;
+  --color-success-50:  #f0fdf4;
+
+  /* Warning */
+  --color-warning-700: #a16207;
+  --color-warning-600: #ca8a04;
+  --color-warning-100: #fef9c3;
+  --color-warning-50:  #fefce8;
+
+  /* Danger */
+  --color-danger-700: #b91c1c;
+  --color-danger-600: #dc2626;
+  --color-danger-100: #fee2e2;
+  --color-danger-50:  #fef2f2;
+
+  /* Info */
+  --color-info-700: #1d4ed8;
+  --color-info-600: #2563eb;
+  --color-info-100: #dbeafe;
+  --color-info-50:  #eff6ff;
+
+  /* Fonts */
+  --font-family-sans: "Plus Jakarta Sans", sans-serif;
+  --font-family-mono: "JetBrains Mono", monospace;
+
+  /* Border radius */
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-pill: 999px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #f3f4f6; /* gray-100 */
+  font-family: var(--font-jakarta);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray-700);
+  background-color: var(--gray-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

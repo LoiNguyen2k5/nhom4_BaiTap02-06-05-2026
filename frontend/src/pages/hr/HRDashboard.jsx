@@ -1,129 +1,235 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { UserPlus, X } from 'lucide-react';
+import axios from 'axios';
+import StatCard from '../../components/ui/StatCard';
+import Badge from '../../components/ui/Badge';
+import Avatar from '../../components/ui/Avatar';
+import Callout from '../../components/ui/Callout';
 
 const BACKEND_URL = 'http://localhost:3000';
 
+const PIPELINE_STAGES = [
+  { label: 'Mới nộp',           key: 'new',       color: 'bg-navy-700' },
+  { label: 'Sàng lọc CV',       key: 'screening', color: 'bg-navy-600' },
+  { label: 'Phỏng vấn vòng 1',  key: 'pv1',       color: 'bg-navy-500' },
+  { label: 'Phỏng vấn V2 / Test', key: 'pv2',     color: 'bg-navy-300' },
+  { label: 'Offer',             key: 'offer',      color: 'bg-accent-500' },
+];
+
+const MOCK_PIPELINE = [45, 28, 15, 8, 3];
+
 const HRDashboard = () => {
+  const navigate = useNavigate();
   const { token } = useSelector((state) => state.auth);
   const [requests, setRequests] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    full_name: '',
-    role: 'employee',
-    department_id: ''
-  });
+  const [formData, setFormData] = useState({ email: '', full_name: '', role: 'employee', department_id: '' });
+  const [activeEventTab, setActiveEventTab] = useState('birthday');
 
   const fetchData = async () => {
     try {
       const [reqRes, depRes] = await Promise.all([
-        axios.get(`${BACKEND_URL}/api/hr/account-requests`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${BACKEND_URL}/api/admin/departments`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        axios.get(`${BACKEND_URL}/api/hr/account-requests`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${BACKEND_URL}/api/admin/departments`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      
-      if (reqRes.data.success) {
-        setRequests(reqRes.data.data);
-      }
-      if (depRes.data.success) {
-        setDepartments(depRes.data.data.filter(d => d.status === 'active'));
-      }
-    } catch (error) {
-      console.error('Lỗi khi tải dữ liệu', error);
-    } finally {
-      setLoading(false);
-    }
+      if (reqRes.data.success) setRequests(reqRes.data.data);
+      if (depRes.data.success) setDepartments(depRes.data.data.filter((d) => d.status === 'active'));
+    } catch { /* silent */ }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const payload = {
-        email: formData.email,
-        full_name: formData.full_name,
-        role: formData.role,
-        department_id: formData.department_id || null
-      };
-      
-      const res = await axios.post(`${BACKEND_URL}/api/hr/account-requests`, payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
+      const res = await axios.post(
+        `${BACKEND_URL}/api/hr/account-requests`,
+        { ...formData, department_id: formData.department_id || null },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
       if (res.data.success) {
         setShowModal(false);
         setFormData({ email: '', full_name: '', role: 'employee', department_id: '' });
         fetchData();
         alert('Đã gửi yêu cầu tạo tài khoản thành công!');
       }
-    } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Có lỗi xảy ra');
     }
   };
 
+  const pending = requests.filter((r) => r.status === 'pending');
+  const maxPipeline = Math.max(...MOCK_PIPELINE, 1);
+
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-5">
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Quản lý Yêu cầu Cấp Tài khoản</h1>
-          <p className="text-gray-500 text-sm mt-1">Gửi yêu cầu tạo tài khoản cho nhân viên mới lên Admin</p>
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Dashboard HR</h1>
+          <p className="text-sm text-gray-500 mt-0.75">Tổng quan nhân sự & tuyển dụng · cập nhật real-time</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-medium flex items-center gap-2 transition"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          Tạo Yêu cầu Mới
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <select className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none">
+            <option>Tháng này</option>
+            <option>Quý này</option>
+          </select>
+          <button
+            onClick={() => setShowModal(true)}
+            className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors active:scale-[.98]"
+          >
+            <UserPlus size={15} strokeWidth={2} />
+            Thêm nhân viên
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      {/* Callout nếu có HĐ sắp hết hạn */}
+      {pending.length > 0 && (
+        <Callout variant="warning" action="Xem ngay →" onAction={() => navigate('/hr/contracts')}>
+          <strong>{pending.length} yêu cầu tạo tài khoản</strong> đang chờ Admin phê duyệt.
+        </Callout>
+      )}
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-4 gap-4">
+        <StatCard label="Tổng nhân viên" value="247" trend="+8" trendUp trendLabel="tháng này" />
+        <StatCard label="Tuyển mới tháng" value="8" trend="+60%" trendUp trendLabel="vs. tháng trước" accentValue />
+        <StatCard label="HĐ sắp hết hạn (60 ngày)" value="12" />
+        <StatCard label="Ứng viên trong pipeline" value="23" trendLabel="5 vị trí đang mở · 3 offer chờ" />
+      </div>
+
+      {/* 2 col: pipeline + events */}
+      <div className="grid grid-cols-7 gap-4">
+        {/* Pipeline tuyển dụng */}
+        <div className="col-span-4 bg-white border border-gray-200 rounded-lg p-5">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-[15px] font-semibold text-gray-900">Pipeline tuyển dụng</h2>
+            <select className="h-7 px-2.5 text-[12px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none">
+              <option>Tất cả vị trí</option>
+            </select>
+          </div>
+          <div className="space-y-3">
+            {PIPELINE_STAGES.map((stage, i) => {
+              const count = MOCK_PIPELINE[i];
+              const pct = Math.round((count / MOCK_PIPELINE[0]) * 100);
+              return (
+                <div key={stage.key}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[13px] text-gray-700">{stage.label}</span>
+                    <div className="flex items-center gap-2">
+                      {i > 0 && (
+                        <span className="text-[11px] text-gray-400">{pct}% ↓</span>
+                      )}
+                      <span className="text-[13px] font-mono tabular-nums font-medium text-gray-900">{count}</span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${stage.color}`}
+                      style={{ width: `${(count / maxPipeline) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <button
+            onClick={() => navigate('/hr/recruitment')}
+            className="mt-5 text-[13px] font-medium text-accent-600 hover:underline"
+          >
+            Mở pipeline đầy đủ →
+          </button>
+        </div>
+
+        {/* Sự kiện tuần này */}
+        <div className="col-span-3 bg-white border border-gray-200 rounded-lg p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-[15px] font-semibold text-gray-900">Sự kiện tuần này</h2>
+            <Badge variant="accent">5 sự kiện</Badge>
+          </div>
+          {/* Tabs pill */}
+          <div className="flex gap-1 p-0.5 bg-gray-100 rounded-md w-fit mb-4">
+            {[{ key: 'birthday', label: 'Sinh nhật (3)' }, { key: 'anniversary', label: 'Kỷ niệm (2)' }].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveEventTab(tab.key)}
+                className={`px-3 py-1.5 text-[12px] font-medium rounded-sm transition-colors ${
+                  activeEventTab === tab.key ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-2">
+            {[
+              { name: 'Trần Thị Hương', date: '22/05 · Thứ Sáu · 30 tuổi', daysLeft: 2 },
+              { name: 'Lê Minh Đức',    date: '24/05 · Chủ Nhật · 35 tuổi', daysLeft: 4 },
+              { name: 'Đỗ Thị Lan',     date: '26/05 · Thứ Ba · 28 tuổi',   daysLeft: 6 },
+            ].map((person) => (
+              <div key={person.name} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+                <Avatar name={person.name} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-medium text-gray-900">{person.name}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{person.date}</p>
+                </div>
+                <Badge variant="neutral" size="sm">Còn {person.daysLeft} ngày</Badge>
+              </div>
+            ))}
+          </div>
+          <button className="mt-4 w-full h-8 text-[13px] text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors">
+            Gửi lời chúc tự động
+          </button>
+        </div>
+      </div>
+
+      {/* Phỏng vấn hôm nay + requests table */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[15px] font-semibold text-gray-900">Phỏng vấn hôm nay</h2>
+            <Badge variant="brand">3 lịch</Badge>
+          </div>
+          <button onClick={() => navigate('/hr/interviews')} className="text-[13px] text-accent-600 hover:underline">
+            Xem lịch tuần →
+          </button>
+        </div>
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50/50 border-b border-gray-100">
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Họ & Tên</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Vai trò</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng thái</th>
-              <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ngày tạo</th>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {['Giờ', 'Ứng viên', 'Vòng', 'Người phỏng vấn', 'Hình thức'].map((col) => (
+                <th key={col} className="h-11 px-4 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400">
+                  {col}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody>
             {loading ? (
-              <tr><td colSpan="5" className="p-8 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
-            ) : requests.length === 0 ? (
-              <tr><td colSpan="5" className="p-8 text-center text-gray-500">Chưa có yêu cầu nào</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-[13px] text-gray-400">Đang tải...</td></tr>
             ) : (
-              requests.map((req) => (
-                <tr key={req.id} className="hover:bg-gray-50/50 transition">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-medium text-gray-800">{req.full_name}</span>
+              [
+                { time: '09:00', name: 'Nguyễn Thị Linh', round: 'Vòng 1', interviewer: 'Lê Minh Đức', mode: 'Online' },
+                { time: '14:00', name: 'Trần Văn Bảo',    round: 'Vòng 2', interviewer: 'Nguyễn Văn An', mode: 'Trực tiếp' },
+                { time: '15:30', name: 'Lê Thanh Tùng',   round: 'Vòng 1', interviewer: 'Phạm Quỳnh Anh', mode: 'Online' },
+              ].map((row) => (
+                <tr key={row.time} className="h-14 border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td className="px-4 font-mono tabular-nums text-[13px] text-gray-700">{row.time}</td>
+                  <td className="px-4">
+                    <div className="flex items-center gap-2">
+                      <Avatar name={row.name} size="sm" />
+                      <span className="text-[13px] font-medium text-gray-700">{row.name}</span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{req.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 rounded-md text-xs font-medium capitalize">
-                      {req.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {req.status === 'pending' && <span className="text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md text-xs font-medium">Đang chờ duyệt</span>}
-                    {req.status === 'approved' && <span className="text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-medium">Đã duyệt</span>}
-                    {req.status === 'rejected' && <span className="text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-medium">Bị từ chối</span>}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(req.created_at).toLocaleDateString('vi-VN')}
-                  </td>
+                  <td className="px-4"><Badge variant="brand">{row.round}</Badge></td>
+                  <td className="px-4 text-[13px] text-gray-700">{row.interviewer}</td>
+                  <td className="px-4"><Badge variant={row.mode === 'Online' ? 'info' : 'neutral'}>{row.mode}</Badge></td>
                 </tr>
               ))
             )}
@@ -131,89 +237,95 @@ const HRDashboard = () => {
         </table>
       </div>
 
+      {/* Modal tạo yêu cầu */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-lg font-bold text-gray-800">Tạo Yêu cầu Cấp Tài khoản</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,.5)]">
+          <div
+            className="bg-white w-full max-w-140 rounded-xl shadow-xl overflow-hidden"
+            style={{ animation: 'modalIn 200ms cubic-bezier(0.16,1,0.3,1)' }}
+          >
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+              <h3 className="text-[17px] font-semibold text-gray-900">Tạo yêu cầu cấp tài khoản</h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <X size={18} strokeWidth={1.75} />
               </button>
             </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Họ & Tên nhân viên mới *</label>
-                <input 
-                  type="text" 
-                  required
+                <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                  Họ & tên <span className="text-danger-600">*</span>
+                </label>
+                <input
+                  type="text" required
                   value={formData.full_name}
-                  onChange={e => setFormData({...formData, full_name: e.target.value})}
-                  className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  placeholder="Ví dụ: Nguyễn Văn A"
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="w-full h-10 px-3 text-[14px] border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:border-navy-600"
+                  placeholder="Nguyễn Văn An"
                 />
               </div>
-              
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Email *</label>
-                <input 
-                  type="email" 
-                  required
+                <label className="block text-[13px] font-medium text-gray-700 mb-1.5">
+                  Email <span className="text-danger-600">*</span>
+                </label>
+                <input
+                  type="email" required
                   value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
-                  className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500" 
-                  placeholder="Ví dụ: nva@example.com"
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full h-10 px-3 text-[14px] border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-400 hover:border-gray-400 focus:outline-none focus:border-navy-600"
+                  placeholder="nva@congty.com"
                 />
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Vai trò</label>
-                <select 
-                  value={formData.role}
-                  onChange={e => setFormData({...formData, role: e.target.value})}
-                  className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="employee">Nhân viên (Employee)</option>
-                  <option value="manager">Quản lý (Manager)</option>
-                  <option value="accountant">Kế toán (Accountant)</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1.5">Vai trò</label>
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full h-10 px-3 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:border-navy-600"
+                  >
+                    <option value="employee">Nhân viên</option>
+                    <option value="manager">Quản lý</option>
+                    <option value="accountant">Kế toán</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-medium text-gray-700 mb-1.5">Phòng ban</label>
+                  <select
+                    value={formData.department_id}
+                    onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
+                    className="w-full h-10 px-3 text-[14px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:border-navy-600"
+                  >
+                    <option value="">-- Tùy chọn --</option>
+                    {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Phòng ban</label>
-                <select 
-                  value={formData.department_id}
-                  onChange={e => setFormData({...formData, department_id: e.target.value})}
-                  className="w-full px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="">-- Chọn phòng ban (Tùy chọn) --</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="pt-4 flex gap-3">
-                <button 
-                  type="button" 
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border-2 border-gray-200 text-gray-600 rounded-xl font-semibold hover:bg-gray-50 transition"
+                  className="flex-1 h-10 text-[14px] font-medium border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  Hủy
+                  Huỷ
                 </button>
-                <button 
-                  type="submit" 
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition"
+                <button
+                  type="submit"
+                  className="flex-1 h-10 text-[14px] font-semibold bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors"
                 >
-                  Gửi Yêu cầu
+                  Gửi yêu cầu
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      <style>{`
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.97); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 };

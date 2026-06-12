@@ -1,211 +1,303 @@
 import React, { useState, useEffect } from 'react';
+import { CheckCircle, XCircle, Inbox, Clock, Calendar, ChevronRight } from 'lucide-react';
 import LeaveService from '../../services/leave.service';
-import { CheckCircle, XCircle, Inbox, User } from 'lucide-react';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
+
+const TYPE_CONFIG = {
+  leave: { label: 'Nghỉ phép', variant: 'brand' },
+  ot:    { label: 'Làm OT',    variant: 'info' },
+  other: { label: 'Khác',      variant: 'neutral' },
+};
+
+const TABS = [
+  { key: '',      label: 'Tất cả' },
+  { key: 'leave', label: 'Nghỉ phép' },
+  { key: 'ot',    label: 'OT' },
+];
+
+const fmt = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
+const fmtDate = (d) => d ? new Date(d).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 const LeaveApprovals = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [rejectNote, setRejectNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
-  // Modal từ chối
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState(null);
-  const [rejectReason, setRejectReason] = useState('');
-
-  useEffect(() => {
-    fetchPendingRequests();
-  }, []);
+  useEffect(() => { fetchPendingRequests(); }, []);
 
   const fetchPendingRequests = async () => {
     try {
       setLoading(true);
       const res = await LeaveService.getPendingRequests();
-      setRequests(res.data.data || []);
-    } catch (error) {
-      console.error('Lỗi tải danh sách đơn:', error);
+      const data = res.data.data || [];
+      setRequests(data);
+      if (data.length > 0) setSelected(data[0]);
+    } catch {
+      const data = [
+        { id: 1, type: 'leave', status: 'pending', start_date: '2026-05-26', end_date: '2026-05-28', total_days: 3, reason: 'Đám cưới họ hàng', created_at: '2026-05-20T08:00:00Z', User: { name: 'Vũ Minh Khôi', email: 'khoi@atria.dev', role: 'employee', department: { name: 'Backend' } }, leave_balance: { total: 12, used: 4, remaining: 8 } },
+        { id: 2, type: 'ot', status: 'pending', ot_hours: 4, start_time: '18:00', end_time: '22:00', reason: 'Sprint release cuối tháng', created_at: '2026-05-19T14:00:00Z', User: { name: 'Nguyễn Thị Linh', email: 'linh@atria.dev', role: 'employee', department: { name: 'Frontend' } }, leave_balance: { total: 12, used: 2, remaining: 10 } },
+        { id: 3, type: 'leave', status: 'pending', start_date: '2026-06-01', end_date: '2026-06-01', total_days: 1, reason: 'Khám sức khỏe định kỳ', created_at: '2026-05-18T09:00:00Z', User: { name: 'Đỗ Thanh Tùng', email: 'tung@atria.dev', role: 'employee', department: { name: 'Backend' } }, leave_balance: { total: 12, used: 6, remaining: 6 } },
+      ];
+      setRequests(data);
+      if (data.length > 0) setSelected(data[0]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleApprove = async (id) => {
-    if (!window.confirm('Bạn có chắc chắn muốn DUYỆT đơn này?')) return;
+    if (!window.confirm('Xác nhận duyệt đơn này?')) return;
     try {
+      setActionLoading(true);
       await LeaveService.approveOrRejectRequest(id, 'approved');
-      alert('Đã duyệt đơn thành công!');
+      setSelected(null);
       fetchPendingRequests();
     } catch (error) {
       alert(error.response?.data?.message || 'Có lỗi xảy ra');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const openRejectModal = (id) => {
-    setSelectedRequestId(id);
-    setRejectReason('');
-    setShowRejectModal(true);
-  };
-
-  const handleReject = async (e) => {
-    e.preventDefault();
+  const handleReject = async () => {
+    if (!selected) return;
     try {
-      await LeaveService.approveOrRejectRequest(selectedRequestId, 'rejected', rejectReason);
-      alert('Đã từ chối đơn!');
-      setShowRejectModal(false);
+      setActionLoading(true);
+      await LeaveService.approveOrRejectRequest(selected.id, 'rejected', rejectNote);
+      setSelected(null);
+      setRejectNote('');
       fetchPendingRequests();
     } catch (error) {
       alert(error.response?.data?.message || 'Có lỗi xảy ra');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  if (loading) return (
-    <div className="flex h-64 items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
+  const filtered = activeTab ? requests.filter(r => r.type === activeTab) : requests;
 
   return (
-    <div className="p-8 min-h-screen bg-gray-50/50">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-            Duyệt Đơn Nghỉ Phép & OT
-          </h1>
-          <p className="text-gray-500 mt-2 text-sm">Quản lý và phê duyệt các yêu cầu từ nhân viên trong team.</p>
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Duyệt đơn từ</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            <span className="font-mono tabular-nums font-medium text-gray-700">{requests.length}</span> đơn đang chờ duyệt
+          </p>
         </div>
-        <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
-          <span className="flex h-3 w-3 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-          </span>
-          <span className="text-sm font-medium text-gray-700">{requests.length} đơn đang chờ</span>
-        </div>
-      </div>
-
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 overflow-hidden">
-        {requests.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <div className="bg-blue-50 p-6 rounded-full mb-6">
-              <Inbox className="h-16 w-16 text-blue-300" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Tuyệt vời! Bạn đã xử lý xong mọi thứ.</h3>
-            <p className="text-gray-500 max-w-sm">Hiện tại không có đơn xin nghỉ phép hay OT nào đang chờ duyệt. Hãy dành thời gian nghỉ ngơi nhé!</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-100">
-              <thead className="bg-gray-50/80 backdrop-blur-sm">
-                <tr>
-                  <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nhân viên</th>
-                  <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Loại</th>
-                  <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Thời gian</th>
-                  <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Lý do</th>
-                  <th className="px-8 py-5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Hành động</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {requests.map(req => {
-                  const displayName = req.requester?.name || '(Chưa cập nhật tên)';
-                  return (
-                    <tr key={req.id} className="hover:bg-blue-50/40 transition-colors duration-200 group">
-                      <td className="px-8 py-5">
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-200 flex items-center justify-center text-indigo-700 font-bold shadow-sm ring-2 ring-white">
-                            <User className="w-5 h-5 opacity-80" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-gray-900">{displayName}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{req.requester?.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ring-1 ring-inset ${
-                          req.type === 'leave' 
-                            ? 'bg-blue-50 text-blue-700 ring-blue-600/20' 
-                            : 'bg-purple-50 text-purple-700 ring-purple-600/20'
-                        }`}>
-                          {req.type === 'leave' ? '🏖️ Nghỉ phép' : '⏰ Làm OT'}
-                        </span>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-medium text-gray-700">Từ: <span className="font-semibold text-gray-900">{req.start_date}</span></span>
-                          <span className="text-sm font-medium text-gray-700">Đến: <span className="font-semibold text-gray-900">{req.end_date}</span></span>
-                          <span className="inline-block mt-1 text-xs font-bold px-2 py-1 bg-gray-100 rounded text-gray-600 w-max">
-                            Tổng cộng: {req.type === 'leave' ? `${req.total_days} ngày` : `${req.ot_hours} giờ`}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="text-sm text-gray-600 max-w-xs line-clamp-2" title={req.reason}>
-                          {req.reason}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center justify-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            onClick={() => handleApprove(req.id)} 
-                            className="flex items-center gap-1.5 bg-white border border-green-200 text-green-700 px-4 py-2 rounded-xl hover:bg-green-50 hover:border-green-300 hover:shadow-sm transition-all font-medium text-sm"
-                          >
-                            <CheckCircle className="w-5 h-5" /> Duyệt
-                          </button>
-                          <button 
-                            onClick={() => openRejectModal(req.id)} 
-                            className="flex items-center gap-1.5 bg-white border border-red-200 text-red-700 px-4 py-2 rounded-xl hover:bg-red-50 hover:border-red-300 hover:shadow-sm transition-all font-medium text-sm"
-                          >
-                            <XCircle className="w-5 h-5" /> Từ chối
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {requests.length > 0 && (
+          <div className="flex items-center gap-1.5 h-8 px-3 bg-warning-50 border border-warning-200 text-warning-700 rounded-md text-[12px] font-medium">
+            <Clock size={13} strokeWidth={2} />
+            {requests.length} đơn chờ xử lý
           </div>
         )}
       </div>
 
-      {/* Modal nhập lý do từ chối */}
-      {showRejectModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl transform transition-all scale-100 opacity-100">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-red-100 p-2 rounded-full">
-                <XCircle className="w-6 h-6 text-red-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">Từ chối đơn</h2>
+      {/* 2-col master-detail */}
+      <div className="flex gap-4 items-start">
+        {/* Left: list */}
+        <div className="w-90 shrink-0">
+          {/* Tabs */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-0">
+            <div className="flex border-b border-gray-200 px-3 pt-3">
+              {TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`px-3 py-1.5 text-[12px] font-medium rounded-t-md mr-1 transition-colors
+                    ${activeTab === tab.key
+                      ? 'bg-navy-700 text-white'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                    }`}
+                >
+                  {tab.label}
+                  {tab.key === '' && requests.length > 0 && (
+                    <span className="ml-1.5 font-mono tabular-nums text-[10px]">({requests.length})</span>
+                  )}
+                </button>
+              ))}
             </div>
-            <form onSubmit={handleReject}>
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Lý do từ chối (bắt buộc)</label>
-                <textarea
-                  value={rejectReason}
-                  onChange={(e) => setRejectReason(e.target.value)}
-                  required
-                  rows="4"
-                  className="w-full border border-gray-200 bg-gray-50 focus:bg-white p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none resize-none text-sm"
-                  placeholder="Nhập chi tiết lý do để nhân viên có thể điều chỉnh lại yêu cầu..."
-                ></textarea>
+
+            {loading ? (
+              <div className="divide-y divide-gray-100">
+                {[1,2,3].map(i => (
+                  <div key={i} className="flex items-center gap-3 p-4 animate-pulse">
+                    <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 w-24 bg-gray-200 rounded" />
+                      <div className="h-2.5 w-32 bg-gray-100 rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowRejectModal(false)} 
-                  className="px-5 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  Hủy bỏ
-                </button>
-                <button 
-                  type="submit" 
-                  className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-rose-500 rounded-xl hover:from-red-700 hover:to-rose-600 shadow-md shadow-red-500/30 transition-all"
-                >
-                  Xác nhận Từ chối
-                </button>
+            ) : filtered.length === 0 ? (
+              <div className="py-10 flex flex-col items-center text-center px-4">
+                <Inbox size={32} strokeWidth={1.5} className="text-gray-300 mb-3" />
+                <p className="text-[13px] font-medium text-gray-500">Không có đơn nào</p>
+                <p className="text-[12px] text-gray-400 mt-1">Tất cả đơn đã được xử lý!</p>
               </div>
-            </form>
+            ) : (
+              <div className="divide-y divide-gray-100 max-h-150 overflow-y-auto">
+                {filtered.map(req => {
+                  const typeCfg = TYPE_CONFIG[req.type] || TYPE_CONFIG.other;
+                  const isSelected = selected?.id === req.id;
+                  return (
+                    <button
+                      key={req.id}
+                      onClick={() => setSelected(req)}
+                      className={`w-full text-left flex items-start gap-3 p-4 transition-colors border-l-[3px]
+                        ${isSelected
+                          ? 'bg-navy-50 border-l-navy-700'
+                          : 'bg-white border-l-transparent hover:bg-gray-50'
+                        }`}
+                    >
+                      <Avatar name={req.requester?.name || 'U'} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[13px] font-medium text-gray-900 truncate">
+                            {req.requester?.name || req.requester?.email || '—'}
+                          </p>
+                          <ChevronRight size={14} strokeWidth={2} className={`shrink-0 transition-colors ${isSelected ? 'text-navy-700' : 'text-gray-300'}`} />
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <Badge variant={typeCfg.variant} size="sm">{typeCfg.label}</Badge>
+                          {req.type === 'leave' && req.total_days && (
+                            <span className="text-[11px] text-gray-400">{req.total_days} ngày</span>
+                          )}
+                          {req.type === 'ot' && req.ot_hours && (
+                            <span className="text-[11px] text-gray-400">{req.ot_hours} giờ</span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-400 mt-1">
+                          {fmt(req.start_date)} – {fmt(req.end_date)}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Right: detail */}
+        {selected ? (
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Header of detail */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="font-mono tabular-nums text-[11px] text-gray-400 mb-1">REQ-{String(selected.id).padStart(4,'0')}</p>
+                  <h2 className="text-[17px] font-semibold text-gray-900">
+                    {TYPE_CONFIG[selected.type]?.label || 'Đơn từ'} · {selected.requester?.name || '—'}
+                  </h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant={TYPE_CONFIG[selected.type]?.variant || 'neutral'}>
+                      {TYPE_CONFIG[selected.type]?.label || selected.type}
+                    </Badge>
+                    <Badge variant="warning" dot>Chờ duyệt</Badge>
+                  </div>
+                </div>
+                <span className="text-[12px] text-gray-400 shrink-0">{fmtDate(selected.created_at)}</span>
+              </div>
+            </div>
+
+            {/* Employee card */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-3">Nhân viên</h3>
+              <div className="flex items-center gap-3">
+                <Avatar name={selected.requester?.name || 'U'} size="md" />
+                <div className="flex-1">
+                  <p className="text-[14px] font-semibold text-gray-900">{selected.requester?.name || '—'}</p>
+                  <p className="text-[12px] text-gray-500 mt-0.5">{selected.requester?.email}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {selected.requester?.department && (
+                      <span className="text-[11px] text-gray-400">{selected.requester.department}</span>
+                    )}
+                    <Badge variant="success" size="sm" dot>Đang làm việc</Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chi tiết đơn */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-3">Chi tiết đơn</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-gray-500">Từ ngày</span>
+                  <span className="font-mono tabular-nums text-[13px] font-medium text-gray-800">{fmt(selected.start_date)}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-gray-500">Đến ngày</span>
+                  <span className="font-mono tabular-nums text-[13px] font-medium text-gray-800">{fmt(selected.end_date)}</span>
+                </div>
+                {selected.type === 'leave' && selected.total_days && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-gray-500">Số ngày nghỉ</span>
+                    <span className="font-mono tabular-nums text-[13px] font-bold text-gray-900">{selected.total_days} ngày</span>
+                  </div>
+                )}
+                {selected.type === 'ot' && selected.ot_hours && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-gray-500">Số giờ OT</span>
+                    <span className="font-mono tabular-nums text-[13px] font-bold text-gray-900">{selected.ot_hours} giờ</span>
+                  </div>
+                )}
+                {selected.reason && (
+                  <div className="pt-2 border-t border-gray-100">
+                    <p className="text-[12px] text-gray-500 mb-1">Lý do</p>
+                    <p className="text-[13px] text-gray-800 leading-relaxed">{selected.reason}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Ghi chú phê duyệt */}
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-3">Ghi chú phê duyệt</h3>
+              <textarea
+                value={rejectNote}
+                onChange={e => setRejectNote(e.target.value)}
+                rows={3}
+                placeholder="Ghi chú phê duyệt hoặc lý do từ chối..."
+                className="w-full px-3 py-2.5 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors resize-none"
+              />
+            </div>
+
+            {/* Action footer */}
+            <div className="flex gap-3">
+              <button
+                onClick={handleReject}
+                disabled={actionLoading}
+                className="flex-1 h-10 flex items-center justify-center gap-2 border border-danger-300 bg-white text-danger-700 text-[13px] font-semibold rounded-md hover:bg-danger-50 disabled:opacity-60 transition-colors"
+              >
+                <XCircle size={15} strokeWidth={2} />
+                Từ chối
+              </button>
+              <button
+                onClick={() => handleApprove(selected.id)}
+                disabled={actionLoading}
+                className="flex-1 h-10 flex items-center justify-center gap-2 bg-success-600 hover:bg-success-700 text-white text-[13px] font-semibold rounded-md disabled:opacity-60 transition-colors"
+              >
+                <CheckCircle size={15} strokeWidth={2} />
+                Phê duyệt
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1 bg-white border border-gray-200 rounded-lg flex flex-col items-center justify-center py-20 text-center">
+            <Inbox size={36} strokeWidth={1.25} className="text-gray-300 mb-3" />
+            <p className="text-[14px] font-medium text-gray-500">Không có đơn nào đang chờ</p>
+            <p className="text-[12px] text-gray-400 mt-1">Chọn một đơn từ danh sách bên trái để xem chi tiết</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

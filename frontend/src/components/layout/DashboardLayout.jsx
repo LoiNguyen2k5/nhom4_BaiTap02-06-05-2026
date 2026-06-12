@@ -1,129 +1,187 @@
-import { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { HelpCircle, Bell, ChevronDown, Search } from 'lucide-react';
 import axiosClient from '../../services/axiosClient';
 import Sidebar from './Sidebar';
+import Avatar from '../ui/Avatar';
 
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return d.toLocaleString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+const PATH_LABELS = {
+  'admin/dashboard': ['Admin', 'Dashboard'],
+  'admin/users': ['Admin', 'Tài khoản'],
+  'admin/departments': ['Admin', 'Phòng ban'],
+  'admin/tasks': ['Admin', 'Giao việc'],
+  'admin/recruitment': ['Admin', 'Tuyển dụng'],
+  'admin/config': ['Admin', 'Cấu hình'],
+  'admin/profile': ['Admin', 'Hồ sơ'],
+  'hr/dashboard': ['HR', 'Dashboard'],
+  'hr/employees': ['HR', 'Hồ sơ nhân viên'],
+  'hr/contracts': ['HR', 'Hợp đồng'],
+  'hr/recruitment': ['HR', 'Tuyển dụng'],
+  'hr/interviews': ['HR', 'Lịch phỏng vấn'],
+  'hr/reports': ['HR', 'Báo cáo'],
+  'hr/promotions': ['HR', 'Đề xuất thăng chức'],
+  'hr/evaluation': ['HR', 'Đánh giá KPI'],
+  'manager/dashboard': ['Manager', 'Dashboard'],
+  'manager/leave-approvals': ['Manager', 'Đơn chờ duyệt'],
+  'manager/approval-history': ['Manager', 'Lịch sử phê duyệt'],
+  'manager/tasks': ['Manager', 'Task team'],
+  'manager/team-schedule': ['Manager', 'Lịch team'],
+  'manager/kpi': ['Manager', 'Đánh giá KPI'],
+  'manager/evaluation': ['Manager', 'Đánh giá KPI'],
+  'manager/promotions': ['Manager', 'Đề xuất thăng chức'],
+  'accountant/dashboard': ['Kế toán', 'Dashboard'],
+  'user/today': ['Cá nhân', 'Hôm nay'],
+  'user/profile': ['Cá nhân', 'Hồ sơ tôi'],
+  'user/attendance': ['Cá nhân', 'Chấm công'],
+  'user/leaves': ['Cá nhân', 'Đơn từ'],
+  'user/payslip': ['Cá nhân', 'Phiếu lương'],
+  'user/tasks': ['Cá nhân', 'Task của tôi'],
+  'user/performance': ['Cá nhân', 'Hiệu quả làm việc'],
 };
+
+function buildBreadcrumb(pathname) {
+  const stripped = pathname.replace(/^\/preview\//, '/').replace(/^\//, '');
+  if (PATH_LABELS[stripped]) return PATH_LABELS[stripped];
+  const parts = stripped.split('/');
+  return [parts[0] || '', parts[1] || ''];
+}
 
 const DashboardLayout = () => {
   const { user } = useSelector((state) => state.auth);
-  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const [notifOpen, setNotifOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [loadingNotif, setLoadingNotif] = useState(false);
+  const notifRef = useRef(null);
+
+  const breadcrumb = buildBreadcrumb(location.pathname);
+  const displayName = user?.name || user?.email || 'Người dùng';
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchLogs = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await axiosClient.get('/profile/activity?limit=10');
+    if (!notifOpen) return;
+    setLoadingNotif(true);
+    axiosClient.get('/profile/activity?limit=10')
+      .then((res) => {
         const payload = res.data.data || {};
         setLogs(payload.logs || []);
         setUnreadCount(payload.unreadCount || 0);
-      } catch (err) {
-        setError('Không thể tải nhật ký');
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .catch(() => {})
+      .finally(() => setLoadingNotif(false));
+  }, [notifOpen]);
 
-    fetchLogs();
-  }, [isOpen]);
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen" style={{ background: 'var(--gray-50)' }}>
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-gray-100">
-          <div className="relative px-6 py-3 flex items-center justify-end">
-            <div className="relative">
+
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Topbar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center px-8 gap-4 shrink-0 sticky top-0 z-30">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-sm flex-1 min-w-0">
+            {breadcrumb.map((seg, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                {i > 0 && <span className="text-gray-300">/</span>}
+                <span className={i === breadcrumb.length - 1 ? 'text-gray-900 font-medium' : 'text-gray-500'}>
+                  {seg}
+                </span>
+              </span>
+            ))}
+          </nav>
+
+          {/* Search */}
+          <div className="relative hidden md:flex items-center w-[260px] h-8 bg-gray-50 border border-transparent rounded-md focus-within:border-navy-500 focus-within:bg-white transition-colors">
+            <Search size={13} className="absolute left-2.5 text-gray-400 pointer-events-none" />
+            <input
+              className="flex-1 h-full bg-transparent outline-none pl-8 pr-2 text-[13px] text-gray-700 placeholder-gray-400"
+              placeholder="Tìm kiếm..."
+            />
+            <span className="absolute right-2 text-[10px] font-medium text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-sm">
+              Ctrl K
+            </span>
+          </div>
+
+          {/* Right actions */}
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors">
+              <HelpCircle size={18} strokeWidth={1.75} />
+            </button>
+
+            {/* Notifications */}
+            <div className="relative" ref={notifRef}>
               <button
-                type="button"
-                onClick={() => setIsOpen((prev) => !prev)}
-                className="relative w-10 h-10 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-800 transition-colors"
-                aria-label="Xem thông báo"
+                onClick={() => setNotifOpen((v) => !v)}
+                className="relative w-8 h-8 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center transition-colors"
               >
-                <svg className="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-                </svg>
+                <Bell size={18} strokeWidth={1.75} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-rose-500 text-white">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-danger-600" />
                 )}
               </button>
 
-              {isOpen && (
-                <div className="absolute right-0 mt-3 w-96 max-w-[90vw] bg-white border border-gray-200 shadow-xl rounded-2xl overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-800">Thông báo của bạn</p>
-                        <p className="text-xs text-gray-400">{user?.email || 'Tài khoản hiện tại'}</p>
-                      </div>
+              {notifOpen && (
+                <div className="absolute right-0 top-10 w-80 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">Thông báo</p>
+                    {unreadCount > 0 && (
                       <button
-                        type="button"
+                        className="text-xs text-navy-600 hover:underline"
                         onClick={async () => {
-                          try {
-                            await axiosClient.post('/profile/activity/read');
-                            setUnreadCount(0);
-                            setLogs((prev) => prev.map((item) => ({ ...item, is_read: true })));
-                          } catch (err) {
-                            setError('Không thể đánh dấu đã đọc');
-                          }
+                          await axiosClient.post('/profile/activity/read').catch(() => {});
+                          setUnreadCount(0);
                         }}
-                        className="text-xs font-semibold text-blue-600 hover:underline disabled:text-gray-300"
-                        disabled={unreadCount === 0}
                       >
                         Đánh dấu đã đọc
                       </button>
-                    </div>
+                    )}
                   </div>
-
-                  {loading && (
-                    <div className="px-4 py-6 text-center text-sm text-gray-400">Đang tải...</div>
-                  )}
-
-                  {!loading && error && (
-                    <div className="px-4 py-6 text-center text-sm text-rose-500">{error}</div>
-                  )}
-
-                  {!loading && !error && logs.length === 0 && (
-                    <div className="px-4 py-6 text-center text-sm text-gray-400">Chưa có hoạt động nào</div>
-                  )}
-
-                  {!loading && !error && logs.length > 0 && (
-                    <div className="max-h-80 overflow-auto divide-y divide-gray-50">
-                      {logs.map((item) => (
-                        <div key={item.id} className="px-4 py-3">
-                          <p className="text-sm text-gray-700">{item.detail || item.action}</p>
-                          <p className="text-xs text-gray-400 mt-1">{formatDateTime(item.created_at)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
+                    {loadingNotif && (
+                      <p className="px-4 py-6 text-sm text-gray-400 text-center">Đang tải...</p>
+                    )}
+                    {!loadingNotif && logs.length === 0 && (
+                      <p className="px-4 py-6 text-sm text-gray-400 text-center">Chưa có thông báo</p>
+                    )}
+                    {logs.map((item) => (
+                      <div key={item.id} className={`px-4 py-3 ${!item.is_read ? 'bg-navy-50' : ''}`}>
+                        <p className="text-[13px] text-gray-700">{item.detail || item.action}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(item.created_at).toLocaleString('vi-VN')}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Divider */}
+            <div className="w-px h-5 bg-gray-200 mx-1" />
+
+            {/* User */}
+            <button className="flex items-center gap-2 h-8 px-2 rounded-md hover:bg-gray-100 transition-colors">
+              <Avatar name={displayName} size="sm" />
+              <span className="text-[13px] font-medium text-gray-700 hidden md:block">{displayName.split(' ').at(-1)}</span>
+              <ChevronDown size={14} strokeWidth={1.75} className="text-gray-400" />
+            </button>
           </div>
-        </div>
-        <Outlet />
-      </main>
+        </header>
+
+        {/* Main content */}
+        <main className="flex-1 px-8 py-6 pb-10 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

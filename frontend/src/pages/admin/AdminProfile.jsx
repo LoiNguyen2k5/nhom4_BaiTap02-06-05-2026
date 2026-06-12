@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { User, Phone, MapPin, Camera, Pencil, X } from 'lucide-react';
 import { updateProfile } from '../../redux/authSlice';
 import {
   fetchProfileThunk,
@@ -8,66 +9,13 @@ import {
   uploadAvatarThunk,
   clearProfileMessages,
 } from '../../redux/profileSlice';
-import Alert from '../../components/Alert';
-import Button from '../../components/Button';
+import Avatar from '../../components/ui/Avatar';
+import Badge from '../../components/ui/Badge';
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
-
-const SkeletonLine = ({ width = 'w-32' }) => (
-  <div className={`h-5 ${width} bg-gray-200 rounded-lg animate-pulse`} />
-);
-
-const FieldRow = ({ icon, label, value, loading }) => (
-  <div className="flex items-start gap-4 py-4 border-b border-gray-100 last:border-0">
-    <div className="shrink-0 w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 mt-0.5">
-      {icon}
-    </div>
-    <div className="flex-1 min-w-0">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
-      {loading ? (
-        <SkeletonLine width="w-40" />
-      ) : (
-        <p className="text-gray-800 font-medium break-words">
-          {value || <span className="text-gray-400 italic font-normal">Chưa cập nhật</span>}
-        </p>
-      )}
-    </div>
-  </div>
-);
-
-const IconUser = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-  </svg>
-);
-
-const IconPhone = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-  </svg>
-);
-
-const IconPin = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-  </svg>
-);
-
-const IconCamera = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-white">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-  </svg>
-);
-
-const IconEdit = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-  </svg>
-);
-
 const PHONE_REGEX = /^0\d{9,10}$/;
+
+const inputClass = "w-full h-10 px-3 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors";
 
 const AdminProfile = () => {
   const dispatch = useDispatch();
@@ -88,15 +36,8 @@ const AdminProfile = () => {
 
   useEffect(() => {
     if (!profile) return;
-    const syncProfile = () => {
-      setFormData({
-        full_name: profile.full_name || '',
-        phone: profile.phone || '',
-        address: profile.address || '',
-      });
-      if (profile.avatar_url) setAvatarPreview(`${BACKEND}${profile.avatar_url}`);
-    };
-    syncProfile();
+    setFormData({ full_name: profile.full_name || '', phone: profile.phone || '', address: profile.address || '' });
+    if (profile.avatar_url) setAvatarPreview(`${BACKEND}${profile.avatar_url}`);
   }, [profile]);
 
   useEffect(() => {
@@ -141,11 +82,7 @@ const AdminProfile = () => {
   };
 
   const handleCancel = () => {
-    setFormData({
-      full_name: profile?.full_name || '',
-      phone: profile?.phone || '',
-      address: profile?.address || '',
-    });
+    setFormData({ full_name: profile?.full_name || '', phone: profile?.phone || '', address: profile?.address || '' });
     setLocalError('');
     setEditing(false);
     dispatch(clearProfileMessages());
@@ -154,160 +91,158 @@ const AdminProfile = () => {
   if (!isAuthenticated) return null;
 
   const displayName = user?.name || user?.email || 'Quản trị viên';
-  const avatarInitial = displayName.charAt(0).toUpperCase();
   const displayError = localError || error;
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-extrabold text-gray-800">Hồ sơ quản trị viên</h1>
-          <span className="px-3 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">Admin</span>
-        </div>
-        <p className="text-gray-500 text-sm">Xem và cập nhật thông tin cá nhân</p>
+    <div className="space-y-5 max-w-2xl">
+      {/* Header */}
+      <div>
+        <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Hồ sơ quản trị viên</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Xem và cập nhật thông tin cá nhân</p>
       </div>
 
-      {/* Avatar + basic info card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-5 flex items-center gap-6">
+      {/* Banner card */}
+      <div className="bg-navy-50 border border-navy-100 rounded-lg px-6 py-5 flex items-center gap-5">
         <div className="relative shrink-0">
           {avatarPreview ? (
             <img
               src={avatarPreview}
               alt="avatar"
-              className={`w-24 h-24 rounded-2xl object-cover ring-4 ring-purple-100 transition-opacity ${avatarLoading ? 'opacity-60' : 'opacity-100'}`}
+              className={`w-20 h-20 rounded-full object-cover transition-opacity ${avatarLoading ? 'opacity-60' : 'opacity-100'}`}
             />
           ) : (
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold ring-4 ring-purple-100">
-              {avatarInitial}
-            </div>
+            <Avatar name={displayName} size="xl" />
           )}
           <label
-            className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-600 rounded-xl flex items-center justify-center cursor-pointer hover:bg-purple-700 transition shadow-md"
+            className="absolute -bottom-1 -right-1 w-7 h-7 bg-navy-700 rounded-full flex items-center justify-center cursor-pointer hover:bg-navy-800 transition-colors shadow-sm"
             title="Đổi ảnh đại diện"
           >
-            <IconCamera />
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleAvatarChange}
-            />
+            <Camera size={12} strokeWidth={2.5} className="text-white" />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
           </label>
           {avatarLoading && (
-            <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/50">
-              <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin" />
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/60">
+              <div className="w-5 h-5 border-2 border-navy-700 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           {loading ? (
-            <div className="space-y-2">
-              <SkeletonLine width="w-40" />
-              <SkeletonLine width="w-56" />
+            <div className="space-y-2 animate-pulse">
+              <div className="h-4 w-40 bg-navy-200 rounded" />
+              <div className="h-3 w-56 bg-navy-100 rounded" />
             </div>
           ) : (
             <>
-              <h2 className="text-xl font-bold text-gray-800 truncate">{displayName}</h2>
-              <p className="text-gray-500 text-sm mt-0.5 truncate">{user?.email}</p>
-              <span className="inline-block mt-2 px-3 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
-                Quản trị viên
-              </span>
+              <h2 className="text-[18px] font-semibold text-gray-900 truncate">{displayName}</h2>
+              <p className="text-[13px] text-gray-500 mt-0.5 truncate">{user?.email}</p>
+              <div className="mt-2">
+                <Badge variant="accent">Quản trị viên</Badge>
+              </div>
             </>
           )}
         </div>
       </div>
 
-      <Alert type="error" message={displayError} />
-      <Alert type="success" message={success} />
+      {/* Error / Success */}
+      {displayError && (
+        <div className="border-l-[3px] border-danger-500 bg-danger-50 rounded-md px-4 py-3 text-[13px] text-danger-700">{displayError}</div>
+      )}
+      {success && (
+        <div className="border-l-[3px] border-success-500 bg-success-50 rounded-md px-4 py-3 text-[13px] text-success-700">{success}</div>
+      )}
 
-      {/* Profile details card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-gray-700">Thông tin cá nhân</h2>
+      {/* Profile details */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <h2 className="text-[15px] font-semibold text-gray-900">Thông tin cá nhân</h2>
           {!editing && (
             <button
               onClick={() => { setLocalError(''); setEditing(true); }}
               disabled={loading}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-purple-600 hover:bg-purple-50 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium text-accent-600 hover:bg-accent-50 border border-accent-200 rounded-md transition-colors disabled:opacity-40"
             >
-              <IconEdit />
-              Chỉnh sửa
+              <Pencil size={12} strokeWidth={2} /> Chỉnh sửa
             </button>
           )}
         </div>
 
         {!editing ? (
-          <div>
-            <FieldRow loading={loading} label="Họ & Tên" value={profile?.full_name} icon={<IconUser />} />
-            <FieldRow loading={loading} label="Số điện thoại" value={profile?.phone} icon={<IconPhone />} />
-            <FieldRow loading={loading} label="Địa chỉ" value={profile?.address} icon={<IconPin />} />
+          <div className="divide-y divide-gray-100">
+            {[
+              { Icon: User,   label: 'Họ & Tên',        value: profile?.full_name },
+              { Icon: Phone,  label: 'Số điện thoại',   value: profile?.phone },
+              { Icon: MapPin, label: 'Địa chỉ',          value: profile?.address },
+            ].map(({ Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3 px-5 py-4">
+                <div className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 shrink-0 mt-0.5">
+                  <Icon size={14} strokeWidth={1.75} className="text-gray-500" />
+                </div>
+                <div>
+                  <p className="text-[11px] text-gray-400 font-medium uppercase tracking-[.04em]">{label}</p>
+                  {loading ? (
+                    <div className="h-3.5 w-36 bg-gray-200 rounded animate-pulse mt-1.5" />
+                  ) : (
+                    <p className="text-[13px] font-medium text-gray-800 mt-0.5">
+                      {value || <span className="text-gray-400 font-normal italic">Chưa cập nhật</span>}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
-          <form onSubmit={handleSave} className="space-y-5">
+          <form onSubmit={handleSave} className="px-5 py-5 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Họ & Tên</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><IconUser /></span>
-                <input
-                  type="text"
-                  value={formData.full_name}
-                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="Nguyễn Văn A"
-                />
-              </div>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Họ & Tên</label>
+              <input type="text" value={formData.full_name}
+                onChange={e => setFormData({ ...formData, full_name: e.target.value })}
+                placeholder="Nguyễn Văn A" className={inputClass} />
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Số điện thoại</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"><IconPhone /></span>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => { setFormData({ ...formData, phone: e.target.value }); setLocalError(''); }}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                  placeholder="0912345678"
-                />
-              </div>
-              <p className="text-xs text-gray-400 mt-1">10-11 chữ số, bắt đầu bằng 0</p>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Số điện thoại</label>
+              <input type="tel" value={formData.phone}
+                onChange={e => { setFormData({ ...formData, phone: e.target.value }); setLocalError(''); }}
+                placeholder="0912345678" className={inputClass} />
+              <p className="text-[11px] text-gray-400 mt-1">10-11 chữ số, bắt đầu bằng 0</p>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Địa chỉ</label>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-gray-400"><IconPin /></span>
-                <textarea
-                  rows={2}
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
-                  placeholder="123 Đường ABC, Quận 1, TP.HCM"
-                />
-              </div>
+              <label className="block text-[12px] font-medium text-gray-700 mb-1.5">Địa chỉ</label>
+              <textarea rows={2} value={formData.address}
+                onChange={e => setFormData({ ...formData, address: e.target.value })}
+                placeholder="123 Đường ABC, Quận 1, TP.HCM"
+                className="w-full px-3 py-2.5 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors resize-none" />
             </div>
-
             <div className="flex gap-3 pt-1">
-              <Button
-                type="submit"
-                disabled={saveLoading}
-                className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md transition disabled:opacity-70"
-              >
+              <button type="button" onClick={handleCancel} disabled={saveLoading}
+                className="flex items-center gap-1.5 h-10 px-4 border border-gray-300 text-[13px] font-medium text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-60 transition-colors">
+                <X size={14} strokeWidth={2} /> Hủy
+              </button>
+              <button type="submit" disabled={saveLoading}
+                className="flex-1 h-10 bg-accent-600 hover:bg-accent-700 disabled:opacity-60 text-white text-[13px] font-semibold rounded-md transition-colors">
                 {saveLoading ? 'Đang lưu...' : 'Lưu thay đổi'}
-              </Button>
-              <Button
-                type="button"
-                onClick={handleCancel}
-                disabled={saveLoading}
-                className="flex-1 py-3 border-2 border-gray-200 text-gray-600 hover:bg-gray-50 rounded-xl font-semibold transition disabled:opacity-70"
-              >
-                Hủy
-              </Button>
+              </button>
             </div>
           </form>
         )}
+      </div>
+
+      {/* Account info */}
+      <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <h2 className="text-[15px] font-semibold text-gray-900 mb-3">Thông tin tài khoản</h2>
+        <div className="space-y-2">
+          {[
+            { label: 'Email',      value: user?.email },
+            { label: 'Vai trò',   value: 'Quản trị viên' },
+            { label: 'Trạng thái', value: 'Đang hoạt động' },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <span className="text-[12px] text-gray-500">{label}</span>
+              <span className="text-[13px] font-medium text-gray-800">{value}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

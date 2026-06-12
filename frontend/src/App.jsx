@@ -25,13 +25,17 @@ import RecruitmentPage from './pages/admin/RecruitmentPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import HRDashboard from './pages/hr/HRDashboard';
+import HREmployees from './pages/hr/HREmployees';
 import ContractManager from './pages/hr/ContractManager';
 import UserTasks from './pages/user/UserTasks';
 import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
+import ManagerDashboard from './pages/manager/ManagerDashboard';
+import AccountantDashboard from './pages/accountant/AccountantDashboard';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
+import PreviewShell from './pages/PreviewShell';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -46,6 +50,8 @@ const RoleRedirect = () => {
   }
   if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
   if (user.role === 'hr') return <Navigate to="/hr/dashboard" replace />;
+  if (user.role === 'manager') return <Navigate to="/manager/dashboard" replace />;
+  if (user.role === 'accountant') return <Navigate to="/accountant/dashboard" replace />;
   return <Navigate to="/user/profile" replace />;
 };
 
@@ -100,10 +106,25 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route index element={<ManagerDashboard />} />
+        <Route path="dashboard" element={<ManagerDashboard />} />
         <Route path="leave-approvals" element={<LeaveApprovals />} />
         <Route path="team-schedule" element={<TeamSchedule />} />
         <Route path="evaluation" element={<EmployeeEvaluation />} />
         <Route path="promotions" element={<PromotionManager />} />
+      </Route>
+
+      {/* Accountant dashboard */}
+      <Route
+        path="/accountant"
+        element={
+          <ProtectedRoute allowedRoles={['accountant']}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<AccountantDashboard />} />
+        <Route path="dashboard" element={<AccountantDashboard />} />
       </Route>
 
       {/* HR dashboard */}
@@ -116,10 +137,46 @@ const App = () => {
         }
       >
         <Route path="dashboard" element={<HRDashboard />} />
+        <Route path="employees" element={<HREmployees />} />
         <Route path="contracts" element={<ContractManager />} />
         <Route path="evaluation" element={<EmployeeEvaluation />} />
         <Route path="promotions" element={<PromotionManager />} />
       </Route>
+
+      {/* ─── PREVIEW (no auth) ───────────────────────────────────────── */}
+      {/* URL: /preview/<path>?role=admin|hr|manager|accountant|user     */}
+      <Route path="/preview" element={<PreviewShell />}>
+        {/* Admin */}
+        <Route path="admin/dashboard"  element={<AdminDashboard />} />
+        <Route path="admin/profile"    element={<AdminProfile />} />
+        <Route path="admin/users"      element={<AdminUsers />} />
+        <Route path="admin/users/:id"  element={<AdminUserDetail />} />
+        <Route path="admin/departments" element={<AdminDepartments />} />
+        <Route path="admin/tasks"      element={<AdminTasks />} />
+        <Route path="admin/config"     element={<AdminConfig />} />
+        <Route path="admin/recruitment" element={<RecruitmentPage />} />
+        {/* HR */}
+        <Route path="hr/dashboard"   element={<HRDashboard />} />
+        <Route path="hr/employees"   element={<HREmployees />} />
+        <Route path="hr/contracts"   element={<ContractManager />} />
+        <Route path="hr/evaluation"  element={<EmployeeEvaluation />} />
+        <Route path="hr/promotions"  element={<PromotionManager />} />
+        {/* Manager */}
+        <Route path="manager/dashboard"       element={<ManagerDashboard />} />
+        <Route path="manager/leave-approvals" element={<LeaveApprovals />} />
+        <Route path="manager/team-schedule"   element={<TeamSchedule />} />
+        <Route path="manager/evaluation"      element={<EmployeeEvaluation />} />
+        <Route path="manager/promotions"      element={<PromotionManager />} />
+        {/* Accountant */}
+        <Route path="accountant/dashboard" element={<AccountantDashboard />} />
+        {/* User */}
+        <Route path="user/profile"     element={<UserProfile />} />
+        <Route path="user/leaves"      element={<MyLeaves />} />
+        <Route path="user/tasks"       element={<UserTasks />} />
+        <Route path="user/performance" element={<PerformanceDashboard />} />
+      </Route>
+
+      {/* ─────────────────────────────────────────────────────────────── */}
 
       {/* Admin dashboard */}
       <Route
