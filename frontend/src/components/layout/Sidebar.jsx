@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   LayoutDashboard, Users, Building2, ClipboardList, UserSearch, Settings,
   UserCircle, FileText, CheckSquare, BarChart2, CalendarDays, LogOut,
-  Home, Clock, Wallet, Star,
+  Home, Clock, Wallet, Star, TrendingUp,
 } from 'lucide-react';
 import { logout } from '../../redux/authSlice';
 import Avatar from '../ui/Avatar';
@@ -50,6 +50,7 @@ const NAV_CONFIG = {
         items: [
           { label: 'Hồ sơ nhân viên',    path: '/hr/employees',       icon: Users },
           { label: 'Hợp đồng lao động',  path: '/hr/contracts',       icon: FileText },
+          { label: 'Đề xuất thăng tiến', path: '/hr/promotions',      icon: TrendingUp },
         ],
       },
       {
@@ -91,6 +92,7 @@ const NAV_CONFIG = {
           { label: 'Task team',          path: '/manager/tasks',      icon: ClipboardList },
           { label: 'Lịch team',          path: '/manager/team-schedule', icon: CalendarDays },
           { label: 'Đánh giá KPI',       path: '/manager/kpi',        icon: Star },
+          { label: 'Đề xuất thăng tiến', path: '/manager/promotions', icon: TrendingUp },
         ],
       },
       {
