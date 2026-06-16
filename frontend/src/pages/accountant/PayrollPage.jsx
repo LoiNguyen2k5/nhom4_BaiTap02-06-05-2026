@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calculator, RefreshCw, Users, CheckCircle } from 'lucide-react';
+import { Calculator, RefreshCw, Users, CheckCircle, CheckSquare } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
 import payrollService from '../../services/payroll.service';
@@ -26,6 +26,7 @@ export default function PayrollPage() {
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [calculating, setCalculating] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -62,6 +63,25 @@ export default function PayrollPage() {
     }
   };
 
+  const handleApprove = async () => {
+    const [year, m] = month.split('-');
+    if (!window.confirm(`Bạn có chắc chắn muốn DUYỆT toàn bộ bảng lương nháp của Tháng ${m}/${year} không?\nSau khi duyệt, nhân viên sẽ xem được phiếu lương.`)) return;
+    
+    try {
+      setApproving(true);
+      setMessage({ type: '', text: '' });
+      const res = await payrollService.approvePayroll(month);
+      if (res.data.success) {
+        setMessage({ type: 'success', text: res.data.message });
+        fetchPayrolls();
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.message || 'Có lỗi xảy ra khi duyệt lương' });
+    } finally {
+      setApproving(false);
+    }
+  };
+
   const [year, m] = month.split('-');
   const monthLabel = `Tháng ${m}/${year}`;
 
@@ -88,15 +108,28 @@ export default function PayrollPage() {
           />
           <button
             onClick={handleCalculate}
-            disabled={calculating}
-            className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors disabled:opacity-60"
+            disabled={calculating || approving}
+            className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md transition-colors disabled:opacity-60"
           >
             {calculating ? (
               <RefreshCw size={14} className="animate-spin" />
             ) : (
               <Calculator size={14} />
             )}
-            {calculating ? 'Đang tính...' : `Tính lương ${monthLabel}`}
+            Tính nháp
+          </button>
+
+          <button
+            onClick={handleApprove}
+            disabled={calculating || approving || payrolls.length === 0}
+            className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors disabled:opacity-60"
+          >
+            {approving ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <CheckSquare size={14} />
+            )}
+            Duyệt bảng lương
           </button>
         </div>
       </div>

@@ -156,3 +156,27 @@ exports.getMyPayrolls = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
+
+exports.approvePayroll = async (req, res) => {
+  try {
+    const { month } = req.body;
+    if (!month) {
+      return res.status(400).json({ success: false, message: 'Thiếu tham số tháng (month)' });
+    }
+
+    // Đổi trạng thái toàn bộ phiếu lương 'draft' thành 'approved' trong tháng đó
+    const [updatedRows] = await Payroll.update(
+      { status: 'approved' },
+      { where: { month: month, status: 'draft' } }
+    );
+
+    if (updatedRows === 0) {
+      return res.status(404).json({ success: false, message: 'Không có phiếu lương nháp nào để duyệt trong tháng này' });
+    }
+
+    res.status(200).json({ success: true, message: `Đã duyệt thành công ${updatedRows} phiếu lương cho tháng ${month}` });
+  } catch (error) {
+    console.error('Lỗi khi duyệt lương:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi duyệt lương' });
+  }
+};

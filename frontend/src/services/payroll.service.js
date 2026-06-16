@@ -9,6 +9,9 @@ const payrollService = {
   },
   getMyPayrolls: () => {
     return axiosClient.get('/payrolls/my-payrolls');
+  },
+  approvePayroll: (month) => {
+    return axiosClient.put('/payrolls/approve', { month });
   }
 };
 
