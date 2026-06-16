@@ -41,9 +41,9 @@ const initializeDatabase = async () => {
     // Load all models so they are registered before sync
     require('../models/index');
 
-    // Sync models - dung alter:true de tu dong cap nhat schema khi co thay doi
-    await sequelize.sync();
-    console.log('✓ Database da duoc khoi tao thanh cong');
+    // Sync models - alter:true tu dong cap nhat schema khi co them bang hoac cot moi
+    await sequelize.sync({ alter: true });
+    console.log('✓ Database da duoc cap nhat thanh cong');
 
     // Create admin account
     await createAdminAccount();
