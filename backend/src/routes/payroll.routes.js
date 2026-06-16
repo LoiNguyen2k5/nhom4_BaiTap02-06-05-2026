@@ -12,4 +12,7 @@ router.get('/', payrollController.getPayrollsByMonth);
 // Kích hoạt tính lương cho một tháng
 router.post('/calculate', payrollController.calculatePayroll);
 
+// Duyệt lương cho một tháng
+router.put('/approve', payrollController.approvePayroll);
+
 module.exports = router;
