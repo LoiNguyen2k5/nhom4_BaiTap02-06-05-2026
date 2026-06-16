@@ -35,6 +35,18 @@ const Profile = sequelize.define(
       type: DataTypes.STRING(500),
       allowNull: true,
     },
+    bank_name: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    bank_account_number: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
+    bank_account_name: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
   },
   {
     tableName: 'profiles',

@@ -31,9 +31,11 @@ import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
+import AccountantPayroll from './pages/accountant/AccountantPayroll';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
+import UserPayslip from './pages/user/UserPayslip';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -92,6 +94,7 @@ const App = () => {
         <Route path="leaves"      element={<MyLeaves />} />
         <Route path="tasks"       element={<UserTasks />} />
         <Route path="performance" element={<PerformanceDashboard />} />
+        <Route path="payslip"     element={<UserPayslip />} />
       </Route>
 
       {/* Manager dashboard */}
@@ -124,6 +127,7 @@ const App = () => {
       >
         <Route index element={<AccountantDashboard />} />
         <Route path="dashboard" element={<AccountantDashboard />} />
+        <Route path="payroll" element={<AccountantPayroll />} />
       </Route>
 
       {/* HR dashboard */}

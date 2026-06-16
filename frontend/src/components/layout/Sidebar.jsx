@@ -116,8 +116,6 @@ const NAV_CONFIG = {
         title: 'Lương & Chi phí',
         items: [
           { label: 'Bảng lương',         path: '/accountant/payroll',   icon: Wallet },
-          { label: 'Tạm ứng',            path: '/accountant/advances',  icon: FileText },
-          { label: 'Cấu hình thuế',      path: '/admin/config',         icon: Settings },
         ],
       },
       {

@@ -68,5 +68,53 @@ const sendPasswordResetEmail = async (toEmail, otpCode) => {
   };
   await transporter.sendMail(mailOptions);
 };
+const sendPayslipEmail = async (toEmail, userName, payroll) => {
+  const mailOptions = {
+    from: `"Kế Toán Nhóm 4 App" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `[Nhóm 4 App] Phiếu lương tháng ${payroll.month}/${payroll.year}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #333; text-align: center;">Phiếu Lương Tháng ${payroll.month}/${payroll.year}</h2>
+        <p>Xin chào <strong>${userName}</strong>,</p>
+        <p>Phòng Kế toán gửi bạn phiếu lương chi tiết cho tháng ${payroll.month}/${payroll.year}. Vui lòng kiểm tra thông tin bên dưới:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Lương cơ bản:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.base_salary).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Phụ cấp:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.allowances).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Thưởng/KPI:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.bonuses).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Khấu trừ:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.deductions).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Thuế:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.tax).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Bảo hiểm:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.insurance).toLocaleString('vi-VN')} VND</td>
+          </tr>
+          <tr style="background-color: #f5f5f5;">
+            <td style="padding: 15px 10px; font-weight: bold; font-size: 16px;"><strong>Thực lãnh:</strong></td>
+            <td style="padding: 15px 10px; font-weight: bold; font-size: 16px; text-align: right; color: #388e3c;">${Number(payroll.net_salary).toLocaleString('vi-VN')} VND</td>
+          </tr>
+        </table>
+        <p style="color: #666; font-size: 13px;">Nếu có bất kỳ thắc mắc nào, vui lòng phản hồi email này hoặc liên hệ phòng Kế toán.</p>
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">Đây là email tự động, vui lòng không trả lời.</p>
+      </div>
+    `,
+  };
+  await transporter.sendMail(mailOptions);
+};
 
-module.exports = { sendOTPEmail, sendPasswordResetEmail };
+module.exports = { sendOTPEmail, sendPasswordResetEmail, sendPayslipEmail };

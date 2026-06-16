@@ -42,7 +42,7 @@ const initializeDatabase = async () => {
     require('../models/index');
 
     // Sync models - dung alter:true de tu dong cap nhat schema khi co thay doi
-    await sequelize.sync();
+    await sequelize.sync({ alter: true });
     console.log('✓ Database da duoc khoi tao thanh cong');
 
     // Create admin account
