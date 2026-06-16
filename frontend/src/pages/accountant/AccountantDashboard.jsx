@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, AlertTriangle, FileText, Download, CheckCircle, Calculator, RefreshCw } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
