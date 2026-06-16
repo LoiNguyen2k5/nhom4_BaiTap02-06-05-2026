@@ -6,6 +6,9 @@ const payrollService = {
   },
   calculatePayroll: (month) => {
     return axiosClient.post('/payrolls/calculate', { month });
+  },
+  getMyPayrolls: () => {
+    return axiosClient.get('/payrolls/my-payrolls');
   }
 };
 

@@ -12,6 +12,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import MyLeaves from './pages/user/MyLeaves';
+import Payslip from './pages/user/Payslip';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
 import TeamSchedule from './pages/manager/TeamSchedule';
 import AdminProfile from './pages/admin/AdminProfile';
@@ -91,6 +92,7 @@ const App = () => {
       >
         <Route path="profile"     element={<UserProfile />} />
         <Route path="leaves"      element={<MyLeaves />} />
+        <Route path="payslip"     element={<Payslip />} />
         <Route path="tasks"       element={<UserTasks />} />
         <Route path="performance" element={<PerformanceDashboard />} />
       </Route>

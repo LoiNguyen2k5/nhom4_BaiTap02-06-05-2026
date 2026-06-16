@@ -137,3 +137,22 @@ exports.getPayrollsByMonth = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
+
+exports.getMyPayrolls = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const payrolls = await Payroll.findAll({
+      where: { 
+        user_id: userId,
+        // Chỉ cho phép xem lương đã duyệt hoặc đã trả
+        status: ['approved', 'paid']
+      },
+      order: [['month', 'DESC']]
+    });
+    
+    res.status(200).json({ success: true, data: payrolls });
+  } catch (error) {
+    console.error('Lỗi khi lấy phiếu lương cá nhân:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};

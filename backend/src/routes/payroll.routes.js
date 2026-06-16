@@ -3,7 +3,10 @@ const router = express.Router();
 const payrollController = require('../controllers/payroll.controller');
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 
-// Chỉ Kế toán hoặc Admin mới được thao tác lương
+// Nhân viên xem phiếu lương cá nhân của họ
+router.get('/my-payrolls', authenticateToken, payrollController.getMyPayrolls);
+
+// Chỉ Kế toán hoặc Admin mới được thao tác lương chung
 router.use(authenticateToken, authorizeRoles(['admin', 'accountant']));
 
 // Lấy danh sách lương theo tháng
