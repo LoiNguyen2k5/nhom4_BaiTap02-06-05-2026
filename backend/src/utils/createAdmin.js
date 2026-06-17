@@ -58,6 +58,20 @@ async function createAdminAccount() {
       await User.create({ email: managerEmail, password: hashedManagerPw, role: 'manager', status: 'active', name: 'Nguyễn Quản Lý' });
       console.log(`√ Tài khoản manager test đã được tạo: ${managerEmail}`);
     }
+
+    // Luôn đảm bảo tài khoản accountant tồn tại
+    const accountantEmail = 'accountant@example.com';
+    const accountantPassword = '123456';
+    const accountantExists = await User.findOne({ where: { email: accountantEmail } });
+    if (accountantExists) {
+      const hashedAccountantPw = await bcrypt.hash(accountantPassword, 10);
+      await accountantExists.update({ password: hashedAccountantPw, role: 'accountant', status: 'active', name: 'Trịnh Thị Hà' });
+      console.log(`√ Cập nhật tài khoản accountant test: ${accountantEmail}`);
+    } else {
+      const hashedAccountantPw = await bcrypt.hash(accountantPassword, 10);
+      await User.create({ email: accountantEmail, password: hashedAccountantPw, role: 'accountant', status: 'active', name: 'Trịnh Thị Hà' });
+      console.log(`√ Tài khoản accountant test đã được tạo: ${accountantEmail}`);
+    }
   } catch (error) {
     console.error('✗ Lỗi khi tạo tài khoản hệ thống:', error.message);
   }
