@@ -38,6 +38,7 @@ const leaveRoutes = require('./routes/leave.routes');
 const taskRoutes = require('./routes/task.routes');
 const performanceRoutes = require('./routes/performance.routes');
 const adjustmentRoutes = require('./routes/adjustment.routes');
+const advanceRoutes = require('./routes/advance.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
@@ -50,5 +51,6 @@ app.use('/api/leaves', leaveRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/performance', performanceRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
+app.use('/api/advances', advanceRoutes);
 
 module.exports = app;
