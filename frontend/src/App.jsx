@@ -31,6 +31,7 @@ import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
+import AdjustmentsPage from './pages/accountant/AdjustmentsPage';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
@@ -123,7 +124,8 @@ const App = () => {
         }
       >
         <Route index element={<AccountantDashboard />} />
-        <Route path="dashboard" element={<AccountantDashboard />} />
+        <Route path="dashboard"     element={<AccountantDashboard />} />
+        <Route path="adjustments"   element={<AdjustmentsPage />} />
       </Route>
 
       {/* HR dashboard */}
