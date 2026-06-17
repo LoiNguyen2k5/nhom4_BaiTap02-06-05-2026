@@ -1,15 +1,50 @@
-const { SalaryAdjustment, User, Profile } = require('../models');
+const { SalaryAdjustment, User, Profile, Department } = require('../models');
 const { Op } = require('sequelize');
+
+// Role mapping helper
+const roleNames = {
+  admin: 'Quản trị viên',
+  hr: 'Nhân sự',
+  manager: 'Quản lý',
+  accountant: 'Kế toán',
+  employee: 'Nhân viên',
+  user: 'Nhân viên',
+};
+
+const mapEmployeeProfile = (user) => {
+  if (!user) return null;
+  const userJson = user.toJSON ? user.toJSON() : user;
+  if (!userJson.Profile) {
+    userJson.Profile = {};
+  }
+  userJson.Profile.job_title = roleNames[userJson.role] || 'Nhân viên';
+  userJson.Profile.department = userJson.department?.name || 'Chưa phân phòng';
+  return userJson;
+};
+
+const mapAdjustment = (adj) => {
+  if (!adj) return null;
+  const json = adj.toJSON ? adj.toJSON() : adj;
+  if (json.employee) {
+    json.employee = mapEmployeeProfile(json.employee);
+  }
+  return json;
+};
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const employeeInclude = {
   model: User,
   as: 'employee',
-  attributes: ['id', 'name', 'email'],
+  attributes: ['id', 'name', 'email', 'role'],
   include: [
     {
       model: Profile,
-      attributes: ['job_title', 'department'],
+      attributes: ['id', 'full_name', 'phone', 'address', 'avatar_url'],
+    },
+    {
+      model: Department,
+      as: 'department',
+      attributes: ['id', 'name'],
     },
   ],
 };
@@ -45,7 +80,8 @@ exports.getAll = async (req, res) => {
         )
       : rows;
 
-    return res.json({ success: true, data: filtered });
+    const mapped = filtered.map(mapAdjustment);
+    return res.json({ success: true, data: mapped });
   } catch (err) {
     console.error('getAll adjustments error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -100,7 +136,7 @@ exports.create = async (req, res) => {
       include: [employeeInclude, enteredByInclude],
     });
 
-    return res.status(201).json({ success: true, data: result });
+    return res.status(201).json({ success: true, data: mapAdjustment(result) });
   } catch (err) {
     console.error('create adjustment error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -159,11 +195,15 @@ exports.getEmployees = async (req, res) => {
   try {
     const employees = await User.findAll({
       where: { role: { [Op.in]: ['employee', 'user', 'manager', 'accountant', 'hr'] } },
-      attributes: ['id', 'name', 'email'],
-      include: [{ model: Profile, attributes: ['job_title', 'department'] }],
+      attributes: ['id', 'name', 'email', 'role'],
+      include: [
+        { model: Profile, attributes: ['id', 'full_name', 'phone', 'address', 'avatar_url'] },
+        { model: Department, as: 'department', attributes: ['id', 'name'] },
+      ],
       order: [['name', 'ASC']],
     });
-    return res.json({ success: true, data: employees });
+    const mapped = employees.map(mapEmployeeProfile);
+    return res.json({ success: true, data: mapped });
   } catch (err) {
     console.error('getEmployees error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });

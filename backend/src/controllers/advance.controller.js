@@ -1,13 +1,44 @@
-const { AdvanceRequest, User, Profile, Contract } = require('../models');
+const { AdvanceRequest, User, Profile, Contract, Department } = require('../models');
 const { Op } = require('sequelize');
+
+// Role mapping helper
+const roleNames = {
+  admin: 'Quản trị viên',
+  hr: 'Nhân sự',
+  manager: 'Quản lý',
+  accountant: 'Kế toán',
+  employee: 'Nhân viên',
+  user: 'Nhân viên',
+};
+
+const mapEmployeeProfile = (user) => {
+  if (!user) return null;
+  const userJson = user.toJSON ? user.toJSON() : user;
+  if (!userJson.Profile) {
+    userJson.Profile = {};
+  }
+  userJson.Profile.job_title = roleNames[userJson.role] || 'Nhân viên';
+  userJson.Profile.department = userJson.department?.name || 'Chưa phân phòng';
+  return userJson;
+};
+
+const mapAdvance = (adv) => {
+  if (!adv) return null;
+  const json = adv.toJSON ? adv.toJSON() : adv;
+  if (json.requester) {
+    json.requester = mapEmployeeProfile(json.requester);
+  }
+  return json;
+};
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const employeeInclude = {
   model: User,
   as: 'requester',
-  attributes: ['id', 'name', 'email'],
+  attributes: ['id', 'name', 'email', 'role'],
   include: [
-    { model: Profile, attributes: ['job_title', 'department'] },
+    { model: Profile, attributes: ['id', 'full_name', 'phone', 'address', 'avatar_url'] },
+    { model: Department, as: 'department', attributes: ['id', 'name'] },
     {
       model: Contract,
       as: 'contracts',
@@ -63,7 +94,8 @@ exports.getAll = async (req, res) => {
         )
       : rows;
 
-    return res.json({ success: true, data: filtered });
+    const mapped = filtered.map(mapAdvance);
+    return res.json({ success: true, data: mapped });
   } catch (err) {
     console.error('getAll advances error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -77,7 +109,7 @@ exports.getOne = async (req, res) => {
       include: [employeeInclude, reviewerInclude],
     });
     if (!adv) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn' });
-    return res.json({ success: true, data: adv });
+    return res.json({ success: true, data: mapAdvance(adv) });
   } catch (err) {
     console.error('getOne advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -146,7 +178,7 @@ exports.create = async (req, res) => {
     const result = await AdvanceRequest.findByPk(adv.id, {
       include: [employeeInclude, reviewerInclude],
     });
-    return res.status(201).json({ success: true, data: result });
+    return res.status(201).json({ success: true, data: mapAdvance(result) });
   } catch (err) {
     console.error('create advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -176,7 +208,7 @@ exports.approve = async (req, res) => {
     const result = await AdvanceRequest.findByPk(adv.id, {
       include: [employeeInclude, reviewerInclude],
     });
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: mapAdvance(result) });
   } catch (err) {
     console.error('approve advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -207,7 +239,7 @@ exports.reject = async (req, res) => {
     const result = await AdvanceRequest.findByPk(adv.id, {
       include: [employeeInclude, reviewerInclude],
     });
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: mapAdvance(result) });
   } catch (err) {
     console.error('reject advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -230,7 +262,7 @@ exports.disburse = async (req, res) => {
     const result = await AdvanceRequest.findByPk(adv.id, {
       include: [employeeInclude, reviewerInclude],
     });
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: mapAdvance(result) });
   } catch (err) {
     console.error('disburse advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
@@ -272,9 +304,10 @@ exports.getEmployees = async (req, res) => {
   try {
     const employees = await User.findAll({
       where: { role: { [Op.in]: ['employee', 'user', 'manager', 'accountant', 'hr'] } },
-      attributes: ['id', 'name', 'email'],
+      attributes: ['id', 'name', 'email', 'role'],
       include: [
-        { model: Profile, attributes: ['job_title', 'department'] },
+        { model: Profile, attributes: ['id', 'full_name', 'phone', 'address', 'avatar_url'] },
+        { model: Department, as: 'department', attributes: ['id', 'name'] },
         {
           model: Contract,
           as: 'contracts',
@@ -287,7 +320,8 @@ exports.getEmployees = async (req, res) => {
       ],
       order: [['name', 'ASC']],
     });
-    return res.json({ success: true, data: employees });
+    const mapped = employees.map(mapEmployeeProfile);
+    return res.json({ success: true, data: mapped });
   } catch (err) {
     console.error('getEmployees advance error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });
