@@ -35,6 +35,7 @@ import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PayrollPage from './pages/accountant/PayrollPage';
 import TaxConfig from './pages/accountant/TaxConfig';
+import AccountantPayroll from './pages/accountant/AccountantPayroll';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
@@ -129,9 +130,10 @@ const App = () => {
         }
       >
         <Route index element={<AccountantDashboard />} />
-        <Route path="dashboard"  element={<AccountantDashboard />} />
-        <Route path="payroll"    element={<PayrollPage />} />
-        <Route path="tax-config" element={<TaxConfig />} />
+        <Route path="dashboard"     element={<AccountantDashboard />} />
+        <Route path="payroll"       element={<PayrollPage />} />
+        <Route path="payroll-send"  element={<AccountantPayroll />} />
+        <Route path="tax-config"    element={<TaxConfig />} />
       </Route>
 
       {/* HR dashboard */}

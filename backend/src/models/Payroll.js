@@ -37,39 +37,47 @@ const Payroll = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
-    deduction: { // Các khoản phạt, khấu trừ khác
+    deduction: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
-    advance: { // Đã tạm ứng bao nhiêu
+    advance: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
-    tax: { // Thuế TNCN
+    tax: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
-    insurance_company: { // Phần BHXH công ty đóng (chi phí công ty)
+    insurance_company: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
-    insurance_employee: { // Phần BHXH nhân viên đóng (trừ vào lương)
+    insurance_employee: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
-    net_salary: { // Thực lãnh
+    net_salary: {
       type: DataTypes.DECIMAL(15, 2),
       allowNull: false,
       defaultValue: 0,
     },
     status: {
-      type: DataTypes.ENUM('draft', 'approved', 'paid'),
+      type: DataTypes.ENUM('draft', 'calculated', 'approved', 'paid'),
       defaultValue: 'draft',
+    },
+    is_payslip_sent: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    payment_date: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

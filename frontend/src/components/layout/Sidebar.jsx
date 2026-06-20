@@ -115,9 +115,10 @@ const NAV_CONFIG = {
       {
         title: 'Lương & Chi phí',
         items: [
-          { label: 'Tính lương tháng', path: '/accountant/payroll',    icon: Wallet },
-          { label: 'Tạm ứng',          path: '/accountant/advances',  icon: FileText },
-          { label: 'Cấu hình thuế',    path: '/accountant/tax-config', icon: Settings },
+          { label: 'Tính lương tháng', path: '/accountant/payroll',      icon: Wallet },
+          { label: 'Gửi phiếu lương',  path: '/accountant/payroll-send', icon: FileText },
+          { label: 'Tạm ứng',          path: '/accountant/advances',    icon: FileText },
+          { label: 'Cấu hình thuế',    path: '/accountant/tax-config',  icon: Settings },
         ],
       },
       {
