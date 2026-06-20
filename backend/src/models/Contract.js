@@ -24,8 +24,13 @@ const Contract = sequelize.define(
       unique: true,
     },
     contract_type: {
-      type: DataTypes.ENUM('Thử việc', 'Chính thức', 'Thời vụ'),
-      defaultValue: 'Chính thức',
+      type: DataTypes.STRING(50),
+      defaultValue: 'Chính thức', // Thu viec | Chinh thuc | Thoi vu
+    },
+    employee_type: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'Full-time', // Full-time | Intern | Freelancer
     },
     basic_salary: {
       type: DataTypes.INTEGER,

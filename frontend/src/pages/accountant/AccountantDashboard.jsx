@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, AlertTriangle, FileText, Download } from 'lucide-react';
+import { Calendar, AlertTriangle, FileText, Download, CheckCircle, Calculator, RefreshCw } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Callout from '../../components/ui/Callout';
+import payrollService from '../../services/payroll.service';
 
 const STEPS = [
   { label: 'Cập nhật', done: true },
@@ -29,14 +31,56 @@ const DONUT_SEGMENTS = [
 
 const TODO_ITEMS = [
   { icon: AlertTriangle, variant: 'warning', title: '3 tạm ứng chờ duyệt', sub: 'Tổng: 15.000.000 đ · Mới nhất: Vũ Minh Khôi', count: '3 đơn', link: '/accountant/advances' },
-  { icon: FileText,      variant: 'info',    title: 'Cập nhật thuế TNCN tháng 12', sub: 'Hạn chốt: 25/12/2026', count: 'Cần làm', link: '/accountant/tax' },
+  { icon: FileText,      variant: 'info',    title: 'Khoản thu nhập / khấu trừ tháng này', sub: 'Xem và quản lý các khoản phát sinh', count: 'Quản lý', link: '/accountant/adjustments' },
   { icon: Download,      variant: 'success', title: 'Xuất file ngân hàng T11', sub: 'Đã chốt · 247 NV · 1.840.500.000 đ', count: 'Sẵn sàng', link: '/accountant/payroll' },
   { icon: AlertTriangle, variant: 'warning', title: '12 hợp đồng sắp hết hạn', sub: 'Cần gia hạn hoặc thông báo trước 31/05', count: '12 HĐ', link: '/hr/contracts' },
 ];
 
 export default function AccountantDashboard() {
   const navigate = useNavigate();
-  const currentMonth = 'Tháng 11/2026';
+  // Lấy tháng hiện tại định dạng YYYY-MM
+  const currentMonthValue = new Date().toISOString().slice(0, 7);
+  const currentMonthLabel = `Tháng ${currentMonthValue.split('-')[1]}/${currentMonthValue.split('-')[0]}`;
+
+  const [payrolls, setPayrolls] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [calculating, setCalculating] = useState(false);
+
+  useEffect(() => {
+    fetchPayrolls();
+  }, []);
+
+  const fetchPayrolls = async () => {
+    try {
+      setLoading(true);
+      const res = await payrollService.getPayrolls(currentMonthValue);
+      if (res.data.success) {
+        setPayrolls(res.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCalculate = async () => {
+    if (!window.confirm(`Bạn có chắc chắn muốn tính lương cho ${currentMonthLabel}? Dữ liệu nháp cũ của tháng này sẽ bị ghi đè.`)) return;
+    try {
+      setCalculating(true);
+      const res = await payrollService.calculatePayroll(currentMonthValue);
+      if (res.data.success) {
+        alert(res.data.message);
+        fetchPayrolls(); // Load lại bảng
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Có lỗi xảy ra khi tính lương');
+    } finally {
+      setCalculating(false);
+    }
+  };
+
+  const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(Number(val));
 
   return (
     <div className="space-y-5">
@@ -44,7 +88,7 @@ export default function AccountantDashboard() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.75">Tổng quan chu kỳ lương · {currentMonth}</p>
+          <p className="text-sm text-gray-500 mt-0.75">Tổng quan chu kỳ lương · {currentMonthLabel}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <button className="h-9 px-3 flex items-center gap-1.5 text-[13px] font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors">
@@ -62,12 +106,22 @@ export default function AccountantDashboard() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <Calendar size={16} strokeWidth={1.75} className="text-navy-700" />
-            <span className="text-[15px] font-semibold text-gray-900">Ký lương {currentMonth}</span>
-            <Badge variant="brand">01–30/11/2026</Badge>
-            <Badge variant="warning" dot>Đang tính lương</Badge>
+            <span className="text-[15px] font-semibold text-gray-900">Kỳ lương {currentMonthLabel}</span>
+            <Badge variant={payrolls.length > 0 ? "success" : "warning"} dot>
+              {payrolls.length > 0 ? "Đã tính lương nháp" : "Chưa có dữ liệu"}
+            </Badge>
           </div>
-          <button className="h-8 px-3 text-[13px] font-medium bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors">
-            → Tiếp tục
+          <button
+            onClick={handleCalculate}
+            disabled={calculating}
+            className="h-8 px-3 flex items-center gap-1.5 text-[13px] font-medium bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors disabled:opacity-60"
+          >
+            {calculating ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <Calculator size={14} />
+            )}
+            {calculating ? 'Đang tính toán...' : 'Tính lương tháng này'}
           </button>
         </div>
         {/* Stepper */}
@@ -233,6 +287,64 @@ export default function AccountantDashboard() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Bảng danh sách phiếu lương */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mt-5">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+          <h2 className="text-[15px] font-semibold text-gray-900">Bảng lương {currentMonthLabel}</h2>
+          <Badge variant="neutral">{payrolls.length} nhân viên</Badge>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="px-5 py-3">Nhân viên</th>
+                <th className="px-5 py-3 text-right">Lương cơ bản</th>
+                <th className="px-5 py-3 text-right">Bảo hiểm (NV đóng)</th>
+                <th className="px-5 py-3 text-right">Thuế TNCN</th>
+                <th className="px-5 py-3 text-right">Thực nhận</th>
+                <th className="px-5 py-3 text-center">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="px-5 py-8 text-center text-gray-500 text-[13px]">
+                    <RefreshCw size={18} className="animate-spin mx-auto mb-2 text-gray-400" />
+                    Đang tải dữ liệu...
+                  </td>
+                </tr>
+              ) : payrolls.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-5 py-8 text-center text-gray-500 text-[13px]">
+                    Chưa có bảng lương nào trong tháng này. Hãy bấm "Tính lương tháng này".
+                  </td>
+                </tr>
+              ) : (
+                payrolls.map((pr) => (
+                  <tr key={pr.id} className="hover:bg-gray-50 transition-colors text-[13px]">
+                    <td className="px-5 py-3">
+                      <div className="font-medium text-gray-900">{pr.user?.name || 'Vô danh'}</div>
+                      <div className="text-[11px] text-gray-500">{pr.user?.email}</div>
+                    </td>
+                    <td className="px-5 py-3 text-right font-mono text-gray-700">{formatMoney(pr.base_salary)}</td>
+                    <td className="px-5 py-3 text-right font-mono text-danger-600">-{formatMoney(pr.insurance_employee)}</td>
+                    <td className="px-5 py-3 text-right font-mono text-danger-600">-{formatMoney(pr.tax)}</td>
+                    <td className="px-5 py-3 text-right font-mono font-semibold text-success-700">
+                      {formatMoney(pr.net_salary)} đ
+                    </td>
+                    <td className="px-5 py-3 text-center">
+                      <Badge variant={pr.status === 'draft' ? 'warning' : 'success'}>
+                        {pr.status === 'draft' ? 'Nháp' : 'Đã duyệt'}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

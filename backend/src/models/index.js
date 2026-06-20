@@ -13,6 +13,9 @@ const Task = require('./Task');
 const Attendance = require('./Attendance');
 const PerformanceReview = require('./PerformanceReview');
 const PromotionProposal = require('./PromotionProposal');
+const Payroll = require('./Payroll');
+const SalaryAdjustment = require('./SalaryAdjustment');
+const AdvanceRequest = require('./AdvanceRequest');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -108,6 +111,24 @@ PromotionProposal.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 User.hasMany(PromotionProposal, { foreignKey: 'proposed_by', as: 'proposals_made' });
 PromotionProposal.belongsTo(User, { foreignKey: 'proposed_by', as: 'proposer' });
 
+// User and Payroll
+User.hasMany(Payroll, { foreignKey: 'user_id', as: 'payrolls' });
+Payroll.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+
+// SalaryAdjustment
+User.hasMany(SalaryAdjustment, { foreignKey: 'user_id', as: 'salary_adjustments' });
+SalaryAdjustment.belongsTo(User, { foreignKey: 'user_id', as: 'employee' });
+
+User.hasMany(SalaryAdjustment, { foreignKey: 'entered_by', as: 'entered_adjustments' });
+SalaryAdjustment.belongsTo(User, { foreignKey: 'entered_by', as: 'enteredBy' });
+
+// AdvanceRequest
+User.hasMany(AdvanceRequest, { foreignKey: 'user_id', as: 'advance_requests' });
+AdvanceRequest.belongsTo(User, { foreignKey: 'user_id', as: 'requester' });
+
+User.hasMany(AdvanceRequest, { foreignKey: 'reviewed_by', as: 'reviewed_advances' });
+AdvanceRequest.belongsTo(User, { foreignKey: 'reviewed_by', as: 'reviewer' });
+
 module.exports = {
   User,
   Profile,
@@ -124,4 +145,7 @@ module.exports = {
   Attendance,
   PerformanceReview,
   PromotionProposal,
+  Payroll,
+  SalaryAdjustment,
+  AdvanceRequest,
 };
