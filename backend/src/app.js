@@ -40,6 +40,8 @@ const performanceRoutes = require('./routes/performance.routes');
 const payrollRoutes = require('./routes/payroll.routes');
 const attendanceRoutes = require('./routes/attendance.routes');
 const accountantRoutes = require('./routes/accountant.routes');
+const adjustmentRoutes = require('./routes/adjustment.routes');
+const advanceRoutes = require('./routes/advance.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
@@ -54,5 +56,7 @@ app.use('/api/performance', performanceRoutes);
 app.use('/api/payrolls', payrollRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/accountant', accountantRoutes);
+app.use('/api/adjustments', adjustmentRoutes);
+app.use('/api/advances', advanceRoutes);
 
 module.exports = app;

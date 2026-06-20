@@ -31,7 +31,7 @@ const DONUT_SEGMENTS = [
 
 const TODO_ITEMS = [
   { icon: AlertTriangle, variant: 'warning', title: '3 tạm ứng chờ duyệt', sub: 'Tổng: 15.000.000 đ · Mới nhất: Vũ Minh Khôi', count: '3 đơn', link: '/accountant/advances' },
-  { icon: FileText,      variant: 'info',    title: 'Cập nhật thuế TNCN tháng 12', sub: 'Hạn chốt: 25/12/2026', count: 'Cần làm', link: '/accountant/tax' },
+  { icon: FileText,      variant: 'info',    title: 'Khoản thu nhập / khấu trừ tháng này', sub: 'Xem và quản lý các khoản phát sinh', count: 'Quản lý', link: '/accountant/adjustments' },
   { icon: Download,      variant: 'success', title: 'Xuất file ngân hàng T11', sub: 'Đã chốt · 247 NV · 1.840.500.000 đ', count: 'Sẵn sàng', link: '/accountant/payroll' },
   { icon: AlertTriangle, variant: 'warning', title: '12 hợp đồng sắp hết hạn', sub: 'Cần gia hạn hoặc thông báo trước 31/05', count: '12 HĐ', link: '/hr/contracts' },
 ];

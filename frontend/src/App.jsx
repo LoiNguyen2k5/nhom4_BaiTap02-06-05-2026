@@ -36,6 +36,8 @@ import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PayrollPage from './pages/accountant/PayrollPage';
 import TaxConfig from './pages/accountant/TaxConfig';
 import AccountantPayroll from './pages/accountant/AccountantPayroll';
+import AdjustmentsPage from './pages/accountant/AdjustmentsPage';
+import AdvancesPage from './pages/accountant/AdvancesPage';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
@@ -134,6 +136,8 @@ const App = () => {
         <Route path="payroll"       element={<PayrollPage />} />
         <Route path="payroll-send"  element={<AccountantPayroll />} />
         <Route path="tax-config"    element={<TaxConfig />} />
+        <Route path="adjustments"   element={<AdjustmentsPage />} />
+        <Route path="advances"      element={<AdvancesPage />} />
       </Route>
 
       {/* HR dashboard */}
