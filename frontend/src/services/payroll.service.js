@@ -7,6 +7,9 @@ const payrollService = {
   calculatePayroll: (month) => {
     return axiosClient.post('/payrolls/calculate', { month });
   },
+  getMyPayrolls: () => {
+    return axiosClient.get('/payrolls/my-payrolls');
+  },
   approvePayroll: (month) => {
     return axiosClient.put('/payrolls/approve', { month });
   }
