@@ -110,7 +110,11 @@ exports.submitReview = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden: Manager role required' });
     }
     const { user_id, month, year, rating, kpi_score, comments } = req.body;
-    
+
+    if (kpi_score === undefined || kpi_score === null || kpi_score < 0 || kpi_score > 100) {
+      return res.status(400).json({ success: false, message: 'Điểm KPI phải trong khoảng 0–100' });
+    }
+
     // Check if review already exists
     let review = await PerformanceReview.findOne({ where: { user_id, month, year } });
     if (review) {

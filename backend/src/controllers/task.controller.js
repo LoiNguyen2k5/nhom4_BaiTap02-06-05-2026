@@ -122,6 +122,14 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Task không tồn tại' });
     }
 
+    if (req.user.role === 'manager') {
+      const assignee = await User.findByPk(task.assigned_to_id, { attributes: ['department_id'] });
+      const manager = await User.findByPk(req.user.id, { attributes: ['department_id'] });
+      if (assignee?.department_id !== manager?.department_id) {
+        return res.status(403).json({ success: false, message: 'Bạn chỉ có thể cập nhật task trong phòng ban của mình' });
+      }
+    }
+
     if (assigned_to_id) {
       const assigneeCheck = await ensureAssignableUser(assigned_to_id);
       if (assigneeCheck.error) {

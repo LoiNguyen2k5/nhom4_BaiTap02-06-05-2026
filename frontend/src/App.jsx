@@ -17,7 +17,6 @@ import AttendancePage from './pages/user/AttendancePage';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
 import ApprovalHistory from './pages/manager/ApprovalHistory';
 import TeamSchedule from './pages/manager/TeamSchedule';
-import ApprovalHistory from './pages/manager/ApprovalHistory';
 import ManagerTasks from './pages/manager/ManagerTasks';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';

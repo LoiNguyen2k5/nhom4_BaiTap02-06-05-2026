@@ -138,6 +138,10 @@ exports.createContract = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng điền đủ thông tin bắt buộc' });
     }
 
+    if (end_date && new Date(end_date) <= new Date(start_date)) {
+      return res.status(400).json({ success: false, message: 'Ngày kết thúc hợp đồng phải sau ngày bắt đầu' });
+    }
+
     // Kiểm tra xem user này có hợp đồng active không
     const activeContract = await Contract.findOne({ where: { user_id, status: 'active' } });
     if (activeContract) {
@@ -196,6 +200,10 @@ exports.renewContract = async (req, res) => {
 
     if (oldContract.status === 'terminated') {
       return res.status(400).json({ success: false, message: 'Không thể gia hạn hợp đồng đã chấm dứt' });
+    }
+
+    if (end_date && new Date(end_date) <= new Date(start_date)) {
+      return res.status(400).json({ success: false, message: 'Ngày kết thúc hợp đồng phải sau ngày bắt đầu' });
     }
 
     // Đóng hợp đồng cũ

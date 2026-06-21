@@ -8,8 +8,8 @@ const loginValidation = (data) => {
       'any.required': 'Vui lòng nhập email',
       'string.empty': 'Email không được để trống',
     }),
-    password: Joi.string().min(6).required().messages({
-      'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+    password: Joi.string().min(8).required().messages({
+      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
       'any.required': 'Vui lòng nhập mật khẩu',
       'string.empty': 'Mật khẩu không được để trống',
     }),
@@ -33,8 +33,8 @@ const registerValidation = (data) => {
       'string.empty': 'Email không được để trống',
     }),
     // Mat khau: toi thieu 6 ky tu
-    password: Joi.string().min(6).required().messages({
-      'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+    password: Joi.string().min(8).required().messages({
+      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
       'any.required': 'Vui lòng nhập mật khẩu',
       'string.empty': 'Mật khẩu không được để trống',
     }),

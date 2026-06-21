@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
 const { Department, ActivityLog } = require('../models');
@@ -286,9 +287,7 @@ const createUser = async (req, res) => {
       }
     }
 
-    // Tự động sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
-    const emailPrefix = email.split('@')[0];
-    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const tempPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Tạo user mới
@@ -367,9 +366,7 @@ const approveAccountRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email đã tồn tại trong hệ thống' });
     }
 
-    // Tự sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
-    const emailPrefix = request.email.split('@')[0];
-    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const tempPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Tạo User
@@ -440,9 +437,7 @@ const resetUserPassword = async (req, res) => {
     const user = await User.findByPk(userId);
     if (!user) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
 
-    // Tự sinh mật khẩu: PrefixEmail + @123456
-    const emailPrefix = user.email.split('@')[0];
-    const newPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const newPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await user.update({ password: hashedPassword });

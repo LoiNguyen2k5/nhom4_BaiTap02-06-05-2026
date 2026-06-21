@@ -84,6 +84,21 @@ exports.createLeaveRequest = async (req, res) => {
       // Đơn OT thì không trừ quỹ phép nên không cần kiểm tra LeaveBalance
     }
 
+    // Kiểm tra trùng lịch nghỉ phép
+    if (type === 'leave') {
+      const overlapping = await LeaveRequest.findOne({
+        where: {
+          user_id: userId,
+          status: { [Op.in]: ['pending', 'approved'] },
+          start_date: { [Op.lte]: end_date },
+          end_date: { [Op.gte]: start_date },
+        }
+      });
+      if (overlapping) {
+        return res.status(400).json({ success: false, message: 'Bạn đã có đơn nghỉ phép trùng với khoảng thời gian này' });
+      }
+    }
+
     // Lưu lá đơn vào Database
     const newRequest = await LeaveRequest.create({
       user_id: userId,
