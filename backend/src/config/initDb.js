@@ -41,8 +41,8 @@ const initializeDatabase = async () => {
     // Load all models so they are registered before sync
     require('../models/index');
 
-    // Sync models - alter:true tu dong cap nhat schema khi co them bang hoac cot moi
-    await sequelize.sync({ alter: true });
+    // Sync models
+    await sequelize.sync({ alter: false });
     console.log('✓ Database da duoc cap nhat thanh cong');
 
     // Seed toàn bộ dữ liệu mẫu (bao gồm tài khoản hệ thống)

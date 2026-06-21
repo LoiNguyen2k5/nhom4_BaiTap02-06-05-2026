@@ -63,6 +63,14 @@ const AdminDashboard = () => {
 
   useEffect(() => { fetchData(); }, []);
 
+  // Debug
+  useEffect(() => {
+    if (stats) {
+      console.log('[Dashboard] loginChartData:', stats.loginChartData);
+      console.log('[Dashboard] login24h:', stats.login24h);
+    }
+  }, [stats]);
+
   const handleApprove = async (id) => {
     try {
       const res = await axiosClient.post(`/admin/account-requests/${id}/approve`);
@@ -118,11 +126,6 @@ const AdminDashboard = () => {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <select className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:border-navy-600">
-            <option>7 ngày qua</option>
-            <option>30 ngày qua</option>
-            <option>Tháng này</option>
-          </select>
           <button
             onClick={fetchData}
             className="h-9 px-3 flex items-center gap-1.5 text-[13px] font-medium border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors"
@@ -151,44 +154,56 @@ const AdminDashboard = () => {
         />
         <StatCard
           label="Đăng nhập 24h"
-          value={stats?.activeUsers ?? '—'}
-          trend="+12%"
-          trendUp
+          value={stats?.login24h ?? '—'}
+          trend={stats && stats.loginPrev24h > 0 ? `${stats.login24h >= stats.loginPrev24h ? '+' : '-'}${Math.round(Math.abs(stats.login24h - stats.loginPrev24h) / stats.loginPrev24h * 100)}%` : '+0%'}
+          trendUp={stats ? stats.login24h >= stats.loginPrev24h : true}
           trendLabel="vs hôm qua"
         />
         <StatCard
           label="Sự kiện hệ thống 24h"
-          value={recentActivities.length > 0 ? recentActivities.length.toLocaleString('vi-VN') : '—'}
+          value={stats?.systemEvents24h ?? '—'}
         />
       </div>
 
       {/* 2-col: chart + department ranking */}
       <div className="grid grid-cols-7 gap-4">
-        {/* Activity log (placeholder chart area) */}
+        {/* Activity log (chart area) */}
         <div className="col-span-5 bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[15px] font-semibold text-gray-900">Hoạt động đăng nhập 24 giờ qua</h2>
             <div className="flex gap-1">
-              {['24h', '7 ngày', '30 ngày'].map((t) => (
-                <button key={t} className="px-2.5 py-1 text-[12px] rounded-md text-gray-500 hover:bg-gray-100 transition-colors first:bg-gray-100 first:text-gray-900">
-                  {t}
-                </button>
-              ))}
+              <button className="px-2.5 py-1 text-[12px] rounded-md text-gray-900 bg-gray-100 transition-colors">
+                24h
+              </button>
             </div>
           </div>
-          {/* Sparkline placeholder */}
-          <div className="h-40 flex items-end gap-1 border-b border-gray-100">
-            {[20, 35, 28, 45, 32, 38, 42, 30, 25, 18, 12, 8].map((v, i) => (
-              <div key={i} className="flex-1 flex flex-col justify-end">
-                <div
-                  className="bg-navy-100 rounded-t-sm"
-                  style={{ height: `${(v / 45) * 100}%`, background: i === 4 ? 'var(--navy-700)' : 'var(--navy-100)' }}
-                />
-              </div>
-            ))}
+          {/* Sparkline chart */}
+          <div className="h-40 flex items-end gap-1 border-b border-gray-100 pt-8">
+            {(stats?.loginChartData || Array(12).fill(0)).map((v, i) => {
+              const chartData = stats?.loginChartData || Array(12).fill(0);
+              const maxVal = Math.max(...chartData, 1);
+              const heightPercent = Math.max((v / maxVal) * 100, v > 0 ? 8 : 4);
+              const isLatest = i === 11;
+              return (
+                <div key={i} className="flex-1 flex flex-col justify-end group relative h-full">
+                  {/* Tooltip */}
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10"
+                    style={{ background: '#1e293b' }}>
+                    {v} lượt
+                  </div>
+                  <div
+                    className="rounded-t-sm transition-all duration-300 w-full"
+                    style={{
+                      height: `${heightPercent}%`,
+                      background: isLatest ? '#1e40af' : (v > 0 ? '#bfdbfe' : '#e2e8f0'),
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
           <div className="flex justify-between mt-2">
-            {['0h', '4h', '8h', '12h', '16h', '20h', '24h'].map((t) => (
+            {['24h trước', '20h trước', '16h trước', '12h trước', '8h trước', '4h trước', 'Bây giờ'].map((t) => (
               <span key={t} className="text-[11px] text-gray-400">{t}</span>
             ))}
           </div>
@@ -232,14 +247,11 @@ const AdminDashboard = () => {
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
           <h2 className="text-[15px] font-semibold text-gray-900">Hoạt động gần nhất</h2>
-          <button className="text-[13px] text-accent-600 hover:underline">
-            Xem nhật ký đầy đủ →
-          </button>
         </div>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              {['Thời gian', 'User', 'Hành động', 'Đối tượng', 'IP', 'Trạng thái'].map((col) => (
+              {['Thời gian', 'User', 'Hành động', 'Chi tiết', 'IP', 'Trạng thái'].map((col) => (
                 <th key={col} className="h-11 px-4 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400 whitespace-nowrap">
                   {col}
                 </th>
@@ -274,10 +286,12 @@ const AdminDashboard = () => {
                   </td>
                   <td className="px-4">
                     <Badge variant={actionVariant(action)} dot>
-                      {action.split(' ').slice(0, 3).join(' ')}
+                      {item.action || 'Khác'}
                     </Badge>
                   </td>
-                  <td className="px-4 text-[13px] text-gray-500">{item.target || '—'}</td>
+                  <td className="px-4 text-[13px] text-gray-500 truncate max-w-[200px]" title={item.detail || '—'}>
+                    {item.detail || '—'}
+                  </td>
                   <td className="px-4 font-mono tabular-nums text-[12px] text-gray-500">{item.ip || '—'}</td>
                   <td className="px-4">
                     <Badge variant={isFail ? 'danger' : 'success'} dot>

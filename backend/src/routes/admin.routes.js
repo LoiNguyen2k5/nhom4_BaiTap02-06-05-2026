@@ -12,6 +12,8 @@ const {
   getPendingAccountRequests,
   approveAccountRequest,
   rejectAccountRequest,
+  resetUserPassword,
+  getActivityLogs,
 } = require('../controllers/admin.controller');
 const {
   getDepartments,
@@ -20,8 +22,11 @@ const {
   updateDepartmentStatus,
 } = require('../controllers/department.controller');
 
-// Dashboard stats (Nhut)
+// Dashboard stats
 router.get('/dashboard', authenticateToken, authorizeAdmin, getDashboardStats);
+
+// Activity Logs
+router.get('/activity-logs', authenticateToken, authorizeAdmin, getActivityLogs);
 
 // User management
 router.get('/users', authenticateToken, authorizeAdmin, getUsers);
@@ -30,6 +35,7 @@ router.get('/users/:userId', authenticateToken, authorizeAdminOrHR, getUserById)
 router.put('/users/:userId/status', authenticateToken, authorizeAdmin, updateUserStatus);
 router.put('/users/:userId/role', authenticateToken, authorizeAdmin, updateUserRole);
 router.put('/users/:userId/department', authenticateToken, authorizeAdmin, updateUserDepartment);
+router.put('/users/:userId/reset-password', authenticateToken, authorizeAdmin, resetUserPassword);
 
 // Yêu cầu cấp tài khoản
 router.get('/account-requests/pending', authenticateToken, authorizeAdmin, getPendingAccountRequests);

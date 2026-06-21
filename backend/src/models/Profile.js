@@ -47,6 +47,10 @@ const Profile = sequelize.define(
       type: DataTypes.STRING(100),
       allowNull: true,
     },
+    face_descriptor: {
+      type: DataTypes.TEXT, // Lưu chuỗi JSON 128 số
+      allowNull: true,
+    },
   },
   {
     tableName: 'profiles',

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil, RefreshCcw } from 'lucide-react';
 import { adminService } from '../../services/admin.service';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
@@ -13,8 +13,6 @@ const ROLE_BADGE = {
   accountant: { label: 'Kế toán',       variant: 'info' },
   employee:   { label: 'Nhân viên',     variant: 'neutral' },
 };
-
-const TABS = ['Tổng quan', 'Công việc', 'Hợp đồng', 'Lịch sử'];
 
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
@@ -29,7 +27,7 @@ const AdminUserDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('Tổng quan');
+  const [resetPassResult, setResetPassResult] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -93,10 +91,8 @@ const AdminUserDetail = () => {
     if (!user) return;
     const deptId = newDeptId ? parseInt(newDeptId) : null;
     if (user.department_id === deptId) return;
-    
     const confirmed = window.confirm(`Xác nhận thay đổi phòng ban của nhân viên này?`);
     if (!confirmed) return;
-    
     try {
       setActionLoading(true);
       const res = await adminService.updateUserDepartment(user.id, deptId);
@@ -110,6 +106,25 @@ const AdminUserDetail = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật phòng ban');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!user) return;
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn ĐẶT LẠI MẬT KHẨU cho người dùng ${user.email} không?`);
+    if (!confirmed) return;
+    try {
+      setActionLoading(true);
+      setError('');
+      setResetPassResult(null);
+      const res = await adminService.resetUserPassword(user.id);
+      if (res.success) {
+        setResetPassResult(res.data.tempPassword);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Lỗi khi đặt lại mật khẩu');
     } finally {
       setActionLoading(false);
     }
@@ -173,6 +188,25 @@ const AdminUserDetail = () => {
         </div>
       )}
 
+      {/* Mật khẩu mới được reset */}
+      {resetPassResult && (
+        <div className="bg-success-50 border border-success-200 rounded-lg p-5 mb-5">
+          <h3 className="text-[14px] font-semibold text-success-800 mb-2">Đã đặt lại mật khẩu thành công!</h3>
+          <p className="text-[13px] text-success-700 mb-3">Vui lòng copy mật khẩu dưới đây và gửi cho người dùng:</p>
+          <div className="flex items-center gap-3">
+            <code className="px-3 py-2 bg-white border border-success-300 rounded text-success-700 font-mono font-bold text-[14px]">
+              {resetPassResult}
+            </code>
+            <button 
+              onClick={() => { navigator.clipboard.writeText(resetPassResult); alert('Đã copy!'); }}
+              className="text-[12px] text-success-600 hover:text-success-800 font-medium underline"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Detail banner */}
       <div className="bg-navy-50 border border-navy-100 rounded-lg px-6 py-5">
         <div className="flex items-start gap-5">
@@ -194,13 +228,13 @@ const AdminUserDetail = () => {
               </div>
               {/* Action buttons */}
               <div className="flex items-center gap-2 shrink-0">
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
-                  <Download size={13} strokeWidth={1.75} />
-                  Tải PDF
-                </button>
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
-                  <Send size={13} strokeWidth={1.75} />
-                  Gửi email
+                <button 
+                  onClick={handleResetPassword}
+                  disabled={actionLoading}
+                  className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-60 transition-colors"
+                >
+                  <RefreshCcw size={13} strokeWidth={1.75} />
+                  Reset mật khẩu
                 </button>
                 {isCurrentAdmin && (
                   <>
@@ -287,30 +321,10 @@ const AdminUserDetail = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 -mb-px">
-        <div className="flex gap-0">
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`h-10 px-5 text-[13px] font-medium border-b-2 transition-colors
-                ${activeTab === tab
-                  ? 'border-navy-700 text-navy-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Tab content */}
-      {activeTab === 'Tổng quan' && (
-        <div className="grid grid-cols-2 gap-4">
-          {/* Liên hệ */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Liên hệ */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
             <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-4">Thông tin liên hệ</h3>
             <div className="space-y-3">
               {[
@@ -338,10 +352,8 @@ const AdminUserDetail = () => {
             <div className="space-y-3">
               {[
                 { label: 'Họ tên đầy đủ', value: profile?.full_name || user.name || '—' },
-                { label: 'Username', value: user.username || '—' },
                 { label: 'Vai trò', value: roleCfg?.label || user.role },
                 { label: 'Ngày tạo TK', value: user.created_at ? new Date(user.created_at).toLocaleString('vi-VN') : '—' },
-                { label: 'Đăng nhập gần nhất', value: user.last_login_at ? new Date(user.last_login_at).toLocaleString('vi-VN') : '—' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <span className="text-[12px] text-gray-500">{label}</span>
@@ -350,14 +362,7 @@ const AdminUserDetail = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {activeTab !== 'Tổng quan' && (
-        <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
-          <p className="text-[13px] text-gray-400">Tính năng đang được phát triển.</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

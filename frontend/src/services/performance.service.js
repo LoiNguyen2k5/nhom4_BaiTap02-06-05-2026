@@ -1,8 +1,8 @@
 import axiosClient from './axiosClient';
 
-const getDashboardData = (userId = '') => {
+const getDashboardData = (userId = '', params = {}) => {
   const url = userId ? `/performance/dashboard/${userId}` : `/performance/dashboard`;
-  return axiosClient.get(url);
+  return axiosClient.get(url, { params });
 };
 
 const submitReview = (data) => {
