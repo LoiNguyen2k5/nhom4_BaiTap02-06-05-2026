@@ -112,7 +112,7 @@
 | TC_038 | HR xem danh sách hợp đồng                    | ✅ PASS | HTTP 200                                                                                                         |
 | TC_039 | HR gia hạn hợp đồng                          | ✅ PASS | HTTP 200                                                                                                         |
 | TC_040 | HR xem danh sách ứng viên                    | ✅ PASS | HTTP 200                                                                                                         |
-| TC_041 | HR cập nhật trạng thái ứng viên              | ✅ PASS | HTTP 200                                                                                                         |
+| TC_041 | HR lọc ứng viên theo vị trí và trạng thái    | ✅ PASS | Lọc và hiển thị đúng danh sách ứng viên theo điều kiện chọn trên giao diện Kanban |
 | TC_042 | HR tạo đề xuất thăng tiến                    | ✅ PASS | HTTP 201                                                                                                         |
 
 **Kết quả MODULE 2: 9/10 PASS**

@@ -1,4 +1,4 @@
-const { User, Contract, TaxInsuranceConfig, Payroll } = require('../models');
+const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest } = require('../models');
 
 exports.calculatePayroll = async (req, res) => {
   try {
@@ -51,11 +51,47 @@ exports.calculatePayroll = async (req, res) => {
         continue;
       }
 
-      // Khởi tạo các khoản phụ (sau này có thể query từ bảng Allowance/Bonus/Advance)
+      // Truy vấn các khoản thu nhập / khấu trừ phát sinh đã áp dụng (applied) trong tháng
+      const adjustments = await SalaryAdjustment.findAll({
+        where: {
+          user_id: user.id,
+          apply_month: month,
+          status: 'applied'
+        }
+      });
+
       let allowance = 0;
       let bonus = 0;
       let deduction = 0;
+
+      adjustments.forEach(adj => {
+        if (adj.kind === 'income') {
+          if (adj.category?.toLowerCase().includes('phụ cấp')) {
+            allowance += Number(adj.amount) || 0;
+          } else {
+            bonus += Number(adj.amount) || 0;
+          }
+        } else if (adj.kind === 'deduction') {
+          deduction += Number(adj.amount) || 0;
+        }
+      });
+
+      // Truy vấn các khoản tạm ứng đang khấu trừ (deducting)
       let advance = 0;
+      const activeAdvances = await AdvanceRequest.findAll({
+        where: {
+          user_id: user.id,
+          status: 'deducting'
+        }
+      });
+      activeAdvances.forEach(adv => {
+        if (adv.deduct_method === 'split' && adv.deduct_months > 0) {
+          const monthlyDeduct = Math.floor(Number(adv.amount) / adv.deduct_months);
+          advance += monthlyDeduct;
+        } else {
+          advance += Number(adv.amount) || 0;
+        }
+      });
 
       let insuranceEmployee = 0;
       let tax = 0;

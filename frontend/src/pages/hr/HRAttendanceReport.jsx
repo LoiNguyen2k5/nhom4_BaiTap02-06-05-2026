@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ShieldAlert, CheckCircle, Lock, Unlock, Calendar, Download, RefreshCw } from 'lucide-react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
@@ -98,20 +99,25 @@ const HRAttendanceReport = () => {
       `${row.work_hours}h`
     ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
+    // Tạo worksheet với header + dữ liệu
+    const wsData = [headers, ...rows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Create a Blob with UTF-8 BOM so Excel opens Vietnamese characters correctly
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `Bang_Cong_Thang_${month}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Căn chỉnh độ rộng cột tự động
+    ws['!cols'] = [
+      { wch: 25 }, // Nhân viên
+      { wch: 30 }, // Email
+      { wch: 20 }, // Phòng ban
+      { wch: 18 }, // Đi làm đúng giờ
+      { wch: 10 }, // Đi trễ
+      { wch: 15 }, // Nghỉ có phép
+      { wch: 18 }, // Vắng không phép
+      { wch: 14 }, // Tổng giờ làm
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, `Tháng ${month}`);
+    XLSX.writeFile(wb, `Bang_Cong_Thang_${month}.xlsx`);
   };
 
   return (
