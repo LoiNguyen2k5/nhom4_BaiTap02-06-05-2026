@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
-const createAdminAccount = require('../utils/createAdmin');
+const seedData = require('../utils/seedData');
 
 const initializeDatabase = async () => {
   try {
@@ -41,12 +41,12 @@ const initializeDatabase = async () => {
     // Load all models so they are registered before sync
     require('../models/index');
 
-    // Sync models - dung alter:true de tu dong cap nhat schema khi co thay doi
+    // Sync models - alter:true tu dong cap nhat schema khi co them bang hoac cot moi
     await sequelize.sync({ alter: true });
-    console.log('✓ Database da duoc khoi tao thanh cong');
+    console.log('✓ Database da duoc cap nhat thanh cong');
 
-    // Create admin account
-    await createAdminAccount();
+    // Seed toàn bộ dữ liệu mẫu (bao gồm tài khoản hệ thống)
+    await seedData();
   } catch (error) {
     console.error('✗ Lỗi kết nối database:', error.message);
     process.exit(1);

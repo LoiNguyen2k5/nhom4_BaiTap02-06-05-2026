@@ -59,4 +59,18 @@ const authorizeAdminOrHR = (req, res, next) => {
   }
 };
 
-module.exports = { authenticateToken, authorizeAdmin, authorizeAdminOrHR };
+// Middleware để kiểm tra vai trò cụ thể
+const authorizeRoles = (roles) => {
+  return (req, res, next) => {
+    if (req.user && roles.includes(req.user.role)) {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền truy cập chức năng này'
+      });
+    }
+  };
+};
+
+module.exports = { authenticateToken, authorizeAdmin, authorizeAdminOrHR, authorizeRoles };

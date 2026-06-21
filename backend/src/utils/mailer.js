@@ -69,15 +69,16 @@ const sendPasswordResetEmail = async (toEmail, otpCode) => {
   await transporter.sendMail(mailOptions);
 };
 const sendPayslipEmail = async (toEmail, userName, payroll) => {
+  const monthLabel = payroll.month; // YYYY-MM format
   const mailOptions = {
     from: `"Kế Toán Nhóm 4 App" <${process.env.EMAIL_USER}>`,
     to: toEmail,
-    subject: `[Nhóm 4 App] Phiếu lương tháng ${payroll.month}/${payroll.year}`,
+    subject: `[Nhóm 4 App] Phiếu lương tháng ${monthLabel}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-        <h2 style="color: #333; text-align: center;">Phiếu Lương Tháng ${payroll.month}/${payroll.year}</h2>
+        <h2 style="color: #333; text-align: center;">Phiếu Lương Tháng ${monthLabel}</h2>
         <p>Xin chào <strong>${userName}</strong>,</p>
-        <p>Phòng Kế toán gửi bạn phiếu lương chi tiết cho tháng ${payroll.month}/${payroll.year}. Vui lòng kiểm tra thông tin bên dưới:</p>
+        <p>Phòng Kế toán gửi bạn phiếu lương chi tiết cho tháng ${monthLabel}. Vui lòng kiểm tra thông tin bên dưới:</p>
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
           <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Lương cơ bản:</strong></td>
@@ -85,23 +86,23 @@ const sendPayslipEmail = async (toEmail, userName, payroll) => {
           </tr>
           <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Phụ cấp:</strong></td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.allowances).toLocaleString('vi-VN')} VND</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.allowance).toLocaleString('vi-VN')} VND</td>
           </tr>
           <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee;"><strong>Thưởng/KPI:</strong></td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.bonuses).toLocaleString('vi-VN')} VND</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${Number(payroll.bonus).toLocaleString('vi-VN')} VND</td>
           </tr>
           <tr>
             <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Khấu trừ:</strong></td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.deductions).toLocaleString('vi-VN')} VND</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.deduction).toLocaleString('vi-VN')} VND</td>
           </tr>
           <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Thuế:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Thuế TNCN:</strong></td>
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.tax).toLocaleString('vi-VN')} VND</td>
           </tr>
           <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Bảo hiểm:</strong></td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.insurance).toLocaleString('vi-VN')} VND</td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; color: #d32f2f;"><strong>Bảo hiểm NV:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right; color: #d32f2f;">-${Number(payroll.insurance_employee).toLocaleString('vi-VN')} VND</td>
           </tr>
           <tr style="background-color: #f5f5f5;">
             <td style="padding: 15px 10px; font-weight: bold; font-size: 16px;"><strong>Thực lãnh:</strong></td>

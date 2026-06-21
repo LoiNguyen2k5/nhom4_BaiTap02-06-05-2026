@@ -12,6 +12,8 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import MyLeaves from './pages/user/MyLeaves';
+import Payslip from './pages/user/Payslip';
+import AttendancePage from './pages/user/AttendancePage';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
 import ApprovalHistory from './pages/manager/ApprovalHistory';
 import TeamSchedule from './pages/manager/TeamSchedule';
@@ -32,11 +34,16 @@ import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
+import PayrollPage from './pages/accountant/PayrollPage';
+import TaxConfig from './pages/accountant/TaxConfig';
 import AccountantPayroll from './pages/accountant/AccountantPayroll';
+import AdjustmentsPage from './pages/accountant/AdjustmentsPage';
+import AdvancesPage from './pages/accountant/AdvancesPage';
 
 import Layout from './components/Layout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
-import UserPayslip from './pages/user/UserPayslip';
+import UserToday from './pages/user/UserToday';
+import HRInterviews from './pages/hr/HRInterviews';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -91,11 +98,13 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="today"       element={<UserToday />} />
         <Route path="profile"     element={<UserProfile />} />
         <Route path="leaves"      element={<MyLeaves />} />
+        <Route path="attendance"  element={<AttendancePage />} />
+        <Route path="payslip"     element={<Payslip />} />
         <Route path="tasks"       element={<UserTasks />} />
         <Route path="performance" element={<PerformanceDashboard />} />
-        <Route path="payslip"     element={<UserPayslip />} />
       </Route>
 
       {/* Manager dashboard */}
@@ -128,8 +137,12 @@ const App = () => {
         }
       >
         <Route index element={<AccountantDashboard />} />
-        <Route path="dashboard" element={<AccountantDashboard />} />
-        <Route path="payroll" element={<AccountantPayroll />} />
+        <Route path="dashboard"     element={<AccountantDashboard />} />
+        <Route path="payroll"       element={<PayrollPage />} />
+        <Route path="payroll-send"  element={<AccountantPayroll />} />
+        <Route path="tax-config"    element={<TaxConfig />} />
+        <Route path="adjustments"   element={<AdjustmentsPage />} />
+        <Route path="advances"      element={<AdvancesPage />} />
       </Route>
 
       {/* HR dashboard */}
@@ -148,6 +161,7 @@ const App = () => {
         <Route path="evaluation"  element={<EmployeeEvaluation />} />
         <Route path="promotions"  element={<PromotionManager />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
+        <Route path="interviews"  element={<HRInterviews />} />
       </Route>
 
       {/* Admin dashboard */}

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   LayoutDashboard, Users, Building2, ClipboardList, UserSearch, Settings,
   UserCircle, FileText, CheckSquare, BarChart2, CalendarDays, LogOut,
-  Home, Clock, Wallet, Star, TrendingUp,
+  Home, Clock, Wallet, Star, TrendingUp, PlusCircle,
 } from 'lucide-react';
 import { logout } from '../../redux/authSlice';
 import Avatar from '../ui/Avatar';
@@ -116,7 +116,11 @@ const NAV_CONFIG = {
       {
         title: 'Lương & Chi phí',
         items: [
-          { label: 'Bảng lương',         path: '/accountant/payroll',   icon: Wallet },
+          { label: 'Tính lương tháng',    path: '/accountant/payroll',      icon: Wallet },
+          { label: 'Gửi phiếu lương',   path: '/accountant/payroll-send', icon: FileText },
+          { label: 'Khoản thu nhập',    path: '/accountant/adjustments',  icon: PlusCircle },
+          { label: 'Tạm ứng',          path: '/accountant/advances',     icon: FileText },
+          { label: 'Cấu hình thuế',    path: '/accountant/tax-config',   icon: Settings },
         ],
       },
       {

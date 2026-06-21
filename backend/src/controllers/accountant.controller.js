@@ -3,13 +3,20 @@ const { sendPayslipEmail } = require('../utils/mailer');
 const { Op } = require('sequelize');
 const XLSX = require('xlsx');
 
-// Xem danh sách bảng lương
+// Xem danh sách bảng lương (lọc theo month YYYY-MM hoặc year)
 const getPayrolls = async (req, res) => {
   try {
     const { month, year } = req.query;
     let whereClause = {};
-    if (month) whereClause.month = month;
-    if (year) whereClause.year = year;
+
+    if (month && year) {
+      // Truyền cả month và year -> tạo filter theo YYYY-MM
+      const mm = String(month).padStart(2, '0');
+      whereClause.month = `${year}-${mm}`;
+    } else if (month) {
+      // Chỉ truyền month dạng YYYY-MM
+      whereClause.month = month;
+    }
 
     const payrolls = await Payroll.findAll({
       where: whereClause,
@@ -26,7 +33,7 @@ const getPayrolls = async (req, res) => {
           ]
         }
       ],
-      order: [['year', 'DESC'], ['month', 'DESC'], ['id', 'ASC']]
+      order: [['month', 'DESC'], ['id', 'ASC']]
     });
 
     res.json({ success: true, payrolls });
@@ -44,11 +51,13 @@ const exportBankFile = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tháng và năm.' });
     }
 
+    const mm = String(month).padStart(2, '0');
+    const monthKey = `${year}-${mm}`;
+
     const payrolls = await Payroll.findAll({
       where: {
-        month,
-        year,
-        status: 'approved'
+        month: monthKey,
+        status: { [Op.in]: ['approved', 'paid'] }
       },
       include: [
         {
@@ -69,21 +78,10 @@ const exportBankFile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu lương đã duyệt cho tháng này.' });
     }
 
-    // Header Excel
     const headers = [
-      'STT',
-      'Họ và tên',
-      'Số tài khoản',
-      'Ngân hàng',
-      'Tên chủ TK',
-      'Lương cơ bản',
-      'Phụ cấp',
-      'Thưởng',
-      'Khấu trừ',
-      'Thuế TNCN',
-      'Bảo hiểm',
-      'Thực lãnh',
-      'Nội dung CK'
+      'STT', 'Họ và tên', 'Số tài khoản', 'Ngân hàng', 'Tên chủ TK',
+      'Lương cơ bản', 'Phụ cấp', 'Thưởng', 'Khấu trừ',
+      'Thuế TNCN', 'Bảo hiểm NV', 'Thực lãnh', 'Nội dung CK'
     ];
 
     const wsData = [headers];
@@ -103,42 +101,33 @@ const exportBankFile = async (req, res) => {
         bankName,
         accName,
         Math.round(Number(p.base_salary) || 0),
-        Math.round(Number(p.allowances) || 0),
-        Math.round(Number(p.bonuses) || 0),
-        Math.round(Number(p.deductions) || 0),
+        Math.round(Number(p.allowance) || 0),
+        Math.round(Number(p.bonus) || 0),
+        Math.round(Number(p.deduction) || 0),
         Math.round(Number(p.tax) || 0),
-        Math.round(Number(p.insurance) || 0),
+        Math.round(Number(p.insurance_employee) || 0),
         Math.round(Number(p.net_salary) || 0),
         description
       ]);
     });
 
-    // Dòng tổng cộng
-    const totalBase = payrolls.reduce((sum, p) => sum + Math.round(Number(p.base_salary) || 0), 0);
-    const totalAllowances = payrolls.reduce((sum, p) => sum + Math.round(Number(p.allowances) || 0), 0);
-    const totalBonuses = payrolls.reduce((sum, p) => sum + Math.round(Number(p.bonuses) || 0), 0);
-    const totalDeductions = payrolls.reduce((sum, p) => sum + Math.round(Number(p.deductions) || 0), 0);
-    const totalTax = payrolls.reduce((sum, p) => sum + Math.round(Number(p.tax) || 0), 0);
-    const totalInsurance = payrolls.reduce((sum, p) => sum + Math.round(Number(p.insurance) || 0), 0);
-    const totalNet = payrolls.reduce((sum, p) => sum + Math.round(Number(p.net_salary) || 0), 0);
+    const totalBase       = payrolls.reduce((s, p) => s + Math.round(Number(p.base_salary) || 0), 0);
+    const totalAllowance  = payrolls.reduce((s, p) => s + Math.round(Number(p.allowance) || 0), 0);
+    const totalBonus      = payrolls.reduce((s, p) => s + Math.round(Number(p.bonus) || 0), 0);
+    const totalDeduction  = payrolls.reduce((s, p) => s + Math.round(Number(p.deduction) || 0), 0);
+    const totalTax        = payrolls.reduce((s, p) => s + Math.round(Number(p.tax) || 0), 0);
+    const totalInsurance  = payrolls.reduce((s, p) => s + Math.round(Number(p.insurance_employee) || 0), 0);
+    const totalNet        = payrolls.reduce((s, p) => s + Math.round(Number(p.net_salary) || 0), 0);
 
     wsData.push([
       '', '', '', '', 'TỔNG CỘNG',
-      totalBase,
-      totalAllowances,
-      totalBonuses,
-      totalDeductions,
-      totalTax,
-      totalInsurance,
-      totalNet,
-      ''
+      totalBase, totalAllowance, totalBonus, totalDeduction,
+      totalTax, totalInsurance, totalNet, ''
     ]);
 
-    // Tạo Workbook và Worksheet
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-    // Tự động tính độ rộng cho các cột
     const maxCols = wsData[0].length;
     const wscols = [];
     for (let i = 0; i < maxCols; i++) {
@@ -155,8 +144,6 @@ const exportBankFile = async (req, res) => {
     ws['!cols'] = wscols;
 
     XLSX.utils.book_append_sheet(wb, ws, 'Danh sách chi lương');
-
-    // Tạo file binary buffer
     const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -189,10 +176,8 @@ const sendPayslip = async (req, res) => {
     const email = payroll.user.email;
     const name = payroll.user.Profile?.full_name || 'Nhân viên';
 
-    // Gọi hàm gửi email
     await sendPayslipEmail(email, name, payroll);
 
-    // Cập nhật trạng thái đã gửi
     payroll.is_payslip_sent = true;
     await payroll.save();
 
@@ -203,7 +188,7 @@ const sendPayslip = async (req, res) => {
   }
 };
 
-// Gửi hàng loạt
+// Gửi hàng loạt theo tháng YYYY-MM hoặc month+year riêng
 const sendBatchPayslips = async (req, res) => {
   try {
     const { month, year } = req.body;
@@ -211,10 +196,12 @@ const sendBatchPayslips = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tháng và năm.' });
     }
 
+    const mm = String(month).padStart(2, '0');
+    const monthKey = `${year}-${mm}`;
+
     const payrolls = await Payroll.findAll({
       where: {
-        month,
-        year,
+        month: monthKey,
         is_payslip_sent: false
       },
       include: [
@@ -257,7 +244,7 @@ const getMyPayslips = async (req, res) => {
     const userId = req.user.id;
     const payrolls = await Payroll.findAll({
       where: { user_id: userId },
-      order: [['year', 'DESC'], ['month', 'DESC']]
+      order: [['month', 'DESC']]
     });
     res.json({ success: true, payrolls });
   } catch (error) {

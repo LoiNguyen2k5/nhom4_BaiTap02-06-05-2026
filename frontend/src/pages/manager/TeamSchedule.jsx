@@ -6,7 +6,7 @@ import Badge from '../../components/ui/Badge';
 
 const TYPE_CONFIG = {
   leave: { label: 'Nghỉ phép', variant: 'warning' },
-  ot:    { label: 'Làm OT',    variant: 'info' },
+  ot: { label: 'Làm OT', variant: 'info' },
 };
 
 const fmt = (d) => d ? new Date(d).toLocaleDateString('vi-VN') : '—';
@@ -65,9 +65,9 @@ const TeamSchedule = () => {
       {/* KPI mini */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Hoạt động tháng này',  value: filteredSchedules.length, icon: Calendar },
-          { label: 'Tổng ngày nghỉ phép',  value: `${totalDaysOff} ngày`,    icon: Sun,   warning: totalDaysOff > 0 },
-          { label: 'Tổng giờ OT',          value: `${totalOtHours} giờ`,     icon: Clock, info: totalOtHours > 0 },
+          { label: 'Hoạt động tháng này', value: filteredSchedules.length, icon: Calendar },
+          { label: 'Tổng ngày nghỉ phép', value: `${totalDaysOff} ngày`, icon: Sun, warning: totalDaysOff > 0 },
+          { label: 'Tổng giờ OT', value: `${totalOtHours} giờ`, icon: Clock, info: totalOtHours > 0 },
         ].map(k => {
           const Icon = k.icon;
           return (
@@ -92,7 +92,7 @@ const TeamSchedule = () => {
         {loading ? (
           <div className="space-y-0">
             <div className="h-10 bg-gray-50 border-b border-gray-200 animate-pulse" />
-            {[1,2,3].map(i => (
+            {[1, 2, 3].map(i => (
               <div key={i} className="h-14 border-b border-gray-100 px-4 flex items-center gap-3 animate-pulse">
                 <div className="w-8 h-8 rounded-full bg-gray-200 shrink-0" />
                 <div className="space-y-1.5 flex-1">

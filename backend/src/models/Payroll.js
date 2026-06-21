@@ -19,39 +19,52 @@ const Payroll = sequelize.define(
       onDelete: 'CASCADE',
     },
     month: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    year: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(7), // Định dạng: YYYY-MM (VD: 2026-11)
       allowNull: false,
     },
     base_salary: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
-    allowances: {
+    allowance: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
-    bonuses: {
+    bonus: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
-    deductions: {
+    deduction: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
+    advance: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
     tax: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
-    insurance: {
+    insurance_company: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
+      defaultValue: 0,
+    },
+    insurance_employee: {
+      type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
     net_salary: {
       type: DataTypes.DECIMAL(15, 2),
+      allowNull: false,
       defaultValue: 0,
     },
     status: {
@@ -70,6 +83,8 @@ const Payroll = sequelize.define(
   {
     tableName: 'payrolls',
     timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   }
 );
 
