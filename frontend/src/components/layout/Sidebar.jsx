@@ -141,12 +141,12 @@ const NAV_CONFIG = {
       {
         title: 'Cá nhân',
         items: [
-          { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
           { label: 'Chấm công',          path: '/user/attendance',    icon: Clock },
           { label: 'Đơn từ',             path: '/user/leaves',        icon: FileText },
           { label: 'Phiếu lương',        path: '/user/payslip',       icon: Wallet },
           { label: 'Task của tôi',       path: '/user/tasks',         icon: ClipboardList },
           { label: 'Hiệu quả làm việc',  path: '/user/performance',   icon: BarChart2 },
+          { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
         ],
       },
     ],
@@ -163,12 +163,12 @@ const NAV_CONFIG = {
       {
         title: 'Cá nhân',
         items: [
-          { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
           { label: 'Chấm công',          path: '/user/attendance',    icon: Clock },
           { label: 'Đơn từ',             path: '/user/leaves',        icon: FileText },
           { label: 'Phiếu lương',        path: '/user/payslip',       icon: Wallet },
           { label: 'Task của tôi',       path: '/user/tasks',         icon: ClipboardList },
           { label: 'Hiệu quả làm việc',  path: '/user/performance',   icon: BarChart2 },
+          { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
         ],
       },
     ],

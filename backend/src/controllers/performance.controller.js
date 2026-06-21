@@ -1,4 +1,5 @@
-const { Task, Attendance, PerformanceReview, PromotionProposal, User } = require('../models');
+const { Task, Attendance, PerformanceReview, PromotionProposal, User, LeaveBalance, LeaveRequest } = require('../models');
+const { Op } = require('sequelize');
 
 exports.getDashboardData = async (req, res) => {
   try {
@@ -6,11 +7,32 @@ exports.getDashboardData = async (req, res) => {
     const userId = req.params.userId || req.user.id;
     const { month, year } = req.query;
 
-    const currentMonth = month ? parseInt(month) : new Date().getMonth() + 1;
+    const currentMonth = month ? parseInt(month) : null;
     const currentYear = year ? parseInt(year) : new Date().getFullYear();
 
-    // 1. Task Statistics (dùng schema của tan: assigned_to_id, ENUM: todo/in_progress/review/done/cancelled)
-    const tasks = await Task.findAll({ where: { assigned_to_id: userId } });
+    // Setup date filters
+    let taskFilter = { assigned_to_id: userId };
+    let attendanceFilter = { user_id: userId };
+    
+    if (currentMonth && currentYear) {
+      const startDate = new Date(currentYear, currentMonth - 1, 1);
+      const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59);
+      
+      taskFilter.created_at = { [Op.between]: [startDate, endDate] };
+      attendanceFilter.date = { [Op.between]: [startDate, endDate] };
+    }
+
+    // 1. Task Statistics
+    const tasks = await Task.findAll({ where: taskFilter });
+    const overdueCount = tasks.filter(t => {
+      if (!t.due_date || t.status === 'done' || t.status === 'cancelled') return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const due = new Date(t.due_date);
+      due.setHours(0, 0, 0, 0);
+      return due < today;
+    }).length;
+
     const taskStats = {
       total: tasks.length,
       completed: tasks.filter(t => t.status === 'done').length,
@@ -18,22 +40,50 @@ exports.getDashboardData = async (req, res) => {
       pending: tasks.filter(t => t.status === 'todo').length,
       inProgress: tasks.filter(t => t.status === 'in_progress').length,
       inReview: tasks.filter(t => t.status === 'review').length,
+      overdue: overdueCount,
     };
 
-    // 2. Attendance Statistics
-    const attendances = await Attendance.findAll({ where: { user_id: userId } });
+    // 2. Attendance & Leave Statistics
+    const attendances = await Attendance.findAll({ where: attendanceFilter });
+    
+    let leaveDays = 0;
+    if (currentMonth) {
+      // Đếm số ngày nghỉ phép ĐÃ ĐƯỢC DUYỆT trong tháng đó
+      const startDate = new Date(currentYear, currentMonth - 1, 1).toISOString().split('T')[0];
+      const endDate = new Date(currentYear, currentMonth, 0).toISOString().split('T')[0];
+      
+      const approvedLeaves = await LeaveRequest.findAll({
+        where: {
+          user_id: userId,
+          type: 'leave',
+          status: 'approved',
+          start_date: { [Op.between]: [startDate, endDate] }
+        }
+      });
+      leaveDays = approvedLeaves.reduce((sum, req) => sum + parseFloat(req.total_days || 0), 0);
+    } else {
+      // Xem toàn bộ thì lấy used_days từ LeaveBalance của năm
+      const balance = await LeaveBalance.findOne({ where: { user_id: userId, year: currentYear } });
+      leaveDays = balance ? balance.used_days : 0;
+    }
+    
     const attendanceStats = {
       workingDays: attendances.filter(a => a.status === 'Present').length,
       lateDays: attendances.filter(a => a.status === 'Late').length,
-      leaveDays: attendances.filter(a => a.status === 'OnLeave').length,
+      leaveDays: leaveDays,
       absentDays: attendances.filter(a => a.status === 'Absent').length,
     };
 
     // 3. Latest Performance Reviews
+    let reviewFilter = { user_id: userId };
+    if (currentMonth && currentYear) {
+      reviewFilter.month = currentMonth;
+      reviewFilter.year = currentYear;
+    }
+
     const reviews = await PerformanceReview.findAll({
-      where: { user_id: userId },
+      where: reviewFilter,
       order: [['year', 'DESC'], ['month', 'DESC']],
-      limit: 5,
       include: [{ model: User, as: 'reviewer', attributes: ['id', 'name', 'email'] }]
     });
 

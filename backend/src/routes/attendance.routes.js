@@ -9,5 +9,7 @@ router.use(authenticateToken);
 router.post('/check-in', attendanceController.checkIn);
 router.post('/check-out', attendanceController.checkOut);
 router.get('/my-history', attendanceController.getMyHistory);
+router.get('/check-face-registered', attendanceController.checkFaceRegistered);
+router.post('/register-face', attendanceController.registerFace);
 
 module.exports = router;

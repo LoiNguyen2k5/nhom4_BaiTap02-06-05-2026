@@ -14,12 +14,24 @@ const PerformanceDashboard = () => {
   const { user } = useSelector((state) => state.auth);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [periodMonth, setPeriodMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [periodMonth]);
 
   const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await performanceService.getDashboardData();
+      const params = {};
+      if (periodMonth) {
+        const [yyyy, mm] = periodMonth.split('-');
+        params.year = parseInt(yyyy);
+        params.month = parseInt(mm);
+      }
+      
+      const res = await performanceService.getDashboardData('', params);
       setData(res.data.data);
     } catch {
       setData(null);
@@ -55,9 +67,31 @@ const PerformanceDashboard = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div>
-        <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Hiệu quả công việc</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Thống kê task, chuyên cần và đánh giá KPI cá nhân</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[22px] font-semibold text-gray-900 tracking-[-0.01em]">Hiệu quả công việc</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Thống kê task, chuyên cần và đánh giá KPI cá nhân</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <input
+            type="month"
+            value={periodMonth}
+            onChange={(e) => setPeriodMonth(e.target.value)}
+            className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white focus:outline-none focus:border-navy-700 transition-colors cursor-pointer"
+            title="Chọn tháng để xem thống kê"
+          />
+          <button
+            onClick={() => setPeriodMonth('')}
+            className={`text-[12px] px-3 h-9 rounded-md border transition-colors ${
+              periodMonth === '' 
+                ? 'bg-navy-50 text-navy-700 border-navy-200 font-medium' 
+                : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Toàn bộ
+          </button>
+        </div>
       </div>
 
       {/* Stats grid */}
