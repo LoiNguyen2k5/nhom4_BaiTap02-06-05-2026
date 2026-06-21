@@ -401,6 +401,9 @@ async function seedData() {
     console.log('\n🎉 Tạo dữ liệu mẫu hoàn tất! Hệ thống sẵn sàng sử dụng.\n');
   } catch (error) {
     console.error('✗ Lỗi khi tạo dữ liệu mẫu:', error.message);
+    if (error.errors) {
+      console.error('Chi tiết lỗi validation:', JSON.stringify(error.errors.map(e => ({ message: e.message, type: e.type, path: e.path, value: e.value })), null, 2));
+    }
     console.error(error.stack);
   }
 }
