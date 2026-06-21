@@ -41,11 +41,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Buoc 3b: Kiem tra tai khoan da kich hoat chua
+    // Buoc 3b: Kiem tra tai khoan da kich hoat chua (hoac bi Admin khoa)
     if (user.status === 'inactive') {
       return res.status(403).json({
         success: false,
-        message: 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để nhập mã OTP.',
+        message: 'Tài khoản của bạn đang bị khóa hoặc chưa được kích hoạt.',
       });
     }
 

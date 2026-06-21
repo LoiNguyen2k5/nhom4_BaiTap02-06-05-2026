@@ -272,6 +272,12 @@ const createUser = async (req, res) => {
       status: 'active',
     });
 
+    // Tạo profile trống mặc định để không bị lỗi khi các role khác truy xuất
+    await Profile.create({
+      user_id: newUser.id,
+      full_name: name ? name.trim() : null,
+    });
+
     // TODO: Gửi email thông báo đến nhân viên kèm mật khẩu tạm
     // await sendWelcomeEmail(email, tempPassword);
 
