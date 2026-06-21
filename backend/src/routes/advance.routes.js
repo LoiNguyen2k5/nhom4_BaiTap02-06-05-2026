@@ -1,21 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const advanceController = require('../controllers/advance.controller');
-const { authenticateToken } = require('../middlewares/auth');
+const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 
 // Tất cả route cần đăng nhập
 router.use(authenticateToken);
 
-// Middleware: accountant hoặc admin
-const authorizeAccountant = (req, res, next) => {
-  if (req.user && (req.user.role === 'accountant' || req.user.role === 'admin')) {
-    return next();
-  }
-  return res.status(403).json({
-    success: false,
-    message: 'Quyền truy cập bị từ chối. Cần quyền Kế toán.',
-  });
-};
+const authorizeAccountant = authorizeRoles(['admin', 'accountant']);
 
 // ── Stats (phải khai báo trước /:id để không bị nhầm route)
 router.get('/stats',     authorizeAccountant, advanceController.getStats);

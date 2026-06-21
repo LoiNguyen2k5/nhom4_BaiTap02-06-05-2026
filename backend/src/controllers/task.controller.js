@@ -47,13 +47,26 @@ const getAllTasks = async (req, res) => {
     if (priority && isValidTaskPriority(priority)) whereClause.priority = priority;
     if (assigned_to_id) whereClause.assigned_to_id = assigned_to_id;
 
-    const tasks = await Task.findAll({
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Task.findAndCountAll({
       where: whereClause,
       include: TASK_INCLUDE,
       order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    return res.status(200).json({ success: true, data: tasks.map(normalizeTask) });
+    return res.status(200).json({
+      success: true,
+      data: rows.map(normalizeTask),
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+    });
   } catch (error) {
     console.error('Get Tasks Error:', error);
     return res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách task' });

@@ -1,7 +1,7 @@
 const { User, Profile, AccountRequest, Contract, Department, Attendance, AttendanceLock } = require('../models');
 const { logActivity } = require('../utils/activityLogger');
 const bcrypt = require('bcrypt');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 
 // ==========================================
 // QUẢN LÝ YÊU CẦU CẤP TÀI KHOẢN (ACCOUNT REQUESTS)
@@ -259,53 +259,52 @@ exports.getAttendanceReport = async (req, res) => {
       ]
     });
 
-    const reportData = [];
-
     // Start date and end date of the month
     const year = parseInt(month.split('-')[0]);
     const monthNum = parseInt(month.split('-')[1]) - 1;
     const startDate = new Date(Date.UTC(year, monthNum, 1)).toISOString().split('T')[0];
     const endDate = new Date(Date.UTC(year, monthNum + 1, 0)).toISOString().split('T')[0];
 
-    for (const employee of employees) {
-      const attendances = await Attendance.findAll({
-        where: {
-          user_id: employee.id,
-          date: {
-            [Op.between]: [startDate, endDate]
-          }
-        }
-      });
+    // Single aggregate query instead of N+1 loop
+    const attendanceRows = await Attendance.findAll({
+      where: { date: { [Op.between]: [startDate, endDate] } },
+      attributes: [
+        'user_id',
+        'status',
+        [Sequelize.fn('SUM', Sequelize.col('work_hours')), 'total_hours'],
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+      ],
+      group: ['user_id', 'status'],
+      raw: true,
+    });
 
-      let presentCount = 0;
-      let lateCount = 0;
-      let absentCount = 0;
-      let leaveCount = 0;
-      let totalWorkHours = 0;
+    // Build map: { userId: { present, late, absent, leave, work_hours } }
+    const statsMap = {};
+    for (const row of attendanceRows) {
+      const uid = row.user_id;
+      if (!statsMap[uid]) statsMap[uid] = { present: 0, late: 0, absent: 0, leave: 0, work_hours: 0 };
+      const count = parseInt(row.count) || 0;
+      const hours = parseFloat(row.total_hours) || 0;
+      if (row.status === 'Present') { statsMap[uid].present += count; statsMap[uid].work_hours += hours; }
+      else if (row.status === 'Late') { statsMap[uid].late += count; statsMap[uid].work_hours += hours; }
+      else if (row.status === 'Absent') statsMap[uid].absent += count;
+      else if (row.status === 'OnLeave') statsMap[uid].leave += count;
+    }
 
-      attendances.forEach(att => {
-        if (att.status === 'Present') presentCount++;
-        else if (att.status === 'Late') lateCount++;
-        else if (att.status === 'Absent') absentCount++;
-        else if (att.status === 'OnLeave') leaveCount++;
-        
-        if (att.work_hours) {
-          totalWorkHours += att.work_hours;
-        }
-      });
-
-      reportData.push({
+    const reportData = employees.map(employee => {
+      const s = statsMap[employee.id] || { present: 0, late: 0, absent: 0, leave: 0, work_hours: 0 };
+      return {
         user_id: employee.id,
         name: employee.name,
         email: employee.email,
         department: employee.department ? employee.department.name : 'Chưa phân phòng',
-        present: presentCount,
-        late: lateCount,
-        absent: absentCount,
-        leave: leaveCount,
-        work_hours: parseFloat(totalWorkHours.toFixed(2))
-      });
-    }
+        present: s.present,
+        late: s.late,
+        absent: s.absent,
+        leave: s.leave,
+        work_hours: parseFloat(s.work_hours.toFixed(2)),
+      };
+    });
 
     return res.status(200).json({
       success: true,

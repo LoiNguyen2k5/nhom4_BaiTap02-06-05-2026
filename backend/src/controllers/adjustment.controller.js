@@ -1,26 +1,6 @@
 const { SalaryAdjustment, User, Profile, Department } = require('../models');
 const { Op } = require('sequelize');
-
-// Role mapping helper
-const roleNames = {
-  admin: 'Quản trị viên',
-  hr: 'Nhân sự',
-  manager: 'Quản lý',
-  accountant: 'Kế toán',
-  employee: 'Nhân viên',
-  user: 'Nhân viên',
-};
-
-const mapEmployeeProfile = (user) => {
-  if (!user) return null;
-  const userJson = user.toJSON ? user.toJSON() : user;
-  if (!userJson.Profile) {
-    userJson.Profile = {};
-  }
-  userJson.Profile.job_title = roleNames[userJson.role] || 'Nhân viên';
-  userJson.Profile.department = userJson.department?.name || 'Chưa phân phòng';
-  return userJson;
-};
+const { roleNames, mapEmployeeProfile } = require('../utils/helpers');
 
 const mapAdjustment = (adj) => {
   if (!adj) return null;
@@ -60,28 +40,30 @@ const enteredByInclude = {
 exports.getAll = async (req, res) => {
   try {
     const { kind, apply_month, status, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = (page - 1) * limit;
 
     const where = {};
     if (kind) where.kind = kind;
     if (apply_month) where.apply_month = apply_month;
     if (status) where.status = status;
 
-    // Lọc theo tên nhân viên cần dùng HAVING / subquery — dùng cách đơn giản: lấy all rồi filter ở JS
-    const rows = await SalaryAdjustment.findAll({
+    const empInclude = search
+      ? { ...employeeInclude, where: { name: { [Op.like]: `%${search}%` } }, required: true }
+      : employeeInclude;
+
+    const { count, rows } = await SalaryAdjustment.findAndCountAll({
       where,
-      include: [employeeInclude, enteredByInclude],
+      include: [empInclude, enteredByInclude],
       order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    // Lọc theo search (tên nhân viên)
-    const filtered = search
-      ? rows.filter((r) =>
-          r.employee?.name?.toLowerCase().includes(search.toLowerCase())
-        )
-      : rows;
-
-    const mapped = filtered.map(mapAdjustment);
-    return res.json({ success: true, data: mapped });
+    const mapped = rows.map(mapAdjustment);
+    return res.json({ success: true, data: mapped, total: count, page, totalPages: Math.ceil(count / limit) });
   } catch (err) {
     console.error('getAll adjustments error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });

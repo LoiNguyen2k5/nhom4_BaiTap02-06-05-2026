@@ -1,26 +1,6 @@
 const { AdvanceRequest, User, Profile, Contract, Department } = require('../models');
 const { Op } = require('sequelize');
-
-// Role mapping helper
-const roleNames = {
-  admin: 'Quản trị viên',
-  hr: 'Nhân sự',
-  manager: 'Quản lý',
-  accountant: 'Kế toán',
-  employee: 'Nhân viên',
-  user: 'Nhân viên',
-};
-
-const mapEmployeeProfile = (user) => {
-  if (!user) return null;
-  const userJson = user.toJSON ? user.toJSON() : user;
-  if (!userJson.Profile) {
-    userJson.Profile = {};
-  }
-  userJson.Profile.job_title = roleNames[userJson.role] || 'Nhân viên';
-  userJson.Profile.department = userJson.department?.name || 'Chưa phân phòng';
-  return userJson;
-};
+const { roleNames, mapEmployeeProfile } = require('../utils/helpers');
 
 const mapAdvance = (adv) => {
   if (!adv) return null;
@@ -79,23 +59,28 @@ const generateCode = async () => {
 exports.getAll = async (req, res) => {
   try {
     const { status, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = (page - 1) * limit;
+
     const where = {};
     if (status) where.status = status;
 
-    const rows = await AdvanceRequest.findAll({
+    const requesterInclude = search
+      ? { ...employeeInclude, where: { name: { [Op.like]: `%${search}%` } }, required: true }
+      : employeeInclude;
+
+    const { count, rows } = await AdvanceRequest.findAndCountAll({
       where,
-      include: [employeeInclude, reviewerInclude],
+      include: [requesterInclude, reviewerInclude],
       order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    const filtered = search
-      ? rows.filter((r) =>
-          r.requester?.name?.toLowerCase().includes(search.toLowerCase())
-        )
-      : rows;
-
-    const mapped = filtered.map(mapAdvance);
-    return res.json({ success: true, data: mapped });
+    const mapped = rows.map(mapAdvance);
+    return res.json({ success: true, data: mapped, total: count, page, totalPages: Math.ceil(count / limit) });
   } catch (err) {
     console.error('getAll advances error:', err);
     return res.status(500).json({ success: false, message: 'Lỗi server' });

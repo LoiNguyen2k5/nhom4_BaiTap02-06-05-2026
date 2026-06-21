@@ -1,4 +1,5 @@
 const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest } = require('../models');
+const { Op } = require('sequelize');
 
 exports.calculatePayroll = async (req, res) => {
   try {
@@ -181,7 +182,7 @@ exports.getMyPayrolls = async (req, res) => {
       where: { 
         user_id: userId,
         // Chỉ cho phép xem lương đã duyệt hoặc đã trả
-        status: ['approved', 'paid']
+        status: { [Op.in]: ['approved', 'paid'] }
       },
       order: [['month', 'DESC']]
     });
