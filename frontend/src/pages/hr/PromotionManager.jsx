@@ -225,9 +225,9 @@ const PromotionManager = () => {
                       <tr key={p.id} className="h-16 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="px-4">
                           <div className="flex items-center gap-2.5">
-                            <Avatar name={p.user?.name || p.user?.username || 'U'} size="sm" />
+                            <Avatar name={p.user?.Profile?.full_name || p.user?.name || p.user?.username || 'U'} size="sm" />
                             <div>
-                              <p className="text-[13px] font-medium text-gray-900">{p.user?.name || p.user?.username || '—'}</p>
+                              <p className="text-[13px] font-medium text-gray-900">{p.user?.Profile?.full_name || p.user?.name || p.user?.username || '—'}</p>
                               <p className="font-mono tabular-nums text-[11px] text-gray-400">ID #{p.user_id}</p>
                             </div>
                           </div>

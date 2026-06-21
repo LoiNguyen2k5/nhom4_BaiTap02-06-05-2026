@@ -13,6 +13,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserProfile from './pages/user/UserProfile';
 import MyLeaves from './pages/user/MyLeaves';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
+import ApprovalHistory from './pages/manager/ApprovalHistory';
 import TeamSchedule from './pages/manager/TeamSchedule';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
@@ -109,6 +110,7 @@ const App = () => {
         <Route index element={<ManagerDashboard />} />
         <Route path="dashboard"       element={<ManagerDashboard />} />
         <Route path="leave-approvals" element={<LeaveApprovals />} />
+        <Route path="approval-history" element={<ApprovalHistory />} />
         <Route path="team-schedule"   element={<TeamSchedule />} />
         <Route path="evaluation"      element={<EmployeeEvaluation />} />
         <Route path="promotions"      element={<PromotionManager />} />
@@ -141,6 +143,7 @@ const App = () => {
       >
         <Route path="dashboard"   element={<HRDashboard />} />
         <Route path="employees"   element={<HREmployees />} />
+        <Route path="employees/:id" element={<AdminUserDetail />} />
         <Route path="contracts"   element={<ContractManager />} />
         <Route path="evaluation"  element={<EmployeeEvaluation />} />
         <Route path="promotions"  element={<PromotionManager />} />

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, authorizeAdmin } = require('../middlewares/auth');
+const { authenticateToken, authorizeAdmin, authorizeAdminOrHR } = require('../middlewares/auth');
 const {
   getDashboardStats,
   getUsers,
   getUserById,
   updateUserStatus,
   updateUserRole,
+  updateUserDepartment,
   createUser,
   getPendingAccountRequests,
   approveAccountRequest,
@@ -25,9 +26,10 @@ router.get('/dashboard', authenticateToken, authorizeAdmin, getDashboardStats);
 // User management
 router.get('/users', authenticateToken, authorizeAdmin, getUsers);
 router.post('/users', authenticateToken, authorizeAdmin, createUser);  // Tạo user mới
-router.get('/users/:userId', authenticateToken, authorizeAdmin, getUserById);
+router.get('/users/:userId', authenticateToken, authorizeAdminOrHR, getUserById);
 router.put('/users/:userId/status', authenticateToken, authorizeAdmin, updateUserStatus);
 router.put('/users/:userId/role', authenticateToken, authorizeAdmin, updateUserRole);
+router.put('/users/:userId/department', authenticateToken, authorizeAdmin, updateUserDepartment);
 
 // Yêu cầu cấp tài khoản
 router.get('/account-requests/pending', authenticateToken, authorizeAdmin, getPendingAccountRequests);

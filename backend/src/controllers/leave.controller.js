@@ -169,6 +169,11 @@ exports.approveOrRejectRequest = async (req, res) => {
     const request = await LeaveRequest.findByPk(requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn' });
     if (request.status !== 'pending') return res.status(400).json({ success: false, message: 'Đơn này đã được xử lý rồi' });
+    
+    // Không cho phép tự phê duyệt đơn của bản thân
+    if (request.user_id === managerId) {
+      return res.status(400).json({ success: false, message: 'Bạn không thể tự phê duyệt đơn của chính mình' });
+    }
 
     // Cập nhật người duyệt và thời gian duyệt
     request.status = status;
@@ -227,6 +232,37 @@ exports.getTeamSchedule = async (req, res) => {
     res.status(200).json({ success: true, data: approvedSchedules });
   } catch (error) {
     console.error('Lỗi khi lấy lịch team:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+// 7. Lấy lịch sử phê duyệt đơn (đã duyệt hoặc từ chối)
+exports.getApprovalHistory = async (req, res) => {
+  try {
+    const { User, Profile } = require('../models');
+
+    // Tìm các đơn có status = 'approved' hoặc 'rejected', kèm theo thông tin User nộp đơn
+    const historyRequests = await LeaveRequest.findAll({
+      where: { status: ['approved', 'rejected'] },
+      include: [
+        {
+          model: User,
+          as: 'requester',
+          attributes: ['name', 'email', 'department_id'],
+          include: [{ model: Profile }]
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['name', 'email']
+        }
+      ],
+      order: [['approved_at', 'DESC']] // Đơn duyệt gần đây nhất lên đầu
+    });
+
+    res.status(200).json({ success: true, data: historyRequests });
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử phê duyệt:', error);
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };

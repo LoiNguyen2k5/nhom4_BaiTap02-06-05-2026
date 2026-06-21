@@ -99,6 +99,7 @@ const NAV_CONFIG = {
         title: 'Cá nhân',
         items: [
           { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
+          { label: 'Đơn của tôi',        path: '/user/leaves',        icon: ClipboardList },
         ],
       },
     ],
@@ -122,6 +123,7 @@ const NAV_CONFIG = {
         title: 'Cá nhân',
         items: [
           { label: 'Hồ sơ tôi',          path: '/user/profile',         icon: UserCircle },
+          { label: 'Đơn của tôi',        path: '/user/leaves',          icon: ClipboardList },
         ],
       },
     ],

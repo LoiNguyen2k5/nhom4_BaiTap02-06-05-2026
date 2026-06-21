@@ -170,6 +170,35 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+// Cập nhật phòng ban
+const updateUserDepartment = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { department_id } = req.body;
+    
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+
+    if (department_id) {
+      const dept = await Department.findByPk(department_id);
+      if (!dept) return res.status(400).json({ success: false, message: 'Phòng ban không tồn tại' });
+    }
+
+    await user.update({ department_id: department_id || null });
+
+    await logActivity({
+      userId: req.user?.id,
+      action: 'admin_update_department',
+      detail: `Cập nhật phòng ban user ${user.email} -> ID ${department_id || 'Chưa xếp'}`,
+      req,
+    });
+    return res.status(200).json({ success: true, message: 'Cập nhật phòng ban thành công', data: { user } });
+  } catch (error) {
+    console.error('Update User Department Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật phòng ban' });
+  }
+};
+
 // ============================================================
 // TẠO TÀI KHOẢN NGƯỜI DÙNG MỚI
 // POST /api/admin/users
@@ -355,6 +384,7 @@ module.exports = {
   getUserById, 
   updateUserStatus, 
   updateUserRole, 
+  updateUserDepartment,
   createUser,
   getPendingAccountRequests,
   approveAccountRequest,

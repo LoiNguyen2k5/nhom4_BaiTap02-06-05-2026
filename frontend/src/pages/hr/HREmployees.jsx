@@ -35,7 +35,7 @@ const HREmployees = () => {
     setError('');
     try {
       const res = await hrService.getAllEmployees();
-      const list = res.data?.data || res.data || [];
+      const list = res.data?.employees || res.data?.data || res.data || [];
       setEmployees(Array.isArray(list) ? list : []);
     } catch {
       setEmployees([]);
@@ -136,7 +136,7 @@ const HREmployees = () => {
                 </tr>
               ) : (
                 filtered.map(emp => {
-                  const displayName = emp.name || emp.username || emp.email;
+                  const displayName = emp.Profile?.full_name || emp.name || emp.username || emp.email;
                   const roleCfg = ROLE_BADGE[emp.role] || ROLE_BADGE.employee;
                   const stCfg = STATUS_BADGE[emp.status] || STATUS_BADGE.active;
                   return (
@@ -163,7 +163,7 @@ const HREmployees = () => {
                         <Badge variant={stCfg.variant} dot size="sm">{stCfg.label}</Badge>
                       </td>
                       <td className="px-4">
-                        <Link to={`/admin/users/${emp.id}`}
+                        <Link to={`/hr/employees/${emp.id}`}
                           className="text-[12px] text-accent-600 hover:text-accent-700 font-medium transition-colors">
                           Chi tiết →
                         </Link>

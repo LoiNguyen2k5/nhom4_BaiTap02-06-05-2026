@@ -116,9 +116,15 @@ exports.getPromotionProposals = async (req, res) => {
     if (req.user.role !== 'manager' && req.user.role !== 'admin' && req.user.role !== 'hr') {
       return res.status(403).json({ success: false, message: 'Forbidden: Role required' });
     }
+    const { Profile } = require('../models');
     const proposals = await PromotionProposal.findAll({
       include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email'],
+          include: [{ model: Profile }]
+        },
         { model: User, as: 'proposer', attributes: ['id', 'name'] }
       ],
       order: [['createdAt', 'DESC']]

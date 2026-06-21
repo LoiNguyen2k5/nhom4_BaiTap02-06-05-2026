@@ -55,18 +55,18 @@ async function seedAll() {
 
   // Seed hợp đồng mẫu
   const contractTemplates = [
-    { type: 'probation', start: '2024-01-01', end: '2024-03-31', salary: 8000000,  status: 'expired' },
-    { type: 'official',  start: '2024-04-01', end: '2025-03-31', salary: 12000000, status: 'expired' },
-    { type: 'official',  start: '2025-04-01', end: '2026-03-31', salary: 14000000, status: 'active' },
-    { type: 'probation', start: '2025-01-01', end: '2025-03-31', salary: 7500000,  status: 'expired' },
-    { type: 'official',  start: '2025-04-01', end: null,         salary: 11000000, status: 'active' },
-    { type: 'probation', start: '2025-06-01', end: '2025-08-31', salary: 9000000,  status: 'expired' },
-    { type: 'official',  start: '2025-09-01', end: '2026-08-31', salary: 13000000, status: 'active' },
-    { type: 'probation', start: '2024-09-01', end: '2024-11-30', salary: 8500000,  status: 'expired' },
-    { type: 'official',  start: '2024-12-01', end: null,         salary: 15000000, status: 'active' },
-    { type: 'probation', start: '2025-03-01', end: '2025-05-31', salary: 7000000,  status: 'terminated' },
-    { type: 'official',  start: '2026-01-01', end: '2026-12-31', salary: 16000000, status: 'active' },
-    { type: 'probation', start: '2026-02-01', end: '2026-04-30', salary: 9500000,  status: 'expired' },
+    { type: 'Thử việc',   start: '2024-01-01', end: '2024-03-31', salary: 8000000,  status: 'expired' },
+    { type: 'Chính thức',  start: '2024-04-01', end: '2025-03-31', salary: 12000000, status: 'expired' },
+    { type: 'Chính thức',  start: '2025-04-01', end: '2026-03-31', salary: 14000000, status: 'active' },
+    { type: 'Thử việc',   start: '2025-01-01', end: '2025-03-31', salary: 7500000,  status: 'expired' },
+    { type: 'Chính thức',  start: '2025-04-01', end: null,         salary: 11000000, status: 'active' },
+    { type: 'Thử việc',   start: '2025-06-01', end: '2025-08-31', salary: 9000000,  status: 'expired' },
+    { type: 'Chính thức',  start: '2025-09-01', end: '2026-08-31', salary: 13000000, status: 'active' },
+    { type: 'Thử việc',   start: '2024-09-01', end: '2024-11-30', salary: 8500000,  status: 'expired' },
+    { type: 'Chính thức',  start: '2024-12-01', end: null,         salary: 15000000, status: 'active' },
+    { type: 'Thử việc',   start: '2025-03-01', end: '2025-05-31', salary: 7000000,  status: 'terminated' },
+    { type: 'Chính thức',  start: '2026-01-01', end: '2026-12-31', salary: 16000000, status: 'active' },
+    { type: 'Thử việc',   start: '2026-02-01', end: '2026-04-30', salary: 9500000,  status: 'expired' },
   ];
 
   let contractIdx = 0;

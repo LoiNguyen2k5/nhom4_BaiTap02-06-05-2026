@@ -4,8 +4,20 @@ import hrService from '../../services/hr.service';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 
-const CONTRACT_TYPE_LABEL = { probation: 'Thử việc', official: 'Chính thức' };
-const CONTRACT_TYPE_VARIANT = { probation: 'info', official: 'brand' };
+const CONTRACT_TYPE_LABEL = { 
+  'Thử việc': 'Thử việc', 
+  'Chính thức': 'Chính thức',
+  'Thời vụ': 'Thời vụ',
+  probation: 'Thử việc', 
+  official: 'Chính thức' 
+};
+const CONTRACT_TYPE_VARIANT = { 
+  'Thử việc': 'info', 
+  'Chính thức': 'brand',
+  'Thời vụ': 'neutral',
+  probation: 'info', 
+  official: 'brand' 
+};
 
 const STATUS_CONFIG = {
   active:     { label: 'Đang hiệu lực', variant: 'success' },
@@ -58,7 +70,7 @@ const ContractManager = () => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [contractToDelete, setContractToDelete] = useState(null);
 
-  const emptyForm = { user_id: '', contract_number: '', contract_type: 'probation', start_date: '', end_date: '', basic_salary: '' };
+  const emptyForm = { user_id: '', contract_number: '', contract_type: 'Thử việc', start_date: '', end_date: '', basic_salary: '' };
   const [formData, setFormData] = useState(emptyForm);
   const [extendData, setExtendData] = useState({ end_date: '', basic_salary: '', contract_type: '', status: '' });
   const [empSearch, setEmpSearch] = useState('');
@@ -98,8 +110,8 @@ const ContractManager = () => {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       data = data.filter(c =>
-        (c.User?.name || '').toLowerCase().includes(q) ||
-        (c.User?.email || '').toLowerCase().includes(q)
+        (c.user?.Profile?.full_name || c.user?.name || '').toLowerCase().includes(q) ||
+        (c.user?.email || '').toLowerCase().includes(q)
       );
     }
     if (filterType) data = data.filter(c => c.contract_type === filterType);
@@ -245,8 +257,9 @@ const ContractManager = () => {
           className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:border-navy-700 transition-colors"
         >
           <option value="">Loại HĐ</option>
-          <option value="probation">Thử việc</option>
-          <option value="official">Chính thức</option>
+          <option value="Thử việc">Thử việc</option>
+          <option value="Chính thức">Chính thức</option>
+          <option value="Thời vụ">Thời vụ</option>
         </select>
         <select
           value={filterStatus}
@@ -310,7 +323,7 @@ const ContractManager = () => {
                 {contracts.map(c => {
                   const stCfg = STATUS_CONFIG[c.status] || STATUS_CONFIG.active;
                   const typCfg = CONTRACT_TYPE_VARIANT[c.contract_type] || 'neutral';
-                  const user = c.User;
+                  const user = c.user;
                   const days = daysUntilExpiry(c.end_date);
                   const expiring = days !== null && days > 0 && days <= 60;
                   const expired  = days !== null && days <= 0;
@@ -320,9 +333,9 @@ const ContractManager = () => {
                       ${expiring ? 'bg-warning-50/50' : ''}`}>
                       <td className="px-4">
                         <div className="flex items-center gap-3">
-                          <Avatar name={user?.name || user?.email || '?'} size="sm" />
+                          <Avatar name={user?.Profile?.full_name || user?.name || user?.email || '?'} size="sm" />
                           <div>
-                            <p className="text-[13px] font-medium text-gray-900 leading-tight">{user?.name || '—'}</p>
+                            <p className="text-[13px] font-medium text-gray-900 leading-tight">{user?.Profile?.full_name || user?.name || '—'}</p>
                             <p className="text-[12px] text-gray-400 mt-0.5">{user?.email || '—'}</p>
                           </div>
                         </div>
@@ -411,26 +424,31 @@ const ContractManager = () => {
                     {employees
                       .filter(emp => {
                         const q = empSearch.toLowerCase();
-                        return !q || (emp.name || '').toLowerCase().includes(q) || emp.email.toLowerCase().includes(q);
+                        const fullName = emp.Profile?.full_name || emp.name || '';
+                        return !q || fullName.toLowerCase().includes(q) || emp.email.toLowerCase().includes(q);
                       })
-                      .map(emp => (
-                        <button
-                          key={emp.id}
-                          type="button"
-                          className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-gray-50 flex items-center gap-3 transition-colors"
-                          onMouseDown={() => {
-                            setFormData({ ...formData, user_id: emp.id });
-                            setEmpSearch(`${emp.name || emp.email}${emp.department ? ' · ' + emp.department : ''}`);
-                            setEmpDropdownOpen(false);
-                          }}
-                        >
-                          <Avatar name={emp.name || emp.email} size="xs" />
-                          <span>
-                            <p className="font-medium text-gray-800">{emp.name || emp.email}</p>
-                            <p className="text-[11px] text-gray-400">{emp.email}</p>
-                          </span>
-                        </button>
-                      ))}
+                      .map(emp => {
+                        const nameToDisplay = emp.Profile?.full_name || emp.name || emp.email;
+                        const deptName = emp.department?.name || emp.department || '';
+                        return (
+                          <button
+                            key={emp.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2.5 text-[13px] hover:bg-gray-50 flex items-center gap-3 transition-colors"
+                            onMouseDown={() => {
+                              setFormData({ ...formData, user_id: emp.id });
+                              setEmpSearch(`${nameToDisplay}${deptName ? ' · ' + deptName : ''}`);
+                              setEmpDropdownOpen(false);
+                            }}
+                          >
+                            <Avatar name={nameToDisplay} size="xs" />
+                            <span>
+                              <p className="font-medium text-gray-800">{nameToDisplay}</p>
+                              <p className="text-[11px] text-gray-400">{emp.email}</p>
+                            </span>
+                          </button>
+                        );
+                      })}
                   </div>
                 )}
               </div>
@@ -447,8 +465,9 @@ const ContractManager = () => {
                 <label className={labelClass}>Loại hợp đồng</label>
                 <select className={inputClass} value={formData.contract_type}
                   onChange={e => setFormData({ ...formData, contract_type: e.target.value })}>
-                  <option value="probation">Thử việc</option>
-                  <option value="official">Chính thức</option>
+                  <option value="Thử việc">Thử việc</option>
+                  <option value="Chính thức">Chính thức</option>
+                  <option value="Thời vụ">Thời vụ</option>
                 </select>
               </div>
               <div>
@@ -500,8 +519,9 @@ const ContractManager = () => {
                 <select className={inputClass} value={extendData.contract_type}
                   onChange={e => setExtendData({ ...extendData, contract_type: e.target.value })}>
                   <option value="">— Không thay đổi —</option>
-                  <option value="probation">Thử việc</option>
-                  <option value="official">Chính thức</option>
+                  <option value="Thử việc">Thử việc</option>
+                  <option value="Chính thức">Chính thức</option>
+                  <option value="Thời vụ">Thời vụ</option>
                 </select>
               </div>
               <div>
