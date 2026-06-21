@@ -16,6 +16,7 @@ const PromotionProposal = require('./PromotionProposal');
 const Payroll = require('./Payroll');
 const SalaryAdjustment = require('./SalaryAdjustment');
 const AdvanceRequest = require('./AdvanceRequest');
+const AttendanceLock = require('./AttendanceLock');
 
 // Define Associations
 // 1 Phòng ban có nhiều Nhân viên
@@ -148,4 +149,5 @@ module.exports = {
   Payroll,
   SalaryAdjustment,
   AdvanceRequest,
+  AttendanceLock,
 };

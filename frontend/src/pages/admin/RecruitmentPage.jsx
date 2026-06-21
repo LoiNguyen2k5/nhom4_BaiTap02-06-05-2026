@@ -15,7 +15,21 @@ const STAGES = [
   { id: 'iv2',       title: 'PV vòng 2 / Test',   cls: 'stage-iv2',       subtitle: 'Avg 4 ngày' },
   { id: 'offer',     title: 'Offer',              cls: 'stage-offer',     subtitle: 'Hạn 7 ngày' },
   { id: 'hired',     title: 'Đã tuyển',           cls: 'stage-hired',     subtitle: 'Trong tháng' },
+  { id: 'rejected',  title: 'Bị loại',            cls: 'stage-rejected',  subtitle: 'Lưu trữ CV' },
 ];
+
+function formatDateTimeLocal(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  const mm = pad(d.getMonth() + 1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
 
 const EMPTY_FORM = {
   name: '', email: '', phone: '', position: '',
@@ -338,6 +352,204 @@ function AddCandidateModal({ positions, onClose, onSuccess }) {
   );
 }
 
+/* ── Candidate Detail Modal ──────────────────────────────── */
+function CandidateDetailModal({ candidate, onClose, onSuccess, onDeleteClick, pushToast }) {
+  const [form, setForm] = useState({
+    name: candidate.name || '',
+    email: candidate.email || '',
+    phone: candidate.phone || '',
+    position: candidate.position || '',
+    skills: Array.isArray(candidate.skills) ? candidate.skills.join(', ') : '',
+    experience_years: candidate.experience_years || 0,
+    expected_salary: candidate.expected_salary || '',
+    source: candidate.source || 'Other',
+    current_company: candidate.current_company || '',
+    note: candidate.note || '',
+    match_score: candidate.match_score || 3.5,
+    stage: candidate.stage || 'new',
+    interview_date: candidate.interview_date ? formatDateTimeLocal(candidate.interview_date) : '',
+    interview_link: candidate.interview_link || '',
+    interviewer: candidate.interviewer || '',
+    interview_note: candidate.interview_note || '',
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  const handleSave = async () => {
+    if (!form.name.trim() || !form.position.trim()) {
+      setError('Họ tên và Vị trí là bắt buộc.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const skillArr = form.skills ? form.skills.split(',').map((s) => s.trim()).filter(Boolean) : [];
+      await recruitmentService.updateCandidate(candidate.id, {
+        ...form,
+        skills: skillArr,
+        experience_years: Number(form.experience_years) || 0,
+        expected_salary: form.expected_salary ? Number(form.expected_salary) : null,
+        match_score: Number(form.match_score) || 3.5,
+        interview_date: form.interview_date ? new Date(form.interview_date) : null,
+      });
+      pushToast('success', 'Cập nhật ứng viên thành công!');
+      onSuccess();
+      onClose();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Lỗi khi cập nhật ứng viên');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleActionStage = async (newStage) => {
+    setLoading(true);
+    try {
+      await recruitmentService.moveStage(candidate.id, newStage);
+      pushToast('success', `Đã chuyển ứng viên sang trạng thái "${STAGES.find(s => s.id === newStage)?.title}"`);
+      onSuccess();
+      onClose();
+    } catch {
+      pushToast('error', 'Lỗi khi chuyển trạng thái ứng viên');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const Field = ({ label, children }) => (
+    <div className="rc-form-grp">
+      <label className="rc-lbl">{label}</label>
+      {children}
+    </div>
+  );
+
+  return (
+    <div className="rc-modal-bg" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="rc-modal" style={{ maxWidth: '800px' }}>
+        <div className="rc-modal__header">
+          <div>
+            <h2 className="rc-modal__title">Chi tiết ứng viên: {candidate.name}</h2>
+            <p className="rc-modal__sub">Cập nhật thông tin ứng tuyển và lịch phỏng vấn</p>
+          </div>
+          <button className="rc-modal__close" onClick={onClose}>{Icons.X()}</button>
+        </div>
+
+        <div className="rc-modal__body">
+          {error && <div className="rc-error-banner">{error}</div>}
+
+          <div className="rc-modal-grid">
+            {/* Cột trái: Thông tin cá nhân */}
+            <div className="rc-modal-col">
+              <h4 className="rc-modal-section-title">Thông tin hồ sơ</h4>
+              
+              <div className="rc-form-grid">
+                <Field label="Họ và tên">
+                  <input className="rc-inp" value={form.name} onChange={(e) => set('name', e.target.value)} />
+                </Field>
+                <Field label="Vị trí ứng tuyển">
+                  <input className="rc-inp" value={form.position} onChange={(e) => set('position', e.target.value)} />
+                </Field>
+              </div>
+
+              <div className="rc-form-grid">
+                <Field label="Email">
+                  <input className="rc-inp" value={form.email} onChange={(e) => set('email', e.target.value)} />
+                </Field>
+                <Field label="Số điện thoại">
+                  <input className="rc-inp" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
+                </Field>
+              </div>
+
+              <div className="rc-form-grid">
+                <Field label="Kinh nghiệm (năm)">
+                  <input className="rc-inp" type="number" value={form.experience_years} onChange={(e) => set('experience_years', e.target.value)} />
+                </Field>
+                <Field label="Lương mong muốn (₫)">
+                  <input className="rc-inp rc-mono" type="number" value={form.expected_salary} onChange={(e) => set('expected_salary', e.target.value)} />
+                </Field>
+              </div>
+
+              <div className="rc-form-grid">
+                <Field label="Nguồn ứng tuyển">
+                  <select className="rc-inp rc-select" value={form.source} onChange={(e) => set('source', e.target.value)}>
+                    {['LinkedIn','TopCV','Referral','Direct','Other'].map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </Field>
+                <Field label="Đang làm tại">
+                  <input className="rc-inp" value={form.current_company} onChange={(e) => set('current_company', e.target.value)} />
+                </Field>
+              </div>
+
+              <Field label="Kỹ năng (cách nhau bằng dấu phẩy)">
+                <input className="rc-inp" value={form.skills} onChange={(e) => set('skills', e.target.value)} />
+              </Field>
+
+              <Field label="Ghi chú hồ sơ">
+                <textarea className="rc-inp rc-textarea" style={{ height: '70px' }} value={form.note} onChange={(e) => set('note', e.target.value)} />
+              </Field>
+            </div>
+
+            {/* Cột phải: Lịch phỏng vấn & Trạng thái */}
+            <div className="rc-modal-col">
+              <h4 className="rc-modal-section-title">Tiến trình & Lịch phỏng vấn</h4>
+
+              <div className="rc-form-grid">
+                <Field label="Trạng thái hiện tại">
+                  <select className="rc-inp rc-select" value={form.stage} onChange={(e) => { set('stage', e.target.value); handleActionStage(e.target.value); }}>
+                    {STAGES.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
+                  </select>
+                </Field>
+                <Field label="Điểm đánh giá AI (1-5)">
+                  <input className="rc-inp" type="number" step="0.1" min="1" max="5" value={form.match_score} onChange={(e) => set('match_score', e.target.value)} />
+                </Field>
+              </div>
+
+              <div className="rc-interview-box">
+                <p className="rc-interview-box-title">Thông tin phỏng vấn</p>
+                <Field label="Thời gian phỏng vấn">
+                  <input className="rc-inp" type="datetime-local" value={form.interview_date} onChange={(e) => set('interview_date', e.target.value)} />
+                </Field>
+                <Field label="Link phỏng vấn (Google Meet / Zoom)">
+                  <input className="rc-inp" placeholder="https://meet.google.com/..." value={form.interview_link} onChange={(e) => set('interview_link', e.target.value)} />
+                </Field>
+                <Field label="Người phỏng vấn">
+                  <input className="rc-inp" placeholder="Tên người phỏng vấn..." value={form.interviewer} onChange={(e) => set('interviewer', e.target.value)} />
+                </Field>
+                <Field label="Ghi chú buổi phỏng vấn">
+                  <textarea className="rc-inp rc-textarea" style={{ height: '80px' }} placeholder="Nhận xét đánh giá phỏng vấn..." value={form.interview_note} onChange={(e) => set('interview_note', e.target.value)} />
+                </Field>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rc-modal__footer" style={{ justifyContent: 'space-between' }}>
+          <div>
+            <button className="rc-btn rc-btn--ghost" style={{ color: 'var(--rc-danger)' }} onClick={() => onDeleteClick(candidate)}>
+              Xóa ứng viên
+            </button>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="rc-btn rc-btn--ghost" onClick={onClose}>Đóng</button>
+            <button className="rc-btn rc-btn--danger" onClick={() => handleActionStage('rejected')} disabled={loading || form.stage === 'rejected'}>
+              Từ chối (Reject)
+            </button>
+            <button className="rc-btn rc-btn--primary" style={{ background: 'var(--rc-success-soft)', borderColor: 'var(--rc-success-soft)' }} onClick={() => handleActionStage('hired')} disabled={loading || form.stage === 'hired'}>
+              Chấp nhận tuyển (Hired)
+            </button>
+            <button className="rc-btn rc-btn--primary" onClick={handleSave} disabled={loading}>
+              Lưu thay đổi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Delete Confirm Modal ────────────────────────────────── */
 function DeleteModal({ candidate, onClose, onConfirm }) {
   return (
@@ -378,6 +590,7 @@ export default function RecruitmentPage() {
   const [showAdd, setShowAdd]     = useState(false);
   const [delTarget, setDelTarget] = useState(null);
   const [filterPos, setFilterPos] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all'); // all | active | hired | rejected
 
   const { toasts, push } = useToast();
 
@@ -395,7 +608,7 @@ export default function RecruitmentPage() {
       setStats(statsRes.data);
       setPositions(posRes.data || []);
     } catch {
-      setBoard({ new: [], screening: [], interview1: [], interview2: [], offer: [], hired: [], rejected: [] });
+      setBoard({ new: [], screening: [], iv1: [], iv2: [], offer: [], hired: [], rejected: [] });
       setStats(null);
       setPositions([]);
     } finally {
@@ -461,7 +674,16 @@ export default function RecruitmentPage() {
     }
   };
 
+  const selectedCandidate = Object.values(board).flat().find((c) => c?.id === selected);
   const totalActive = STAGES.reduce((sum, s) => sum + (board[s.id]?.length || 0), 0);
+
+  const visibleStages = STAGES.filter((stage) => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'active') return stage.id !== 'hired' && stage.id !== 'rejected';
+    if (filterStatus === 'hired') return stage.id === 'hired';
+    if (filterStatus === 'rejected') return stage.id === 'rejected';
+    return true;
+  });
 
   return (
     <div className="rc-page">
@@ -479,6 +701,17 @@ export default function RecruitmentPage() {
             >
               <option value="">Tất cả vị trí ({positions.length} mở)</option>
               {positions.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <select
+              className="rc-pos-select"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              style={{ marginLeft: '8px' }}
+            >
+              <option value="all">Tất cả trạng thái (All)</option>
+              <option value="active">Đang ứng tuyển (Active)</option>
+              <option value="hired">Chấp nhận (Hired / Accept)</option>
+              <option value="rejected">Từ chối (Rejected / Deny)</option>
             </select>
           </div>
           <p className="rc-header__sub">
@@ -507,7 +740,7 @@ export default function RecruitmentPage() {
           </div>
         ) : (
           <div className="rc-board">
-            {STAGES.map((stage) => (
+            {visibleStages.map((stage) => (
               <KanbanColumn
                 key={stage.id}
                 stage={stage}
@@ -530,6 +763,15 @@ export default function RecruitmentPage() {
       </div>
 
       {/* Modals */}
+      {selectedCandidate && (
+        <CandidateDetailModal
+          candidate={selectedCandidate}
+          onClose={() => setSelected(null)}
+          onSuccess={() => { loadBoard(); }}
+          onDeleteClick={(c) => { setSelected(null); setDelTarget(c); }}
+          pushToast={push}
+        />
+      )}
       {showAdd && (
         <AddCandidateModal
           positions={positions}

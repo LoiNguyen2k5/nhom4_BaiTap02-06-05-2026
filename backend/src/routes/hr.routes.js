@@ -36,4 +36,9 @@ router.put('/contracts/:id/renew', hrController.renewContract);
 // Employees list
 router.get('/employees', hrContractController.getAllEmployees);
 
+// Attendance report and locking
+router.get('/attendance/report', hrController.getAttendanceReport);
+router.post('/attendance/lock', hrController.lockAttendance);
+router.post('/attendance/unlock', hrController.unlockAttendance);
+
 module.exports = router;

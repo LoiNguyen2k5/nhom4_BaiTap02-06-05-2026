@@ -58,7 +58,7 @@ const NAV_CONFIG = {
         items: [
           { label: 'Ứng viên',           path: '/hr/recruitment',     icon: UserSearch },
           { label: 'Lịch phỏng vấn',     path: '/hr/interviews',      icon: CalendarDays },
-          { label: 'Báo cáo',            path: '/hr/reports',         icon: BarChart2 },
+          { label: 'Báo cáo chấm công',  path: '/hr/reports',         icon: BarChart2 },
         ],
       },
       {

@@ -32,6 +32,7 @@ import ContractManager from './pages/hr/ContractManager';
 import UserTasks from './pages/user/UserTasks';
 import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
+import HRAttendanceReport from './pages/hr/HRAttendanceReport';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PayrollPage from './pages/accountant/PayrollPage';
@@ -162,6 +163,8 @@ const App = () => {
         <Route path="promotions"  element={<PromotionManager />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
         <Route path="interviews"  element={<HRInterviews />} />
+        <Route path="reports"     element={<HRAttendanceReport />} />
+        <Route path="attendance"  element={<HRAttendanceReport />} />
       </Route>
 
       {/* Admin dashboard */}

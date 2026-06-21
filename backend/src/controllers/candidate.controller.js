@@ -120,7 +120,7 @@ const updateCandidate = async (req, res) => {
     const candidate = await Candidate.findByPk(req.params.id);
     if (!candidate) return res.status(404).json({ success: false, message: 'Không tìm thấy ứng viên' });
 
-    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'onboard_date'];
+    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'onboard_date', 'interview_date', 'interview_link', 'interviewer', 'interview_note'];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
     updates.updated_at = new Date();

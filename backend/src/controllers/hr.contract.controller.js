@@ -85,12 +85,19 @@ exports.createContract = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
     }
 
+    const finalEndDate = end_date || null;
+
+    // Validation ngày bắt đầu và kết thúc
+    if (start_date && finalEndDate && new Date(finalEndDate) < new Date(start_date)) {
+      return res.status(400).json({ message: 'Ngày kết thúc hợp đồng không được trước ngày bắt đầu' });
+    }
+
     const newContract = await Contract.create({
       user_id,
       contract_number,
       contract_type,
       start_date,
-      end_date,
+      end_date: finalEndDate,
       basic_salary,
       status: 'active'
     });
@@ -117,7 +124,13 @@ exports.extendContract = async (req, res) => {
     }
 
     // Cập nhật các trường thông tin nếu có gửi lên từ client
-    if (end_date) contract.end_date = end_date;
+    if (end_date !== undefined) {
+      const finalEndDate = end_date || null;
+      if (finalEndDate && new Date(finalEndDate) < new Date(contract.start_date)) {
+        return res.status(400).json({ message: 'Ngày kết thúc hợp đồng không được trước ngày bắt đầu' });
+      }
+      contract.end_date = finalEndDate;
+    }
     if (basic_salary) contract.basic_salary = basic_salary;
     if (status) contract.status = status;
     if (contract_type) contract.contract_type = contract_type; // Chuyển từ thử việc sang chính thức

@@ -11,6 +11,10 @@ const transporter = nodemailer.createTransport({
 });
 
 const sendOTPEmail = async (toEmail, userName, otpCode) => {
+  if (process.env.BYPASS_LIMITER === 'true') {
+    console.log(`[MAIL MOCK] sendOTPEmail to=${toEmail} otpCode=${otpCode}`);
+    return;
+  }
   const mailOptions = {
     from: `"Nhom 4 App" <${process.env.EMAIL_USER}>`,
     to: toEmail,
@@ -36,6 +40,10 @@ const sendOTPEmail = async (toEmail, userName, otpCode) => {
 };
 
 const sendPasswordResetEmail = async (toEmail, otpCode) => {
+  if (process.env.BYPASS_LIMITER === 'true') {
+    console.log(`[MAIL MOCK] sendPasswordResetEmail to=${toEmail} otpCode=${otpCode}`);
+    return;
+  }
   const mailOptions = {
     from: `"Nhom 4 App" <${process.env.EMAIL_USER}>`,
     to: toEmail,
@@ -68,7 +76,12 @@ const sendPasswordResetEmail = async (toEmail, otpCode) => {
   };
   await transporter.sendMail(mailOptions);
 };
+
 const sendPayslipEmail = async (toEmail, userName, payroll) => {
+  if (process.env.BYPASS_LIMITER === 'true') {
+    console.log(`[MAIL MOCK] sendPayslipEmail to=${toEmail} name=${userName} netSalary=${payroll.net_salary}`);
+    return;
+  }
   const monthLabel = payroll.month; // YYYY-MM format
   const mailOptions = {
     from: `"Kế Toán Nhóm 4 App" <${process.env.EMAIL_USER}>`,
