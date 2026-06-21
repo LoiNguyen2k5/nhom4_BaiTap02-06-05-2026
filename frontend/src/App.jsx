@@ -23,6 +23,7 @@ import AdminDepartments from './pages/admin/AdminDepartments';
 import AdminConfig from './pages/admin/AdminConfig';
 import AdminTasks from './pages/admin/AdminTasks';
 import RecruitmentPage from './pages/admin/RecruitmentPage';
+import ActivityLogs from './pages/admin/ActivityLogs';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import HRDashboard from './pages/hr/HRDashboard';
@@ -178,6 +179,7 @@ const App = () => {
         <Route path="tasks"       element={<AdminTasks />} />
         <Route path="config"      element={<AdminConfig />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
+        <Route path="activity-logs" element={<ActivityLogs />} />
       </Route>
     </Routes>
   );

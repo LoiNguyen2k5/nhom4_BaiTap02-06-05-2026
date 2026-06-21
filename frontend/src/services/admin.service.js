@@ -26,6 +26,16 @@ export const adminService = {
     return response.data;
   },
 
+  resetUserPassword: async (userId) => {
+    const response = await axiosClient.put(`/admin/users/${userId}/reset-password`);
+    return response.data;
+  },
+
+  getActivityLogs: async (params) => {
+    const response = await axiosClient.get('/admin/activity-logs', { params });
+    return response.data;
+  },
+
   // ---- Department APIs ----
   getDepartments: async (params) => {
     const response = await axiosClient.get('/admin/departments', { params });

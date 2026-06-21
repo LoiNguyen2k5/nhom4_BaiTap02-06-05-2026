@@ -193,7 +193,7 @@ const AdminUsers = () => {
             className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors"
           >
             <option value="">Tất cả phòng ban</option>
-            {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
+            {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
 
           {/* Ngày tạo */}
