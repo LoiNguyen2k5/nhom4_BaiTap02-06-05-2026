@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
-const createAdminAccount = require('../utils/createAdmin');
+const seedData = require('../utils/seedData');
 
 const initializeDatabase = async () => {
   try {
@@ -45,8 +45,8 @@ const initializeDatabase = async () => {
     await sequelize.sync({ alter: true });
     console.log('✓ Database da duoc cap nhat thanh cong');
 
-    // Create admin account
-    await createAdminAccount();
+    // Seed toàn bộ dữ liệu mẫu (bao gồm tài khoản hệ thống)
+    await seedData();
   } catch (error) {
     console.error('✗ Lỗi kết nối database:', error.message);
     process.exit(1);
