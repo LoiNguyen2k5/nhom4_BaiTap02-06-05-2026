@@ -44,6 +44,12 @@ const Candidate = sequelize.define(
     match_score: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 3.5 },
     onboard_date: { type: DataTypes.DATEONLY, allowNull: true },
 
+    // Các trường phỏng vấn mới
+    interview_date: { type: DataTypes.DATE, allowNull: true },
+    interview_link: { type: DataTypes.STRING(255), allowNull: true },
+    interviewer: { type: DataTypes.STRING(100), allowNull: true },
+    interview_note: { type: DataTypes.TEXT, allowNull: true },
+
     // Người tạo (admin/hr)
     created_by: { type: DataTypes.INTEGER, allowNull: true },
 

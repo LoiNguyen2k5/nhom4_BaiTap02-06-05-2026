@@ -1,6 +1,7 @@
-const { User, Profile, AccountRequest, Contract, Department } = require('../models');
+const { User, Profile, AccountRequest, Contract, Department, Attendance, AttendanceLock } = require('../models');
 const { logActivity } = require('../utils/activityLogger');
 const bcrypt = require('bcrypt');
+const { Op } = require('sequelize');
 
 // ==========================================
 // QUẢN LÝ YÊU CẦU CẤP TÀI KHOẢN (ACCOUNT REQUESTS)
@@ -224,3 +225,150 @@ exports.renewContract = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
+
+// ==========================================
+// BÁO CÁO VÀ CHỐT CÔNG (ATTENDANCE REPORTS & LOCK)
+// ==========================================
+
+exports.getAttendanceReport = async (req, res) => {
+  try {
+    const { month } = req.query; // format: "YYYY-MM"
+    if (!month) {
+      return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tháng (định dạng YYYY-MM)' });
+    }
+
+    // Check lock status
+    const lock = await AttendanceLock.findOne({ where: { month } });
+    const isLocked = !!lock;
+
+    // Get all employees (excluding admins)
+    const employees = await User.findAll({
+      where: {
+        role: { [Op.ne]: 'admin' }
+      },
+      include: [
+        { model: Department, as: 'department', attributes: ['name'] }
+      ]
+    });
+
+    const reportData = [];
+
+    // Start date and end date of the month
+    const year = parseInt(month.split('-')[0]);
+    const monthNum = parseInt(month.split('-')[1]) - 1;
+    const startDate = new Date(Date.UTC(year, monthNum, 1)).toISOString().split('T')[0];
+    const endDate = new Date(Date.UTC(year, monthNum + 1, 0)).toISOString().split('T')[0];
+
+    for (const employee of employees) {
+      const attendances = await Attendance.findAll({
+        where: {
+          user_id: employee.id,
+          date: {
+            [Op.between]: [startDate, endDate]
+          }
+        }
+      });
+
+      let presentCount = 0;
+      let lateCount = 0;
+      let absentCount = 0;
+      let leaveCount = 0;
+      let totalWorkHours = 0;
+
+      attendances.forEach(att => {
+        if (att.status === 'Present') presentCount++;
+        else if (att.status === 'Late') lateCount++;
+        else if (att.status === 'Absent') absentCount++;
+        else if (att.status === 'OnLeave') leaveCount++;
+        
+        if (att.work_hours) {
+          totalWorkHours += att.work_hours;
+        }
+      });
+
+      reportData.push({
+        user_id: employee.id,
+        name: employee.name,
+        email: employee.email,
+        department: employee.department ? employee.department.name : 'Chưa phân phòng',
+        present: presentCount,
+        late: lateCount,
+        absent: absentCount,
+        leave: leaveCount,
+        work_hours: parseFloat(totalWorkHours.toFixed(2))
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      isLocked,
+      data: reportData
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy báo cáo chấm công:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+exports.lockAttendance = async (req, res) => {
+  try {
+    const { month } = req.body;
+    const hr_id = req.user.id;
+
+    if (!month) {
+      return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tháng (định dạng YYYY-MM)' });
+    }
+
+    const existingLock = await AttendanceLock.findOne({ where: { month } });
+    if (existingLock) {
+      return res.status(400).json({ success: false, message: 'Bảng công tháng này đã được chốt và khóa trước đó!' });
+    }
+
+    await AttendanceLock.create({
+      month,
+      status: 'locked',
+      locked_by: hr_id
+    });
+
+    await logActivity({
+      userId: hr_id,
+      action: 'Chốt bảng công',
+      detail: `Khóa dữ liệu chấm công tháng ${month}`
+    });
+
+    res.status(200).json({ success: true, message: `Chốt và khóa bảng công tháng ${month} thành công, đã chuyển tiếp sang Kế toán.` });
+  } catch (error) {
+    console.error('Lỗi khi chốt bảng công:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi chốt bảng công' });
+  }
+};
+
+exports.unlockAttendance = async (req, res) => {
+  try {
+    const { month } = req.body;
+    const hr_id = req.user.id;
+
+    if (!month) {
+      return res.status(400).json({ success: false, message: 'Vui lòng cung cấp tháng (định dạng YYYY-MM)' });
+    }
+
+    const existingLock = await AttendanceLock.findOne({ where: { month } });
+    if (!existingLock) {
+      return res.status(400).json({ success: false, message: 'Bảng công tháng này chưa được khóa!' });
+    }
+
+    await existingLock.destroy();
+
+    await logActivity({
+      userId: hr_id,
+      action: 'Mở khóa bảng công',
+      detail: `Mở khóa dữ liệu chấm công tháng ${month}`
+    });
+
+    res.status(200).json({ success: true, message: `Mở khóa bảng công tháng ${month} thành công.` });
+  } catch (error) {
+    console.error('Lỗi khi mở khóa bảng công:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi mở khóa bảng công' });
+  }
+};
+

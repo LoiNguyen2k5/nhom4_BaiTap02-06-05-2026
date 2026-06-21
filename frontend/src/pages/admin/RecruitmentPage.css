@@ -308,6 +308,8 @@
 .stage-offer     .rc-col__header { background: var(--rc-navy-100); color: var(--rc-navy-700); }
 .stage-hired     { background: var(--rc-success-50); }
 .stage-hired     .rc-col__header { background: var(--rc-success-100); color: var(--rc-success); }
+.stage-rejected  { background: #fdf2f2; }
+.stage-rejected  .rc-col__header { background: #fde2e2; color: #991b1b; }
 
 /* ── Card ───────────────────────────────────────────────── */
 .rc-card {
@@ -509,4 +511,43 @@
   .rc-stats  { padding: 0 16px 12px; }
   .rc-board  { padding: 0 16px 16px; }
   .rc-form-grid { grid-template-columns: 1fr; }
+  .rc-modal-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Candidate Detail Modal additions ───────────────────── */
+.rc-modal-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+.rc-modal-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rc-modal-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--rc-navy-800);
+  border-bottom: 2px solid var(--rc-gray-100);
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+.rc-interview-box {
+  background: var(--rc-navy-50);
+  border: 1px solid var(--rc-navy-100);
+  border-radius: var(--rc-r-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rc-interview-box-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rc-navy-700);
+  margin-bottom: 4px;
 }

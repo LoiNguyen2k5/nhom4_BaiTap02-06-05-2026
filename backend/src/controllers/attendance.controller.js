@@ -1,4 +1,4 @@
-const { Attendance } = require('../models');
+const { Attendance, AttendanceLock } = require('../models');
 const { Op } = require('sequelize');
 
 exports.checkIn = async (req, res) => {
@@ -8,6 +8,13 @@ exports.checkIn = async (req, res) => {
     // Chuyển về giờ địa phương dạng YYYY-MM-DD để query (ở VN timezone +7)
     // Tạm dùng múi giờ UTC hoặc server time
     const dateStr = today.toISOString().split('T')[0];
+    const currentMonth = dateStr.substring(0, 7); // e.g. "2026-06"
+
+    // Kiểm tra xem tháng hiện tại có bị chốt/khóa chưa
+    const isLocked = await AttendanceLock.findOne({ where: { month: currentMonth } });
+    if (isLocked) {
+      return res.status(400).json({ success: false, message: `Bảng công tháng ${currentMonth} đã bị khóa, không thể chấm công!` });
+    }
 
     // Kiểm tra đã check-in hôm nay chưa
     let attendance = await Attendance.findOne({
@@ -48,6 +55,13 @@ exports.checkOut = async (req, res) => {
     const userId = req.user.id;
     const today = new Date();
     const dateStr = today.toISOString().split('T')[0];
+    const currentMonth = dateStr.substring(0, 7); // e.g. "2026-06"
+
+    // Kiểm tra xem tháng hiện tại có bị chốt/khóa chưa
+    const isLocked = await AttendanceLock.findOne({ where: { month: currentMonth } });
+    if (isLocked) {
+      return res.status(400).json({ success: false, message: `Bảng công tháng ${currentMonth} đã bị khóa, không thể chấm công!` });
+    }
 
     const attendance = await Attendance.findOne({
       where: {

@@ -1,4 +1,4 @@
-const { Task, Attendance, PerformanceReview, PromotionProposal, User } = require('../models');
+const { Task, Attendance, PerformanceReview, PromotionProposal, User, Contract } = require('../models');
 
 exports.getDashboardData = async (req, res) => {
   try {
@@ -93,18 +93,34 @@ exports.createPromotionProposal = async (req, res) => {
     if (req.user.role !== 'manager') {
       return res.status(403).json({ success: false, message: 'Forbidden: Manager role required' });
     }
-    const { user_id, current_position, proposed_position, reason } = req.body;
+    const { user_id, current_position, proposed_position, proposed_salary, reason } = req.body;
+
+    let warning = null;
+    let finalProposedPosition = proposed_position;
+
+    if (proposed_salary) {
+      const activeContract = await Contract.findOne({
+        where: { user_id, status: 'active' }
+      });
+      if (activeContract && activeContract.basic_salary > 0) {
+        const increasePercent = ((proposed_salary - activeContract.basic_salary) / activeContract.basic_salary) * 100;
+        if (increasePercent > 30) {
+          warning = 'Mức tăng vượt ngưỡng, cần phê duyệt thêm từ cấp trên';
+        }
+      }
+      finalProposedPosition = `${proposed_position} (Lương đề xuất: ${Number(proposed_salary).toLocaleString('vi-VN')} VNĐ)`;
+    }
 
     const proposal = await PromotionProposal.create({
       user_id,
       proposed_by: req.user.id,
       current_position,
-      proposed_position,
+      proposed_position: finalProposedPosition,
       reason,
       status: 'Pending'
     });
 
-    res.json({ success: true, data: proposal, message: 'Proposal created' });
+    res.json({ success: true, data: proposal, warning, message: 'Proposal created' });
   } catch (error) {
     console.error('createPromotionProposal error:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -116,9 +132,15 @@ exports.getPromotionProposals = async (req, res) => {
     if (req.user.role !== 'manager' && req.user.role !== 'admin' && req.user.role !== 'hr') {
       return res.status(403).json({ success: false, message: 'Forbidden: Role required' });
     }
+    const { Profile } = require('../models');
     const proposals = await PromotionProposal.findAll({
       include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'email'] },
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email'],
+          include: [{ model: Profile }]
+        },
         { model: User, as: 'proposer', attributes: ['id', 'name'] }
       ],
       order: [['createdAt', 'DESC']]
@@ -158,7 +180,14 @@ exports.getAllEmployees = async (req, res) => {
   try {
     const employees = await User.findAll({
       where: { role: 'employee' },
-      attributes: ['id', 'name', 'email', 'status']
+      attributes: ['id', 'name', 'email', 'status'],
+      include: [{
+        model: Contract,
+        as: 'contracts',
+        where: { status: 'active' },
+        required: false,
+        attributes: ['basic_salary']
+      }]
     });
     res.json({ success: true, data: employees });
   } catch (error) {

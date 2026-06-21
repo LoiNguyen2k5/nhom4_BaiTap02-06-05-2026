@@ -32,6 +32,11 @@ const LeaveService = {
     return axiosClient.get('/leaves/pending');
   },
 
+  // Lấy danh sách lịch sử các đơn đã được duyệt hoặc từ chối
+  getApprovalHistory: () => {
+    return axiosClient.get('/leaves/history');
+  },
+
   // Duyệt hoặc Từ chối đơn
   approveOrRejectRequest: (id, status, rejectReason = '') => {
     return axiosClient.put(`/leaves/${id}/approve`, {

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil } from 'lucide-react';
 import { adminService } from '../../services/admin.service';
 import Avatar from '../../components/ui/Avatar';
@@ -19,8 +20,12 @@ const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://loc
 
 const AdminUserDetail = () => {
   const { id } = useParams();
+  const { user: currentUser } = useSelector((state) => state.auth);
+  const isCurrentAdmin = currentUser?.role === 'admin';
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
@@ -31,10 +36,16 @@ const AdminUserDetail = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await adminService.getUserById(id);
-        if (res.success) {
-          setUser(res.data.user);
-          setProfile(res.data.profile || null);
+        const [resUser, resDepts] = await Promise.all([
+          adminService.getUserById(id),
+          adminService.getDepartments({ status: 'active' })
+        ]);
+        if (resUser.success) {
+          setUser(resUser.data.user);
+          setProfile(resUser.data.profile || null);
+        }
+        if (resDepts.success) {
+          setDepartments(resDepts.data);
         }
       } catch {
         setError('Không tìm thấy người dùng.');
@@ -73,6 +84,32 @@ const AdminUserDetail = () => {
       if (res.success) setUser((prev) => ({ ...prev, role: newRole }));
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật role');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDepartmentChange = async (newDeptId) => {
+    if (!user) return;
+    const deptId = newDeptId ? parseInt(newDeptId) : null;
+    if (user.department_id === deptId) return;
+    
+    const confirmed = window.confirm(`Xác nhận thay đổi phòng ban của nhân viên này?`);
+    if (!confirmed) return;
+    
+    try {
+      setActionLoading(true);
+      const res = await adminService.updateUserDepartment(user.id, deptId);
+      if (res.success) {
+        const selectedDept = departments.find(d => d.id === deptId);
+        setUser((prev) => ({
+          ...prev,
+          department_id: deptId,
+          department: selectedDept ? { id: deptId, name: selectedDept.name } : null
+        }));
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật phòng ban');
     } finally {
       setActionLoading(false);
     }
@@ -122,7 +159,7 @@ const AdminUserDetail = () => {
     <div className="space-y-5">
       {/* Back link */}
       <Link
-        to="/admin/users"
+        to={isCurrentAdmin ? "/admin/users" : "/hr/employees"}
         className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft size={14} strokeWidth={2} />
@@ -165,22 +202,26 @@ const AdminUserDetail = () => {
                   <Send size={13} strokeWidth={1.75} />
                   Gửi email
                 </button>
-                <button
-                  onClick={handleToggleStatus}
-                  disabled={actionLoading}
-                  className={`h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium rounded-md transition-colors disabled:opacity-60
-                    ${isActive
-                      ? 'border border-danger-300 bg-danger-50 text-danger-700 hover:bg-danger-100'
-                      : 'border border-success-300 bg-success-50 text-success-700 hover:bg-success-100'
-                    }`}
-                >
-                  {isActive ? <Lock size={13} strokeWidth={1.75} /> : <Unlock size={13} strokeWidth={1.75} />}
-                  {isActive ? 'Khóa TK' : 'Mở khóa'}
-                </button>
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors">
-                  <Pencil size={13} strokeWidth={2} />
-                  Chỉnh sửa
-                </button>
+                {isCurrentAdmin && (
+                  <>
+                    <button
+                      onClick={handleToggleStatus}
+                      disabled={actionLoading}
+                      className={`h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium rounded-md transition-colors disabled:opacity-60
+                        ${isActive
+                          ? 'border border-danger-300 bg-danger-50 text-danger-700 hover:bg-danger-100'
+                          : 'border border-success-300 bg-success-50 text-success-700 hover:bg-success-100'
+                        }`}
+                    >
+                      {isActive ? <Lock size={13} strokeWidth={1.75} /> : <Unlock size={13} strokeWidth={1.75} />}
+                      {isActive ? 'Khóa TK' : 'Mở khóa'}
+                    </button>
+                    <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors">
+                      <Pencil size={13} strokeWidth={2} />
+                      Chỉnh sửa
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -208,19 +249,39 @@ const AdminUserDetail = () => {
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <Badge variant={isActive ? 'success' : 'danger'} dot>{isActive ? 'Đang hoạt động' : 'Bị khoá'}</Badge>
               {roleCfg && <Badge variant={roleCfg.variant}>{roleCfg.label}</Badge>}
-              {/* Role change select */}
-              <select
-                value={user.role}
-                onChange={e => handleRoleChange(e.target.value)}
-                disabled={actionLoading}
-                className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
-              >
-                <option value="employee">Nhân viên</option>
-                <option value="hr">HR</option>
-                <option value="manager">Quản lý</option>
-                <option value="accountant">Kế toán</option>
-                <option value="admin">Quản trị viên</option>
-              </select>
+              {/* Role & Department change selects (Admin only) */}
+              {isCurrentAdmin ? (
+                <>
+                  <select
+                    value={user.role}
+                    onChange={e => handleRoleChange(e.target.value)}
+                    disabled={actionLoading}
+                    className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <option value="employee">Nhân viên</option>
+                    <option value="hr">HR</option>
+                    <option value="manager">Quản lý</option>
+                    <option value="accountant">Kế toán</option>
+                    <option value="admin">Quản trị viên</option>
+                  </select>
+
+                  <select
+                    value={user.department_id || ''}
+                    onChange={e => handleDepartmentChange(e.target.value)}
+                    disabled={actionLoading}
+                    className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <option value="">-- Chưa xếp phòng ban --</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <span className="text-[12px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                  Phòng ban: {user.department?.name || 'Chưa xếp'}
+                </span>
+              )}
             </div>
           </div>
         </div>

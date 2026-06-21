@@ -15,6 +15,7 @@ import MyLeaves from './pages/user/MyLeaves';
 import Payslip from './pages/user/Payslip';
 import AttendancePage from './pages/user/AttendancePage';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
+import ApprovalHistory from './pages/manager/ApprovalHistory';
 import TeamSchedule from './pages/manager/TeamSchedule';
 import ApprovalHistory from './pages/manager/ApprovalHistory';
 import ManagerTasks from './pages/manager/ManagerTasks';
@@ -33,6 +34,7 @@ import ContractManager from './pages/hr/ContractManager';
 import UserTasks from './pages/user/UserTasks';
 import EmployeeEvaluation from './pages/hr/EmployeeEvaluation';
 import PromotionManager from './pages/hr/PromotionManager';
+import HRAttendanceReport from './pages/hr/HRAttendanceReport';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import AccountantDashboard from './pages/accountant/AccountantDashboard';
 import PayrollPage from './pages/accountant/PayrollPage';
@@ -125,7 +127,7 @@ const App = () => {
         <Route path="evaluation"       element={<EmployeeEvaluation />} />
         <Route path="promotions"       element={<PromotionManager />} />
         <Route path="tasks"            element={<ManagerTasks />} />
-        <Route path="kpi"              element={<EmployeeEvaluation />} />
+        <Route path="kpi"             element={<EmployeeEvaluation />} />
       </Route>
 
       {/* Accountant dashboard */}
@@ -157,11 +159,14 @@ const App = () => {
       >
         <Route path="dashboard"   element={<HRDashboard />} />
         <Route path="employees"   element={<HREmployees />} />
+        <Route path="employees/:id" element={<AdminUserDetail />} />
         <Route path="contracts"   element={<ContractManager />} />
         <Route path="evaluation"  element={<EmployeeEvaluation />} />
         <Route path="promotions"  element={<PromotionManager />} />
         <Route path="recruitment" element={<RecruitmentPage />} />
         <Route path="interviews"  element={<HRInterviews />} />
+        <Route path="reports"     element={<HRAttendanceReport />} />
+        <Route path="attendance"  element={<HRAttendanceReport />} />
       </Route>
 
       {/* Admin dashboard */}

@@ -30,6 +30,9 @@ router.post('/request', leaveController.createLeaveRequest);
 // [GET] /api/leaves/pending -> Lấy danh sách đơn đang chờ duyệt
 router.get('/pending', leaveController.getPendingRequests);
 
+// [GET] /api/leaves/history -> Lấy danh sách đơn đã duyệt hoặc từ chối
+router.get('/history', leaveController.getApprovalHistory);
+
 // [PUT] /api/leaves/:id/approve -> Quản lý Duyệt hoặc Từ chối đơn (kèm lý do)
 router.put('/:id/approve', leaveController.approveOrRejectRequest);
 

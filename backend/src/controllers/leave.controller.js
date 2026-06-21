@@ -169,6 +169,11 @@ exports.approveOrRejectRequest = async (req, res) => {
     const request = await LeaveRequest.findByPk(requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn' });
     if (request.status !== 'pending') return res.status(400).json({ success: false, message: 'Đơn này đã được xử lý rồi' });
+    
+    // Không cho phép tự phê duyệt đơn của bản thân
+    if (request.user_id === managerId) {
+      return res.status(400).json({ success: false, message: 'Bạn không thể tự phê duyệt đơn của chính mình' });
+    }
 
     // Cập nhật người duyệt và thời gian duyệt
     request.status = status;
@@ -234,11 +239,10 @@ exports.getTeamSchedule = async (req, res) => {
 // 7. Lịch sử phê duyệt của Manager (tất cả đơn đã approved/rejected)
 exports.getApprovalHistory = async (req, res) => {
   try {
-    const { User } = require('../models');
+    const { User, Profile } = require('../models');
     const { status, type, from, to } = req.query;
 
     const where = {};
-    // Chỉ lấy đơn đã xử lý (không lấy pending)
     if (status && ['approved', 'rejected'].includes(status)) {
       where.status = status;
     } else {
@@ -248,7 +252,7 @@ exports.getApprovalHistory = async (req, res) => {
       where.type = type;
     }
     if (from) {
-      where.approved_at = { ...where.approved_at, [Op.gte]: new Date(from) };
+      where.approved_at = { [Op.gte]: new Date(from) };
     }
     if (to) {
       const toDate = new Date(to);
@@ -262,6 +266,12 @@ exports.getApprovalHistory = async (req, res) => {
         {
           model: User,
           as: 'requester',
+          attributes: ['id', 'name', 'email', 'department_id'],
+          include: [{ model: Profile }]
+        },
+        {
+          model: User,
+          as: 'approver',
           attributes: ['id', 'name', 'email']
         }
       ],
