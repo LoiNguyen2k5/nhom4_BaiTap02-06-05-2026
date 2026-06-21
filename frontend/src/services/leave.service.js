@@ -43,6 +43,12 @@ const LeaveService = {
   // Lấy danh sách lịch team (các đơn đã được duyệt)
   getTeamSchedule: () => {
     return axiosClient.get('/leaves/schedule');
+  },
+
+  // Lấy lịch sử phê duyệt (manager đã duyệt/từ chối)
+  getApprovalHistory: (params = {}) => {
+    // params: { status, type, from, to }
+    return axiosClient.get('/leaves/approval-history', { params });
   }
 };
 

@@ -178,7 +178,8 @@ const updateTaskStatus = async (req, res) => {
 
     const isOwner = task.assigned_to_id === req.user.id;
     const isAdmin = req.user.role === 'admin';
-    if (!isOwner && !isAdmin) {
+    const isManager = req.user.role === 'manager';
+    if (!isOwner && !isAdmin && !isManager) {
       return res.status(403).json({ success: false, message: 'Bạn không có quyền cập nhật task này' });
     }
 

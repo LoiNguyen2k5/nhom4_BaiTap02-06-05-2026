@@ -36,4 +36,7 @@ router.put('/:id/approve', leaveController.approveOrRejectRequest);
 // [GET] /api/leaves/schedule -> Lấy danh sách đơn đã duyệt để hiển thị lên Lịch
 router.get('/schedule', leaveController.getTeamSchedule);
 
+// [GET] /api/leaves/approval-history -> Lịch sử phê duyệt (Manager xem đã duyệt/từ chối gì)
+router.get('/approval-history', leaveController.getApprovalHistory);
+
 module.exports = router;

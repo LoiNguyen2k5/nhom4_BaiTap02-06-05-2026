@@ -16,6 +16,8 @@ import Payslip from './pages/user/Payslip';
 import AttendancePage from './pages/user/AttendancePage';
 import LeaveApprovals from './pages/manager/LeaveApprovals';
 import TeamSchedule from './pages/manager/TeamSchedule';
+import ApprovalHistory from './pages/manager/ApprovalHistory';
+import ManagerTasks from './pages/manager/ManagerTasks';
 import AdminProfile from './pages/admin/AdminProfile';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetail from './pages/admin/AdminUserDetail';
@@ -116,13 +118,14 @@ const App = () => {
         }
       >
         <Route index element={<ManagerDashboard />} />
-        <Route path="dashboard"       element={<ManagerDashboard />} />
-        <Route path="leave-approvals" element={<LeaveApprovals />} />
-        <Route path="team-schedule"   element={<TeamSchedule />} />
-        <Route path="evaluation"      element={<EmployeeEvaluation />} />
-        <Route path="promotions"      element={<PromotionManager />} />
-        <Route path="tasks"           element={<AdminTasks />} />
-        <Route path="kpi"             element={<EmployeeEvaluation />} />
+        <Route path="dashboard"        element={<ManagerDashboard />} />
+        <Route path="leave-approvals"  element={<LeaveApprovals />} />
+        <Route path="team-schedule"    element={<TeamSchedule />} />
+        <Route path="approval-history" element={<ApprovalHistory />} />
+        <Route path="evaluation"       element={<EmployeeEvaluation />} />
+        <Route path="promotions"       element={<PromotionManager />} />
+        <Route path="tasks"            element={<ManagerTasks />} />
+        <Route path="kpi"              element={<EmployeeEvaluation />} />
       </Route>
 
       {/* Accountant dashboard */}

@@ -230,3 +230,47 @@ exports.getTeamSchedule = async (req, res) => {
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
+
+// 7. Lịch sử phê duyệt của Manager (tất cả đơn đã approved/rejected)
+exports.getApprovalHistory = async (req, res) => {
+  try {
+    const { User } = require('../models');
+    const { status, type, from, to } = req.query;
+
+    const where = {};
+    // Chỉ lấy đơn đã xử lý (không lấy pending)
+    if (status && ['approved', 'rejected'].includes(status)) {
+      where.status = status;
+    } else {
+      where.status = { [Op.in]: ['approved', 'rejected'] };
+    }
+    if (type && ['leave', 'ot', 'other'].includes(type)) {
+      where.type = type;
+    }
+    if (from) {
+      where.approved_at = { ...where.approved_at, [Op.gte]: new Date(from) };
+    }
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      where.approved_at = { ...where.approved_at, [Op.lte]: toDate };
+    }
+
+    const history = await LeaveRequest.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'requester',
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      order: [['approved_at', 'DESC']]
+    });
+
+    res.status(200).json({ success: true, data: history });
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử phê duyệt:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
