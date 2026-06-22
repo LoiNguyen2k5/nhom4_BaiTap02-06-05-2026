@@ -30,3 +30,6 @@ Thumbs.db
 # Build output
 dist/
 build/
+
+# Face API models (large binary files - run: node download-models.js)
+frontend/public/models/

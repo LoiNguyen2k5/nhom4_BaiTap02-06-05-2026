@@ -1,4 +1,4 @@
-const { Department, User } = require('../models');
+const { Department, User } = require('../entities');
 
 // ============================================================
 // LẤY DANH SÁCH PHÒNG BAN

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, Shield, Lock, Unlock, Download, Send, Pencil, RefreshCcw } from 'lucide-react';
 import { adminService } from '../../services/admin.service';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
@@ -13,28 +14,36 @@ const ROLE_BADGE = {
   employee:   { label: 'Nhân viên',     variant: 'neutral' },
 };
 
-const TABS = ['Tổng quan', 'Công việc', 'Hợp đồng', 'Lịch sử'];
-
 const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
 const AdminUserDetail = () => {
   const { id } = useParams();
+  const { user: currentUser } = useSelector((state) => state.auth);
+  const isCurrentAdmin = currentUser?.role === 'admin';
+
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('Tổng quan');
+  const [resetPassResult, setResetPassResult] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await adminService.getUserById(id);
-        if (res.success) {
-          setUser(res.data.user);
-          setProfile(res.data.profile || null);
+        const [resUser, resDepts] = await Promise.all([
+          adminService.getUserById(id),
+          adminService.getDepartments({ status: 'active' })
+        ]);
+        if (resUser.success) {
+          setUser(resUser.data.user);
+          setProfile(resUser.data.profile || null);
+        }
+        if (resDepts.success) {
+          setDepartments(resDepts.data);
         }
       } catch {
         setError('Không tìm thấy người dùng.');
@@ -73,6 +82,49 @@ const AdminUserDetail = () => {
       if (res.success) setUser((prev) => ({ ...prev, role: newRole }));
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật role');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDepartmentChange = async (newDeptId) => {
+    if (!user) return;
+    const deptId = newDeptId ? parseInt(newDeptId) : null;
+    if (user.department_id === deptId) return;
+    const confirmed = window.confirm(`Xác nhận thay đổi phòng ban của nhân viên này?`);
+    if (!confirmed) return;
+    try {
+      setActionLoading(true);
+      const res = await adminService.updateUserDepartment(user.id, deptId);
+      if (res.success) {
+        const selectedDept = departments.find(d => d.id === deptId);
+        setUser((prev) => ({
+          ...prev,
+          department_id: deptId,
+          department: selectedDept ? { id: deptId, name: selectedDept.name } : null
+        }));
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Lỗi khi cập nhật phòng ban');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!user) return;
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn ĐẶT LẠI MẬT KHẨU cho người dùng ${user.email} không?`);
+    if (!confirmed) return;
+    try {
+      setActionLoading(true);
+      setError('');
+      setResetPassResult(null);
+      const res = await adminService.resetUserPassword(user.id);
+      if (res.success) {
+        setResetPassResult(res.data.tempPassword);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Lỗi khi đặt lại mật khẩu');
     } finally {
       setActionLoading(false);
     }
@@ -122,7 +174,7 @@ const AdminUserDetail = () => {
     <div className="space-y-5">
       {/* Back link */}
       <Link
-        to="/admin/users"
+        to={isCurrentAdmin ? "/admin/users" : "/hr/employees"}
         className="inline-flex items-center gap-1.5 text-[13px] text-gray-500 hover:text-gray-700 transition-colors"
       >
         <ArrowLeft size={14} strokeWidth={2} />
@@ -133,6 +185,25 @@ const AdminUserDetail = () => {
       {error && (
         <div className="border-l-[3px] border-danger-500 bg-danger-50 rounded-md px-4 py-3 text-[13px] text-danger-700">
           {error}
+        </div>
+      )}
+
+      {/* Mật khẩu mới được reset */}
+      {resetPassResult && (
+        <div className="bg-success-50 border border-success-200 rounded-lg p-5 mb-5">
+          <h3 className="text-[14px] font-semibold text-success-800 mb-2">Đã đặt lại mật khẩu thành công!</h3>
+          <p className="text-[13px] text-success-700 mb-3">Vui lòng copy mật khẩu dưới đây và gửi cho người dùng:</p>
+          <div className="flex items-center gap-3">
+            <code className="px-3 py-2 bg-white border border-success-300 rounded text-success-700 font-mono font-bold text-[14px]">
+              {resetPassResult}
+            </code>
+            <button 
+              onClick={() => { navigator.clipboard.writeText(resetPassResult); alert('Đã copy!'); }}
+              className="text-[12px] text-success-600 hover:text-success-800 font-medium underline"
+            >
+              Copy
+            </button>
+          </div>
         </div>
       )}
 
@@ -157,30 +228,34 @@ const AdminUserDetail = () => {
               </div>
               {/* Action buttons */}
               <div className="flex items-center gap-2 shrink-0">
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
-                  <Download size={13} strokeWidth={1.75} />
-                  Tải PDF
-                </button>
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 transition-colors">
-                  <Send size={13} strokeWidth={1.75} />
-                  Gửi email
-                </button>
-                <button
-                  onClick={handleToggleStatus}
+                <button 
+                  onClick={handleResetPassword}
                   disabled={actionLoading}
-                  className={`h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium rounded-md transition-colors disabled:opacity-60
-                    ${isActive
-                      ? 'border border-danger-300 bg-danger-50 text-danger-700 hover:bg-danger-100'
-                      : 'border border-success-300 bg-success-50 text-success-700 hover:bg-success-100'
-                    }`}
+                  className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium border border-gray-300 bg-white text-gray-600 rounded-md hover:bg-gray-50 disabled:opacity-60 transition-colors"
                 >
-                  {isActive ? <Lock size={13} strokeWidth={1.75} /> : <Unlock size={13} strokeWidth={1.75} />}
-                  {isActive ? 'Khóa TK' : 'Mở khóa'}
+                  <RefreshCcw size={13} strokeWidth={1.75} />
+                  Reset mật khẩu
                 </button>
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors">
-                  <Pencil size={13} strokeWidth={2} />
-                  Chỉnh sửa
-                </button>
+                {isCurrentAdmin && (
+                  <>
+                    <button
+                      onClick={handleToggleStatus}
+                      disabled={actionLoading}
+                      className={`h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium rounded-md transition-colors disabled:opacity-60
+                        ${isActive
+                          ? 'border border-danger-300 bg-danger-50 text-danger-700 hover:bg-danger-100'
+                          : 'border border-success-300 bg-success-50 text-success-700 hover:bg-success-100'
+                        }`}
+                    >
+                      {isActive ? <Lock size={13} strokeWidth={1.75} /> : <Unlock size={13} strokeWidth={1.75} />}
+                      {isActive ? 'Khóa TK' : 'Mở khóa'}
+                    </button>
+                    <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-semibold bg-accent-600 hover:bg-accent-700 text-white rounded-md transition-colors">
+                      <Pencil size={13} strokeWidth={2} />
+                      Chỉnh sửa
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -208,48 +283,48 @@ const AdminUserDetail = () => {
             <div className="flex flex-wrap items-center gap-2 mt-3">
               <Badge variant={isActive ? 'success' : 'danger'} dot>{isActive ? 'Đang hoạt động' : 'Bị khoá'}</Badge>
               {roleCfg && <Badge variant={roleCfg.variant}>{roleCfg.label}</Badge>}
-              {/* Role change select */}
-              <select
-                value={user.role}
-                onChange={e => handleRoleChange(e.target.value)}
-                disabled={actionLoading}
-                className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
-              >
-                <option value="employee">Nhân viên</option>
-                <option value="hr">HR</option>
-                <option value="manager">Quản lý</option>
-                <option value="accountant">Kế toán</option>
-                <option value="admin">Quản trị viên</option>
-              </select>
+              {/* Role & Department change selects (Admin only) */}
+              {isCurrentAdmin ? (
+                <>
+                  <select
+                    value={user.role}
+                    onChange={e => handleRoleChange(e.target.value)}
+                    disabled={actionLoading}
+                    className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <option value="employee">Nhân viên</option>
+                    <option value="hr">HR</option>
+                    <option value="manager">Quản lý</option>
+                    <option value="accountant">Kế toán</option>
+                    <option value="admin">Quản trị viên</option>
+                  </select>
+
+                  <select
+                    value={user.department_id || ''}
+                    onChange={e => handleDepartmentChange(e.target.value)}
+                    disabled={actionLoading}
+                    className="h-6 pl-2 pr-6 text-[11px] border border-gray-300 rounded bg-white text-gray-600 focus:outline-none focus:border-navy-700 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    <option value="">-- Chưa xếp phòng ban --</option>
+                    {departments.map(d => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </>
+              ) : (
+                <span className="text-[12px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                  Phòng ban: {user.department?.name || 'Chưa xếp'}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 -mb-px">
-        <div className="flex gap-0">
-          {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`h-10 px-5 text-[13px] font-medium border-b-2 transition-colors
-                ${activeTab === tab
-                  ? 'border-navy-700 text-navy-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Tab content */}
-      {activeTab === 'Tổng quan' && (
-        <div className="grid grid-cols-2 gap-4">
-          {/* Liên hệ */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Liên hệ */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
             <h3 className="text-[11px] font-semibold uppercase tracking-[.06em] text-gray-400 mb-4">Thông tin liên hệ</h3>
             <div className="space-y-3">
               {[
@@ -277,10 +352,8 @@ const AdminUserDetail = () => {
             <div className="space-y-3">
               {[
                 { label: 'Họ tên đầy đủ', value: profile?.full_name || user.name || '—' },
-                { label: 'Username', value: user.username || '—' },
                 { label: 'Vai trò', value: roleCfg?.label || user.role },
                 { label: 'Ngày tạo TK', value: user.created_at ? new Date(user.created_at).toLocaleString('vi-VN') : '—' },
-                { label: 'Đăng nhập gần nhất', value: user.last_login_at ? new Date(user.last_login_at).toLocaleString('vi-VN') : '—' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <span className="text-[12px] text-gray-500">{label}</span>
@@ -289,14 +362,7 @@ const AdminUserDetail = () => {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {activeTab !== 'Tổng quan' && (
-        <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
-          <p className="text-[13px] text-gray-400">Tính năng đang được phát triển.</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

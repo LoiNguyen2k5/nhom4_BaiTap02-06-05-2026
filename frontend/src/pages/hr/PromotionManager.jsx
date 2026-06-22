@@ -22,11 +22,23 @@ const PromotionManager = () => {
   const [formData, setFormData] = useState({ user_id: '', current_position: '', proposed_position: '', reason: '' });
   const [employees, setEmployees] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [currentSalary, setCurrentSalary] = useState(0);
+  const [proposedSalary, setProposedSalary] = useState('');
+  const [pctIncrease, setPctIncrease] = useState(0);
 
   useEffect(() => {
     fetchProposals();
     fetchEmployees();
   }, []);
+
+  useEffect(() => {
+    if (currentSalary > 0 && proposedSalary > 0) {
+      const pct = ((Number(proposedSalary) - currentSalary) / currentSalary) * 100;
+      setPctIncrease(pct);
+    } else {
+      setPctIncrease(0);
+    }
+  }, [currentSalary, proposedSalary]);
 
   const fetchEmployees = async () => {
     try {
@@ -52,16 +64,43 @@ const PromotionManager = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'user_id') {
+        const emp = employees.find(emp => String(emp.id) === String(value));
+        if (emp && emp.contracts && emp.contracts.length > 0) {
+          setCurrentSalary(emp.contracts[0].basic_salary);
+        } else {
+          setCurrentSalary(0);
+        }
+        setProposedSalary('');
+        setPctIncrease(0);
+      }
+      return updated;
+    });
   };
 
   const handleCreateProposal = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await performanceService.createPromotion(formData);
+      const res = await performanceService.createPromotion({
+        ...formData,
+        proposed_salary: proposedSalary ? Number(proposedSalary) : undefined
+      });
+      
+      if (res.data?.warning) {
+        alert(`Đã gửi đề xuất thành công!\nLưu ý: ${res.data.warning}`);
+      } else {
+        alert('Đã gửi đề xuất thành công!');
+      }
+
       setShowForm(false);
       setFormData({ user_id: '', current_position: '', proposed_position: '', reason: '' });
+      setProposedSalary('');
+      setCurrentSalary(0);
+      setPctIncrease(0);
       fetchProposals();
     } catch (error) {
       console.error(error);
@@ -138,7 +177,7 @@ const PromotionManager = () => {
                 />
               </div>
               <div>
-                <label className={labelClass}>Chức vụ / mức lương đề xuất <span className="text-danger-500">*</span></label>
+                <label className={labelClass}>Chức vụ đề xuất <span className="text-danger-500">*</span></label>
                 <input
                   type="text"
                   name="proposed_position"
@@ -150,6 +189,37 @@ const PromotionManager = () => {
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Lương hiện tại (VNĐ)</label>
+                <input
+                  type="text"
+                  disabled
+                  value={currentSalary > 0 ? `${currentSalary.toLocaleString('vi-VN')} VNĐ` : 'Chưa có hợp đồng hoạt động'}
+                  className={`${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed`}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Mức lương đề xuất mới (VNĐ) <span className="text-danger-500">*</span></label>
+                <input
+                  type="number"
+                  name="proposed_salary"
+                  value={proposedSalary}
+                  onChange={(e) => setProposedSalary(e.target.value)}
+                  required
+                  placeholder="VD: 20000000"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            {pctIncrease > 30 && (
+              <div className="p-3 border rounded-md text-[13px] flex items-center gap-2" style={{ backgroundColor: '#fffbeb', borderColor: '#fef3c7', color: '#b45309' }}>
+                <span className="font-semibold">⚠️ Cảnh báo:</span>
+                Mức tăng vượt ngưỡng quy định 30% (tăng {pctIncrease.toFixed(1)}%). Yêu cầu phê duyệt cấp cao từ Ban giám đốc.
+              </div>
+            )}
 
             <div>
               <label className={labelClass}>Lý do đề xuất (dựa trên KPI) <span className="text-danger-500">*</span></label>
@@ -225,9 +295,9 @@ const PromotionManager = () => {
                       <tr key={p.id} className="h-16 border-b border-gray-100 hover:bg-gray-50 transition-colors">
                         <td className="px-4">
                           <div className="flex items-center gap-2.5">
-                            <Avatar name={p.user?.name || p.user?.username || 'U'} size="sm" />
+                            <Avatar name={p.user?.Profile?.full_name || p.user?.name || p.user?.username || 'U'} size="sm" />
                             <div>
-                              <p className="text-[13px] font-medium text-gray-900">{p.user?.name || p.user?.username || '—'}</p>
+                              <p className="text-[13px] font-medium text-gray-900">{p.user?.Profile?.full_name || p.user?.name || p.user?.username || '—'}</p>
                               <p className="font-mono tabular-nums text-[11px] text-gray-400">ID #{p.user_id}</p>
                             </div>
                           </div>

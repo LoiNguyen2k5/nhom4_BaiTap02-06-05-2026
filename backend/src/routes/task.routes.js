@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, authorizeAdmin } = require('../middlewares/auth');
+const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 const {
   getAllTasks,
   getMyTasks,
@@ -10,11 +10,13 @@ const {
   deleteTask,
 } = require('../controllers/task.controller');
 
+const authorizeManagerOrAdmin = authorizeRoles(['admin', 'manager']);
+
 router.get('/my', authenticateToken, getMyTasks);
-router.get('/', authenticateToken, authorizeAdmin, getAllTasks);
-router.post('/', authenticateToken, authorizeAdmin, createTask);
-router.put('/:taskId', authenticateToken, authorizeAdmin, updateTask);
+router.get('/', authenticateToken, authorizeManagerOrAdmin, getAllTasks);
+router.post('/', authenticateToken, authorizeManagerOrAdmin, createTask);
+router.put('/:taskId', authenticateToken, authorizeManagerOrAdmin, updateTask);
 router.put('/:taskId/status', authenticateToken, updateTaskStatus);
-router.delete('/:taskId', authenticateToken, authorizeAdmin, deleteTask);
+router.delete('/:taskId', authenticateToken, authorizeManagerOrAdmin, deleteTask);
 
 module.exports = router;

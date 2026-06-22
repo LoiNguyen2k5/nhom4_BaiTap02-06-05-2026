@@ -1,7 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const OTP = require('../models/OTP');
+const { User, OTP } = require('../entities');
 const { loginValidation, registerValidation, verifyOtpValidation } = require('../validations/auth.validation');
 const { generateOTP, getOTPExpiryDate } = require('../utils/otp');
 const { sendOTPEmail } = require('../utils/mailer');
@@ -41,11 +40,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Buoc 3b: Kiem tra tai khoan da kich hoat chua
+    // Buoc 3b: Kiem tra tai khoan da kich hoat chua (hoac bi Admin khoa)
     if (user.status === 'inactive') {
       return res.status(403).json({
         success: false,
-        message: 'Tài khoản chưa được xác thực. Vui lòng kiểm tra email để nhập mã OTP.',
+        message: 'Tài khoản của bạn đang bị khóa hoặc chưa được kích hoạt.',
       });
     }
 

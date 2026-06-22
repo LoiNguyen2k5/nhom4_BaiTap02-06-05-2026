@@ -26,13 +26,20 @@ const PRIORITY_LABEL = {
 
 function isOverdue(task) {
   if (!task.due_date || task.status === 'done' || task.status === 'cancelled') return false;
-  return new Date(task.due_date) < new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(task.due_date);
+  due.setHours(0, 0, 0, 0);
+  return due < today;
 }
 
 function daysLeft(dateStr) {
   if (!dateStr) return null;
-  const diff = Math.ceil((new Date(dateStr) - new Date()) / 86_400_000);
-  return diff;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dateStr);
+  due.setHours(0, 0, 0, 0);
+  return Math.round((due - today) / 86_400_000);
 }
 
 const UserTasks = () => {

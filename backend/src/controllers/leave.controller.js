@@ -1,4 +1,4 @@
-const { LeaveBalance, LeaveRequest } = require('../models');
+const { LeaveBalance, LeaveRequest } = require('../entities');
 const { Op } = require('sequelize');
 
 // ==========================================
@@ -84,6 +84,21 @@ exports.createLeaveRequest = async (req, res) => {
       // Đơn OT thì không trừ quỹ phép nên không cần kiểm tra LeaveBalance
     }
 
+    // Kiểm tra trùng lịch nghỉ phép
+    if (type === 'leave') {
+      const overlapping = await LeaveRequest.findOne({
+        where: {
+          user_id: userId,
+          status: { [Op.in]: ['pending', 'approved'] },
+          start_date: { [Op.lte]: end_date },
+          end_date: { [Op.gte]: start_date },
+        }
+      });
+      if (overlapping) {
+        return res.status(400).json({ success: false, message: 'Bạn đã có đơn nghỉ phép trùng với khoảng thời gian này' });
+      }
+    }
+
     // Lưu lá đơn vào Database
     const newRequest = await LeaveRequest.create({
       user_id: userId,
@@ -128,7 +143,7 @@ exports.getMyLeaveRequests = async (req, res) => {
 // 4. Lấy danh sách tất cả các đơn đang chờ duyệt (Pending)
 exports.getPendingRequests = async (req, res) => {
   try {
-    const { User, Profile } = require('../models');
+    const { User, Profile } = require('../entities');
 
     // Tìm các đơn có status = 'pending', kèm theo thông tin User nộp đơn
     const pendingRequests = await LeaveRequest.findAll({
@@ -169,6 +184,11 @@ exports.approveOrRejectRequest = async (req, res) => {
     const request = await LeaveRequest.findByPk(requestId);
     if (!request) return res.status(404).json({ success: false, message: 'Không tìm thấy đơn' });
     if (request.status !== 'pending') return res.status(400).json({ success: false, message: 'Đơn này đã được xử lý rồi' });
+    
+    // Không cho phép tự phê duyệt đơn của bản thân
+    if (request.user_id === managerId) {
+      return res.status(400).json({ success: false, message: 'Bạn không thể tự phê duyệt đơn của chính mình' });
+    }
 
     // Cập nhật người duyệt và thời gian duyệt
     request.status = status;
@@ -214,7 +234,7 @@ exports.approveOrRejectRequest = async (req, res) => {
 // 6. Lấy lịch làm việc của team (Để Manager xem ai nghỉ ngày nào)
 exports.getTeamSchedule = async (req, res) => {
   try {
-    const { User } = require('../models');
+    const { User } = require('../entities');
 
     // Lấy tất cả các đơn ĐÃ ĐƯỢC DUYỆT để hiển thị lên Calendar
     const approvedSchedules = await LeaveRequest.findAll({
@@ -227,6 +247,55 @@ exports.getTeamSchedule = async (req, res) => {
     res.status(200).json({ success: true, data: approvedSchedules });
   } catch (error) {
     console.error('Lỗi khi lấy lịch team:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
+// 7. Lịch sử phê duyệt của Manager (tất cả đơn đã approved/rejected)
+exports.getApprovalHistory = async (req, res) => {
+  try {
+    const { User, Profile } = require('../entities');
+    const { status, type, from, to } = req.query;
+
+    const where = {};
+    if (status && ['approved', 'rejected'].includes(status)) {
+      where.status = status;
+    } else {
+      where.status = { [Op.in]: ['approved', 'rejected'] };
+    }
+    if (type && ['leave', 'ot', 'other'].includes(type)) {
+      where.type = type;
+    }
+    if (from) {
+      where.approved_at = { [Op.gte]: new Date(from) };
+    }
+    if (to) {
+      const toDate = new Date(to);
+      toDate.setHours(23, 59, 59, 999);
+      where.approved_at = { ...where.approved_at, [Op.lte]: toDate };
+    }
+
+    const history = await LeaveRequest.findAll({
+      where,
+      include: [
+        {
+          model: User,
+          as: 'requester',
+          attributes: ['id', 'name', 'email', 'department_id'],
+          include: [{ model: Profile }]
+        },
+        {
+          model: User,
+          as: 'approver',
+          attributes: ['id', 'name', 'email']
+        }
+      ],
+      order: [['approved_at', 'DESC']]
+    });
+
+    res.status(200).json({ success: true, data: history });
+  } catch (error) {
+    console.error('Lỗi khi lấy lịch sử phê duyệt:', error);
     res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };

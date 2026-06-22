@@ -81,10 +81,10 @@ const DashboardLayout = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--gray-50)' }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: 'var(--gray-50)' }}>
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center px-8 gap-4 shrink-0 sticky top-0 z-30">
           {/* Breadcrumb */}

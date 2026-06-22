@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Task, User } = require('../models');
+const { Task, User } = require('../entities');
 
 const TASK_INCLUDE = [
   { model: User, as: 'assignee', attributes: ['id', 'name', 'email', 'role', 'status'] },
@@ -47,13 +47,26 @@ const getAllTasks = async (req, res) => {
     if (priority && isValidTaskPriority(priority)) whereClause.priority = priority;
     if (assigned_to_id) whereClause.assigned_to_id = assigned_to_id;
 
-    const tasks = await Task.findAll({
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Task.findAndCountAll({
       where: whereClause,
       include: TASK_INCLUDE,
       order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
     });
 
-    return res.status(200).json({ success: true, data: tasks.map(normalizeTask) });
+    return res.status(200).json({
+      success: true,
+      data: rows.map(normalizeTask),
+      total: count,
+      page,
+      totalPages: Math.ceil(count / limit),
+    });
   } catch (error) {
     console.error('Get Tasks Error:', error);
     return res.status(500).json({ success: false, message: 'Lỗi server khi lấy danh sách task' });
@@ -122,6 +135,14 @@ const updateTask = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Task không tồn tại' });
     }
 
+    if (req.user.role === 'manager') {
+      const assignee = await User.findByPk(task.assigned_to_id, { attributes: ['department_id'] });
+      const manager = await User.findByPk(req.user.id, { attributes: ['department_id'] });
+      if (assignee?.department_id !== manager?.department_id) {
+        return res.status(403).json({ success: false, message: 'Bạn chỉ có thể cập nhật task trong phòng ban của mình' });
+      }
+    }
+
     if (assigned_to_id) {
       const assigneeCheck = await ensureAssignableUser(assigned_to_id);
       if (assigneeCheck.error) {
@@ -178,7 +199,8 @@ const updateTaskStatus = async (req, res) => {
 
     const isOwner = task.assigned_to_id === req.user.id;
     const isAdmin = req.user.role === 'admin';
-    if (!isOwner && !isAdmin) {
+    const isManager = req.user.role === 'manager';
+    if (!isOwner && !isAdmin && !isManager) {
       return res.status(403).json({ success: false, message: 'Bạn không có quyền cập nhật task này' });
     }
 

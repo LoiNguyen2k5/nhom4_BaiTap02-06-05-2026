@@ -1,19 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const accountantController = require('../controllers/accountant.controller');
-const authMiddleware = require('../middlewares/auth');
+const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 
 // Chỉ cho phép Kế toán (accountant) hoặc Admin truy cập
-router.use(authMiddleware.authenticateToken);
-
-const authorizeAccountant = (req, res, next) => {
-  if (req.user && (req.user.role === 'accountant' || req.user.role === 'admin')) {
-    next();
-  } else {
-    return res.status(403).json({ success: false, message: 'Quyền truy cập bị từ chối. Cần quyền Kế toán.' });
-  }
-};
-router.use(authorizeAccountant);
+router.use(authenticateToken);
+router.use(authorizeRoles(['admin', 'accountant']));
 
 // Get payrolls
 router.get('/payroll', accountantController.getPayrolls);

@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const Candidate = require('../models/Candidate');
+const { Candidate } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 
 // ── helpers ─────────────────────────────────────────────
@@ -120,10 +120,30 @@ const updateCandidate = async (req, res) => {
     const candidate = await Candidate.findByPk(req.params.id);
     if (!candidate) return res.status(404).json({ success: false, message: 'Không tìm thấy ứng viên' });
 
-    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'onboard_date'];
+    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'onboard_date', 'interview_date', 'interview_link', 'interviewer', 'interview_note'];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
     updates.updated_at = new Date();
+
+    // Kiểm tra trùng lịch phỏng vấn
+    const finalInterviewDate = updates.interview_date !== undefined ? updates.interview_date : candidate.interview_date;
+    const finalInterviewer = updates.interviewer !== undefined ? updates.interviewer : candidate.interviewer;
+
+    if (finalInterviewDate && finalInterviewer) {
+      const conflict = await Candidate.findOne({
+        where: {
+          id: { [Op.ne]: candidate.id },
+          interview_date: new Date(finalInterviewDate),
+          interviewer: finalInterviewer
+        }
+      });
+      if (conflict) {
+        return res.status(400).json({
+          success: false,
+          message: `Trùng lịch phỏng vấn! Người phỏng vấn "${finalInterviewer}" đã có lịch hẹn với ứng viên "${conflict.name}" vào thời gian này.`
+        });
+      }
+    }
 
     await candidate.update(updates);
     return res.status(200).json({ success: true, message: 'Cập nhật thành công', data: candidate });

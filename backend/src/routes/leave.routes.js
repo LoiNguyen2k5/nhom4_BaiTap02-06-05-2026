@@ -5,7 +5,7 @@ const router = express.Router();
 const leaveController = require('../controllers/leave.controller');
 
 // Import middleware xác thực (bắt buộc phải đăng nhập mới được gọi)
-const { authenticateToken } = require('../middlewares/auth');
+const { authenticateToken, authorizeRoles } = require('../middlewares/auth');
 
 // ==========================================
 // API DÀNH CHO NHÂN VIÊN (Dùng chung authenticateToken)
@@ -30,10 +30,16 @@ router.post('/request', leaveController.createLeaveRequest);
 // [GET] /api/leaves/pending -> Lấy danh sách đơn đang chờ duyệt
 router.get('/pending', leaveController.getPendingRequests);
 
+// [GET] /api/leaves/history -> Lấy danh sách đơn đã duyệt hoặc từ chối
+router.get('/history', authorizeRoles(['admin', 'manager', 'hr']), leaveController.getApprovalHistory);
+
 // [PUT] /api/leaves/:id/approve -> Quản lý Duyệt hoặc Từ chối đơn (kèm lý do)
 router.put('/:id/approve', leaveController.approveOrRejectRequest);
 
 // [GET] /api/leaves/schedule -> Lấy danh sách đơn đã duyệt để hiển thị lên Lịch
 router.get('/schedule', leaveController.getTeamSchedule);
+
+// [GET] /api/leaves/approval-history -> Lịch sử phê duyệt (Manager xem đã duyệt/từ chối gì)
+router.get('/approval-history', authorizeRoles(['admin', 'manager', 'hr']), leaveController.getApprovalHistory);
 
 module.exports = router;

@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Wallet, Calendar, AlertTriangle, FileText, CheckCircle, Receipt, Download } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import payrollService from '../../services/payroll.service';
+import { useReactToPrint } from 'react-to-print';
 
 const formatMoney = (val) => new Intl.NumberFormat('vi-VN').format(Math.round(Number(val)));
 
@@ -9,6 +10,14 @@ export default function Payslip() {
   const [payrolls, setPayrolls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
+  const payslipRef = useRef();
+
+  const selectedPr = payrolls.find(p => p.id === selectedId);
+
+  const handleExportPDF = useReactToPrint({
+    contentRef: payslipRef,
+    documentTitle: `phieu_luong_${selectedPr ? selectedPr.month : 'thang'}`,
+  });
 
   useEffect(() => {
     fetchMyPayrolls();
@@ -30,7 +39,7 @@ export default function Payslip() {
     }
   };
 
-  const selectedPr = payrolls.find(p => p.id === selectedId);
+
 
   return (
     <div className="space-y-5">
@@ -107,13 +116,16 @@ export default function Payslip() {
                   </div>
                   <p className="text-[12px] text-gray-500">Mã phiếu: #PR{selectedPr.id.toString().padStart(5, '0')}</p>
                 </div>
-                <button className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors">
+                <button 
+                  onClick={handleExportPDF}
+                  className="h-8 px-3 flex items-center gap-1.5 text-[12px] font-medium text-gray-600 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                >
                   <Download size={14} />
                   Xuất PDF
                 </button>
               </div>
 
-              <div className="p-6">
+              <div className="p-6" ref={payslipRef}>
                 {/* Thu nhập */}
                 <h3 className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-3 border-b pb-2">I. Thu nhập (Gross)</h3>
                 <div className="space-y-3 mb-6">

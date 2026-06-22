@@ -1,4 +1,4 @@
-const { Contract, User } = require('../models');
+const { Contract, User, Profile, Department } = require('../entities');
 const { Op } = require('sequelize');
 
 // Lấy danh sách hợp đồng của 1 nhân viên cụ thể (xem lịch sử)
@@ -9,7 +9,12 @@ exports.getEmployeeContracts = async (req, res) => {
     // Tìm tất cả hợp đồng của user_id này, sắp xếp hợp đồng mới nhất lên đầu
     const contracts = await Contract.findAll({
       where: { user_id },
-      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'] }],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email', 'role'],
+        include: [{ model: Profile }]
+      }],
       order: [['start_date', 'DESC']]
     });
     
@@ -33,7 +38,16 @@ exports.getAllContracts = async (req, res) => {
     }
     const contracts = await Contract.findAll({
       where: whereClause,
-      include: [{ model: User, as: 'user', attributes: ['id', 'name', 'email'], where: Object.keys(userWhere).length ? userWhere : undefined }],
+      include: [{
+        model: User,
+        as: 'user',
+        attributes: ['id', 'name', 'email', 'role'],
+        where: Object.keys(userWhere).length ? userWhere : undefined,
+        include: [
+          { model: Profile },
+          { model: Department, as: 'department', attributes: ['id', 'name'] }
+        ]
+      }],
       order: [['start_date', 'DESC']]
     });
     res.status(200).json({ contracts });
@@ -47,7 +61,11 @@ exports.getAllEmployees = async (req, res) => {
   try {
     const employees = await User.findAll({
       where: { role: ['employee', 'manager', 'accountant', 'hr'] },
-      attributes: ['id', 'name', 'email', 'status']
+      attributes: ['id', 'name', 'email', 'status', 'role'],
+      include: [
+        { model: Profile },
+        { model: Department, as: 'department', attributes: ['id', 'name'] }
+      ]
     });
     res.status(200).json({ employees });
   } catch (error) {
@@ -67,12 +85,19 @@ exports.createContract = async (req, res) => {
       return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
     }
 
+    const finalEndDate = end_date || null;
+
+    // Validation ngày bắt đầu và kết thúc
+    if (start_date && finalEndDate && new Date(finalEndDate) < new Date(start_date)) {
+      return res.status(400).json({ message: 'Ngày kết thúc hợp đồng không được trước ngày bắt đầu' });
+    }
+
     const newContract = await Contract.create({
       user_id,
       contract_number,
       contract_type,
       start_date,
-      end_date,
+      end_date: finalEndDate,
       basic_salary,
       status: 'active'
     });
@@ -99,7 +124,13 @@ exports.extendContract = async (req, res) => {
     }
 
     // Cập nhật các trường thông tin nếu có gửi lên từ client
-    if (end_date) contract.end_date = end_date;
+    if (end_date !== undefined) {
+      const finalEndDate = end_date || null;
+      if (finalEndDate && new Date(finalEndDate) < new Date(contract.start_date)) {
+        return res.status(400).json({ message: 'Ngày kết thúc hợp đồng không được trước ngày bắt đầu' });
+      }
+      contract.end_date = finalEndDate;
+    }
     if (basic_salary) contract.basic_salary = basic_salary;
     if (status) contract.status = status;
     if (contract_type) contract.contract_type = contract_type; // Chuyển từ thử việc sang chính thức

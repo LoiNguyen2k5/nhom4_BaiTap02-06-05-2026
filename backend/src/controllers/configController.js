@@ -1,4 +1,4 @@
-const { TaxInsuranceConfig } = require('../models');
+const { TaxInsuranceConfig } = require('../entities');
 
 // GET /api/config/tax-insurance
 exports.getConfig = async (req, res) => {

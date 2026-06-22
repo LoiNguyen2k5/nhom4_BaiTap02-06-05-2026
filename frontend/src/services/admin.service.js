@@ -21,8 +21,23 @@ export const adminService = {
     return response.data;
   },
 
+  updateUserDepartment: async (userId, departmentId) => {
+    const response = await axiosClient.put(`/admin/users/${userId}/department`, { department_id: departmentId });
+    return response.data;
+  },
+
   createUser: async (data) => {
     const response = await axiosClient.post('/admin/users', data);
+    return response.data;
+  },
+
+  resetUserPassword: async (userId) => {
+    const response = await axiosClient.put(`/admin/users/${userId}/reset-password`);
+    return response.data;
+  },
+
+  getActivityLogs: async (params) => {
+    const response = await axiosClient.get('/admin/activity-logs', { params });
     return response.data;
   },
 

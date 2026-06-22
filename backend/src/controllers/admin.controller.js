@@ -1,8 +1,7 @@
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
-const User = require('../models/User');
-const Profile = require('../models/Profile');
-const { Department, ActivityLog } = require('../models');
+const crypto = require('crypto');
+const { User, Profile, Department, ActivityLog } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 
 // ============================================================
@@ -13,8 +12,10 @@ const getDashboardStats = async (req, res) => {
   try {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last48h = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-    const [totalUsers, activeUsers, lockedUsers, newUsersThisMonth, recentUsers, recentActivities] = await Promise.all([
+    const [totalUsers, activeUsers, lockedUsers, newUsersThisMonth, recentUsers, recentActivities, departments, login24h, loginPrev24h, systemEvents24h, recentLogins] = await Promise.all([
       User.count(),
       User.count({ where: { status: 'active' } }),
       User.count({ where: { status: 'inactive' } }),
@@ -26,16 +27,61 @@ const getDashboardStats = async (req, res) => {
         limit: 10,
       }),
       ActivityLog.findAll({
-        attributes: ['id', 'action', 'detail', 'created_at'],
+        attributes: ['id', 'action', 'detail', 'ip', 'created_at'],
         include: [{ model: User, attributes: ['id', 'name', 'email', 'role'] }],
         order: [['created_at', 'DESC']],
         limit: 10,
       }),
+      Department.findAll({
+        attributes: ['id', 'name'],
+        include: [{ model: User, as: 'users', attributes: ['id'] }],
+      }),
+      ActivityLog.count({
+        where: { action: 'login', created_at: { [Op.gte]: last24h } },
+        distinct: true,
+        col: 'user_id',
+      }),
+      ActivityLog.count({
+        where: { action: 'login', created_at: { [Op.gte]: last48h, [Op.lt]: last24h } },
+        distinct: true,
+        col: 'user_id',
+      }),
+      ActivityLog.count({
+        where: { created_at: { [Op.gte]: last24h } },
+      }),
+      ActivityLog.findAll({
+        where: { action: 'login', created_at: { [Op.gte]: last24h } },
+        attributes: ['created_at'],
+      }),
     ]);
+
+    let departmentStats = departments.map(d => ({
+      name: d.name,
+      count: d.users ? d.users.length : 0,
+    })).sort((a, b) => b.count - a.count);
+
+    const maxCount = departmentStats[0]?.count || 1;
+    departmentStats = departmentStats.map(d => ({ ...d, max: maxCount }));
+
+    // Generate login chart data (12 buckets of 2 hours)
+    const loginChartData = Array(12).fill(0);
+    recentLogins.forEach(log => {
+      const logTime = new Date(log.created_at).getTime();
+      const diffMs = now.getTime() - logTime;
+      const hoursAgo = diffMs / (1000 * 60 * 60);
+      const bucketIndex = 11 - Math.floor(hoursAgo / 2); // 0 is oldest, 11 is newest
+      if (bucketIndex >= 0 && bucketIndex < 12) {
+        loginChartData[bucketIndex]++;
+      }
+    });
 
     return res.status(200).json({
       success: true,
-      data: { totalUsers, activeUsers, lockedUsers, newUsersThisMonth, recentUsers, recentActivities },
+      data: { 
+        totalUsers, activeUsers, lockedUsers, newUsersThisMonth, 
+        recentUsers, recentActivities, departmentStats, 
+        login24h, loginPrev24h, systemEvents24h, loginChartData 
+      },
     });
   } catch (error) {
     console.error('Dashboard Stats Error:', error);
@@ -170,6 +216,35 @@ const updateUserRole = async (req, res) => {
   }
 };
 
+// Cập nhật phòng ban
+const updateUserDepartment = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { department_id } = req.body;
+    
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+
+    if (department_id) {
+      const dept = await Department.findByPk(department_id);
+      if (!dept) return res.status(400).json({ success: false, message: 'Phòng ban không tồn tại' });
+    }
+
+    await user.update({ department_id: department_id || null });
+
+    await logActivity({
+      userId: req.user?.id,
+      action: 'admin_update_department',
+      detail: `Cập nhật phòng ban user ${user.email} -> ID ${department_id || 'Chưa xếp'}`,
+      req,
+    });
+    return res.status(200).json({ success: true, message: 'Cập nhật phòng ban thành công', data: { user } });
+  } catch (error) {
+    console.error('Update User Department Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi cập nhật phòng ban' });
+  }
+};
+
 // ============================================================
 // TẠO TÀI KHOẢN NGƯỜI DÙNG MỚI
 // POST /api/admin/users
@@ -210,9 +285,7 @@ const createUser = async (req, res) => {
       }
     }
 
-    // Tự động sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
-    const emailPrefix = email.split('@')[0];
-    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const tempPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Tạo user mới
@@ -223,6 +296,12 @@ const createUser = async (req, res) => {
       role,
       department_id: department_id || null,
       status: 'active',
+    });
+
+    // Tạo profile trống mặc định để không bị lỗi khi các role khác truy xuất
+    await Profile.create({
+      user_id: newUser.id,
+      full_name: name ? name.trim() : null,
     });
 
     // TODO: Gửi email thông báo đến nhân viên kèm mật khẩu tạm
@@ -253,7 +332,7 @@ const createUser = async (req, res) => {
 
 const getPendingAccountRequests = async (req, res) => {
   try {
-    const { AccountRequest, Department } = require('../models');
+    const { AccountRequest, Department } = require('../entities');
     const requests = await AccountRequest.findAll({
       where: { status: 'pending' },
       include: [
@@ -272,7 +351,7 @@ const getPendingAccountRequests = async (req, res) => {
 const approveAccountRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { AccountRequest } = require('../models');
+    const { AccountRequest } = require('../entities');
     
     const request = await AccountRequest.findByPk(id);
     if (!request || request.status !== 'pending') {
@@ -285,9 +364,7 @@ const approveAccountRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email đã tồn tại trong hệ thống' });
     }
 
-    // Tự sinh mật khẩu tạm: Lấy kí tự trước @, viết hoa chữ cái đầu, thêm @123456
-    const emailPrefix = request.email.split('@')[0];
-    const tempPassword = emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) + '@123456';
+    const tempPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     // Tạo User
@@ -326,7 +403,7 @@ const approveAccountRequest = async (req, res) => {
 const rejectAccountRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { AccountRequest } = require('../models');
+    const { AccountRequest } = require('../entities');
     
     const request = await AccountRequest.findByPk(id);
     if (!request || request.status !== 'pending') {
@@ -349,14 +426,92 @@ const rejectAccountRequest = async (req, res) => {
   }
 };
 
+// ============================================================
+// ĐẶT LẠI MẬT KHẨU CHO USER (CHỈ ADMIN)
+// ============================================================
+const resetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findByPk(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Người dùng không tồn tại' });
+
+    const newPassword = crypto.randomBytes(8).toString('hex') + '@Tmp1';
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await user.update({ password: hashedPassword });
+
+    await logActivity({
+      userId: req.user?.id,
+      action: 'admin_reset_password',
+      detail: `Admin đặt lại mật khẩu cho tài khoản ${user.email}`,
+      req,
+    });
+
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Đặt lại mật khẩu thành công', 
+      data: { tempPassword: newPassword } 
+    });
+  } catch (error) {
+    console.error('Reset User Password Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi đặt lại mật khẩu' });
+  }
+};
+
+// ============================================================
+// LẤY NHẬT KÝ HỆ THỐNG
+// ============================================================
+const getActivityLogs = async (req, res) => {
+  try {
+    const { search, page, limit } = req.query;
+    const whereClause = {};
+
+    if (search) {
+      whereClause[Op.or] = [
+        { action: { [Op.like]: `%${search}%` } },
+        { detail: { [Op.like]: `%${search}%` } },
+      ];
+    }
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 20));
+    const offset = (pageNum - 1) * limitNum;
+
+    const { count: total, rows: logs } = await ActivityLog.findAndCountAll({
+      where: whereClause,
+      include: [{ model: User, attributes: ['id', 'name', 'email', 'role'] }],
+      order: [['created_at', 'DESC']],
+      limit: limitNum,
+      offset,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: logs,
+      pagination: {
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error('Get Activity Logs Error:', error);
+    return res.status(500).json({ success: false, message: 'Lỗi server khi lấy nhật ký hệ thống' });
+  }
+};
+
 module.exports = { 
   getDashboardStats, 
   getUsers, 
   getUserById, 
   updateUserStatus, 
   updateUserRole, 
+  updateUserDepartment,
   createUser,
   getPendingAccountRequests,
   approveAccountRequest,
-  rejectAccountRequest
+  rejectAccountRequest,
+  resetUserPassword,
+  getActivityLogs
 };
