@@ -42,6 +42,7 @@ const attendanceRoutes = require('./routes/attendance.routes');
 const accountantRoutes = require('./routes/accountant.routes');
 const adjustmentRoutes = require('./routes/adjustment.routes');
 const advanceRoutes = require('./routes/advance.routes');
+const chatbotRoutes = require('./routes/chatbot.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
@@ -58,5 +59,6 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/accountant', accountantRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
 app.use('/api/advances', advanceRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 module.exports = app;
