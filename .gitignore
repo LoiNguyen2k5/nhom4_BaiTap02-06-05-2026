@@ -33,3 +33,7 @@ build/
 
 # Face API models (large binary files - run: node download-models.js)
 frontend/public/models/
+
+# Excel files
+*.xlsx
+~$*.xlsx

@@ -188,7 +188,7 @@ const AttendancePage = () => {
     return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
-  if (loading || !modelsLoaded) {
+  if (loading || (!modelsLoaded && !error)) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <RefreshCw size={32} className="animate-spin text-indigo-600 mb-4" />

@@ -50,13 +50,22 @@ const EmployeeEvaluation = () => {
     e.preventDefault();
     setSubmitting(true);
     setMessage('');
+
+    const kpi = parseFloat(formData.kpi_score);
+    if (isNaN(kpi) || kpi < 0 || kpi > 100) {
+      setMessage('Điểm KPI phải trong khoảng từ 0 đến 100.');
+      setMessageType('error');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await performanceService.submitReview({
         ...formData,
         user_id: parseInt(formData.user_id),
         month: parseInt(formData.month),
         year: parseInt(formData.year),
-        kpi_score: parseFloat(formData.kpi_score)
+        kpi_score: kpi
       });
       setMessage('Đánh giá đã được lưu thành công!');
       setMessageType('success');

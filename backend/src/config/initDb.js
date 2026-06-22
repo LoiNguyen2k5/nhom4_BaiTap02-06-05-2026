@@ -41,7 +41,7 @@ const initializeDatabase = async () => {
     require('../entities/index');
 
     // Sync entities → tạo tables tự động
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: true });
     console.log('✓ Database da duoc cap nhat thanh cong');
     // Seed data: chạy thủ công khi cần → mysql -u root nhom4_baitap < backend/src/database/seed.sql
   } catch (error) {
