@@ -1,4 +1,4 @@
-const ActivityLog = require('../models/ActivityLog');
+const { ActivityLog } = require('../entities');
 
 const getClientIp = (req) => {
   const forwarded = req?.headers?.['x-forwarded-for'];

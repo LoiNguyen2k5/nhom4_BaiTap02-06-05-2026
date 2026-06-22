@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const Candidate = require('../models/Candidate');
+const { Candidate } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 
 // ── helpers ─────────────────────────────────────────────

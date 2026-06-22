@@ -1,8 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const User = require('../models/User');
-const Profile = require('../models/Profile');
-const ActivityLog = require('../models/ActivityLog');
+const { User, Profile, ActivityLog } = require('../entities');
 const { updateProfileValidation } = require('../validations/profile.validation');
 const { logActivity } = require('../utils/activityLogger');
 

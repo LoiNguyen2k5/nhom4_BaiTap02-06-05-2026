@@ -1,9 +1,7 @@
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const User = require('../models/User');
-const Profile = require('../models/Profile');
-const { Department, ActivityLog } = require('../entities');
+const { User, Profile, Department, ActivityLog } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 
 // ============================================================
