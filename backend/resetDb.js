@@ -4,7 +4,7 @@
  */
 require('dotenv').config();
 const sequelize = require('./src/config/database');
-require('./src/models/index');
+require('./src/entities/index');
 
 async function resetDatabase() {
   try {
