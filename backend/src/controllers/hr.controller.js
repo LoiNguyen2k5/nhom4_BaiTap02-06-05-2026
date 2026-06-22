@@ -1,4 +1,4 @@
-const { User, Profile, AccountRequest, Contract, Department, Attendance, AttendanceLock } = require('../models');
+const { User, Profile, AccountRequest, Contract, Department, Attendance, AttendanceLock } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 const bcrypt = require('bcrypt');
 const { Op, Sequelize } = require('sequelize');

@@ -19,7 +19,7 @@ const Payroll = sequelize.define(
       onDelete: 'CASCADE',
     },
     month: {
-      type: DataTypes.STRING(7), // Định dạng: YYYY-MM (VD: 2026-11)
+      type: DataTypes.STRING(7),
       allowNull: false,
     },
     base_salary: {

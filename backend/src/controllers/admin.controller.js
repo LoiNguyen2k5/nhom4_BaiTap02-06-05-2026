@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const User = require('../models/User');
 const Profile = require('../models/Profile');
-const { Department, ActivityLog } = require('../models');
+const { Department, ActivityLog } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
 
 // ============================================================
@@ -334,7 +334,7 @@ const createUser = async (req, res) => {
 
 const getPendingAccountRequests = async (req, res) => {
   try {
-    const { AccountRequest, Department } = require('../models');
+    const { AccountRequest, Department } = require('../entities');
     const requests = await AccountRequest.findAll({
       where: { status: 'pending' },
       include: [
@@ -353,7 +353,7 @@ const getPendingAccountRequests = async (req, res) => {
 const approveAccountRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { AccountRequest } = require('../models');
+    const { AccountRequest } = require('../entities');
     
     const request = await AccountRequest.findByPk(id);
     if (!request || request.status !== 'pending') {
@@ -405,7 +405,7 @@ const approveAccountRequest = async (req, res) => {
 const rejectAccountRequest = async (req, res) => {
   try {
     const { id } = req.params;
-    const { AccountRequest } = require('../models');
+    const { AccountRequest } = require('../entities');
     
     const request = await AccountRequest.findByPk(id);
     if (!request || request.status !== 'pending') {

@@ -1,4 +1,4 @@
-const { AdvanceRequest, User, Profile, Contract, Department } = require('../models');
+const { AdvanceRequest, User, Profile, Contract, Department } = require('../entities');
 const { Op } = require('sequelize');
 const { roleNames, mapEmployeeProfile } = require('../utils/helpers');
 

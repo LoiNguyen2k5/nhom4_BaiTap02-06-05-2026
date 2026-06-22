@@ -1,4 +1,4 @@
-const { Contract, User, Profile, Department } = require('../models');
+const { Contract, User, Profile, Department } = require('../entities');
 const { Op } = require('sequelize');
 
 // Lấy danh sách hợp đồng của 1 nhân viên cụ thể (xem lịch sử)

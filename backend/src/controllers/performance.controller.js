@@ -1,4 +1,4 @@
-const { Task, Attendance, PerformanceReview, PromotionProposal, User, Contract, LeaveBalance, LeaveRequest } = require('../models');
+const { Task, Attendance, PerformanceReview, PromotionProposal, User, Contract, LeaveBalance, LeaveRequest } = require('../entities');
 const { Op } = require('sequelize');
 
 exports.getDashboardData = async (req, res) => {
@@ -186,7 +186,7 @@ exports.getPromotionProposals = async (req, res) => {
     if (req.user.role !== 'manager' && req.user.role !== 'admin' && req.user.role !== 'hr') {
       return res.status(403).json({ success: false, message: 'Forbidden: Role required' });
     }
-    const { Profile } = require('../models');
+    const { Profile } = require('../entities');
     const proposals = await PromotionProposal.findAll({
       include: [
         {

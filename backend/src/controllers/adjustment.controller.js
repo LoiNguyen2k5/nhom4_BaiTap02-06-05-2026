@@ -1,4 +1,4 @@
-const { SalaryAdjustment, User, Profile, Department } = require('../models');
+const { SalaryAdjustment, User, Profile, Department } = require('../entities');
 const { Op } = require('sequelize');
 const { roleNames, mapEmployeeProfile } = require('../utils/helpers');
 

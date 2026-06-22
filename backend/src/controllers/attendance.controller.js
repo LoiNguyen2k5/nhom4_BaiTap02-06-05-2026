@@ -1,4 +1,4 @@
-const { Attendance, AttendanceLock, Profile } = require('../models');
+const { Attendance, AttendanceLock, Profile } = require('../entities');
 const { Op } = require('sequelize');
 
 const FACE_MATCH_THRESHOLD = parseFloat(process.env.FACE_MATCH_THRESHOLD) || 0.55;

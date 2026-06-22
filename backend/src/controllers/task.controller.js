@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const { Task, User } = require('../models');
+const { Task, User } = require('../entities');
 
 const TASK_INCLUDE = [
   { model: User, as: 'assignee', attributes: ['id', 'name', 'email', 'role', 'status'] },

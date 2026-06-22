@@ -5,39 +5,39 @@ const PerformanceReview = sequelize.define('PerformanceReview', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
   },
   user_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   reviewer_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   month: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   year: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   rating: {
     type: DataTypes.ENUM('A', 'B', 'C', 'D'),
-    allowNull: false
+    allowNull: false,
   },
   kpi_score: {
     type: DataTypes.FLOAT,
-    allowNull: false
+    allowNull: false,
   },
   comments: {
     type: DataTypes.TEXT,
-    allowNull: true
-  }
+    allowNull: true,
+  },
 }, {
   tableName: 'performance_reviews',
-  timestamps: true
+  timestamps: true,
 });
 
 module.exports = PerformanceReview;

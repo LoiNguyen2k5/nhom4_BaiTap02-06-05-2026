@@ -1,4 +1,4 @@
-const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest } = require('../models');
+const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest } = require('../entities');
 const { Op } = require('sequelize');
 
 exports.calculatePayroll = async (req, res) => {

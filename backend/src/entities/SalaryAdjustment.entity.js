@@ -9,7 +9,6 @@ const SalaryAdjustment = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    // Loại: 'income' = thu nhập thêm, 'deduction' = khấu trừ
     kind: {
       type: DataTypes.ENUM('income', 'deduction'),
       allowNull: false,
@@ -19,7 +18,6 @@ const SalaryAdjustment = sequelize.define(
       allowNull: false,
       references: { model: 'users', key: 'id' },
     },
-    // Loại khoản (VD: Thưởng dự án, Phạt đi trễ...)
     category: {
       type: DataTypes.STRING(100),
       allowNull: false,
@@ -28,7 +26,6 @@ const SalaryAdjustment = sequelize.define(
       type: DataTypes.BIGINT,
       allowNull: false,
     },
-    // Tháng áp dụng: định dạng "YYYY-MM" (VD: "2026-05")
     apply_month: {
       type: DataTypes.STRING(7),
       allowNull: false,
@@ -37,19 +34,16 @@ const SalaryAdjustment = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    // Lặp lại hàng tháng
     recurring: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
     },
-    // Trạng thái: 'pending' | 'applied'
     status: {
       type: DataTypes.ENUM('pending', 'applied'),
       allowNull: false,
       defaultValue: 'pending',
     },
-    // Kế toán nhập khoản này
     entered_by: {
       type: DataTypes.INTEGER,
       allowNull: true,

@@ -9,7 +9,6 @@ const User = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    // Tên người dùng
     name: {
       type: DataTypes.STRING(255),
       allowNull: true,
@@ -39,7 +38,6 @@ const User = sequelize.define(
         key: 'id',
       },
     },
-    // Trạng thái tài khoản: inactive (chưa xác thực), active (đã xác thực)
     status: {
       type: DataTypes.ENUM('inactive', 'active'),
       allowNull: false,

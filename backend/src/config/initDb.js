@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
-const seedData = require('../utils/seedData');
 
 const initializeDatabase = async () => {
   try {
@@ -38,15 +37,13 @@ const initializeDatabase = async () => {
     await sequelize.authenticate();
     console.log('✓ Kết nối database thành công');
 
-    // Load all models so they are registered before sync
-    require('../models/index');
+    // Load all entities so they are registered before sync
+    require('../entities/index');
 
-    // Sync models
+    // Sync entities → tạo tables tự động
     await sequelize.sync({ alter: false });
     console.log('✓ Database da duoc cap nhat thanh cong');
-
-    // Seed toàn bộ dữ liệu mẫu (bao gồm tài khoản hệ thống)
-    await seedData();
+    // Seed data: chạy thủ công khi cần → mysql -u root nhom4_baitap < backend/src/database/seed.sql
   } catch (error) {
     console.error('✗ Lỗi kết nối database:', error.message);
     process.exit(1);

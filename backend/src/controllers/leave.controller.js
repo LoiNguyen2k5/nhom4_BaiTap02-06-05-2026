@@ -1,4 +1,4 @@
-const { LeaveBalance, LeaveRequest } = require('../models');
+const { LeaveBalance, LeaveRequest } = require('../entities');
 const { Op } = require('sequelize');
 
 // ==========================================
@@ -143,7 +143,7 @@ exports.getMyLeaveRequests = async (req, res) => {
 // 4. Lấy danh sách tất cả các đơn đang chờ duyệt (Pending)
 exports.getPendingRequests = async (req, res) => {
   try {
-    const { User, Profile } = require('../models');
+    const { User, Profile } = require('../entities');
 
     // Tìm các đơn có status = 'pending', kèm theo thông tin User nộp đơn
     const pendingRequests = await LeaveRequest.findAll({
@@ -234,7 +234,7 @@ exports.approveOrRejectRequest = async (req, res) => {
 // 6. Lấy lịch làm việc của team (Để Manager xem ai nghỉ ngày nào)
 exports.getTeamSchedule = async (req, res) => {
   try {
-    const { User } = require('../models');
+    const { User } = require('../entities');
 
     // Lấy tất cả các đơn ĐÃ ĐƯỢC DUYỆT để hiển thị lên Calendar
     const approvedSchedules = await LeaveRequest.findAll({
@@ -254,7 +254,7 @@ exports.getTeamSchedule = async (req, res) => {
 // 7. Lịch sử phê duyệt của Manager (tất cả đơn đã approved/rejected)
 exports.getApprovalHistory = async (req, res) => {
   try {
-    const { User, Profile } = require('../models');
+    const { User, Profile } = require('../entities');
     const { status, type, from, to } = req.query;
 
     const where = {};

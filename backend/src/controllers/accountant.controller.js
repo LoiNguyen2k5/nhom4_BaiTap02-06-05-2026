@@ -1,4 +1,4 @@
-const { Payroll, User, Profile } = require('../models');
+const { Payroll, User, Profile } = require('../entities');
 const { sendPayslipEmail } = require('../utils/mailer');
 const { Op } = require('sequelize');
 const XLSX = require('xlsx');

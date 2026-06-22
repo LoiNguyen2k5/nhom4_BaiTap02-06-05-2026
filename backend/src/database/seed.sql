@@ -3,8 +3,9 @@
 -- Database: nhom4_baitap
 -- Usage: mysql -u root nhom4_baitap < backend/src/database/seed.sql
 -- Yêu cầu: Chạy backend 1 lần trước để Sequelize sync() tạo tables
--- Password tất cả tài khoản test: Admin@123456 | User@123456 | ...
--- (createAdmin.js sẽ hash lại khi restart, seed chỉ dùng cho data phụ)
+-- Password: admin→Admin@123456 | hr→Hr@123456 | manager→Manager@123456
+--           accountant→Accountant@123456 | employee→User@123456
+-- Chạy sau khi backend sync() tạo xong tables
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -43,10 +44,21 @@ ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), 
 
 -- ============================================================
 -- 2. USERS (10 tài khoản — đủ tất cả roles)
--- Tất cả dùng password đã được createAdmin.js quản lý
--- Seed chỉ tạo employee test accounts (IDs 6-10)
--- IDs 1-5 do createAdmin.js tạo khi start server
+-- IDs 1-5: system accounts (admin/hr/manager/accountant/employee)
+-- IDs 6-10: test employee accounts
+-- Password: Admin@123456 | Hr@123456 | Manager@123456 | Accountant@123456 | User@123456
 -- ============================================================
+
+-- System accounts (IDs 1-5)
+DELETE FROM users WHERE id IN (1,2,3,4,5);
+INSERT INTO users (id, name, email, password, role, department_id, status, created_at) VALUES
+(1, 'Admin',      'admin@example.com',      '$2b$10$dM1Dn8ygkWxPm41du7ZFEOe/JL09liBtzsCv0sLYz9wiUIrubdoV.', 'admin',      1, 'active', NOW()),
+(2, 'HR',         'hr@example.com',          '$2b$10$ZyhnP7.vUXxd1XUU5n3JUOSN7O8ipOli.R.pjfNF4/r9EnrPBFEwO', 'hr',         3, 'active', NOW()),
+(3, 'Manager',    'manager@example.com',     '$2b$10$CLE0xOpVfE6UarH5bDYK6.dD3K2NCh0Ka8eJaiIvkwUg08G8QgE/S', 'manager',    2, 'active', NOW()),
+(4, 'Accountant', 'accountant@example.com',  '$2b$10$kvZSQ6WeO45qo10NLQgWBO7vIyCBG8HghUbdBtuAdhEkQ1ZsxMn6S', 'accountant', 4, 'active', NOW()),
+(5, 'Employee',   'user@example.com',        '$2b$10$KKJb7KDbtAWZzGkV16q6OOfoZkdk8YjjbxFp118t5xIM0fE28Ozc2', 'employee',   2, 'active', NOW());
+
+-- Test employee accounts (IDs 6-10)
 INSERT INTO users (id, name, email, password, role, department_id, status, created_at) VALUES
 (6,  'Lê Văn Bình',   'employee1@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 2, 'active', NOW()),
 (7,  'Phạm Thị Cúc',  'employee2@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 2, 'active', NOW()),
@@ -56,13 +68,6 @@ INSERT INTO users (id, name, email, password, role, department_id, status, creat
 ON DUPLICATE KEY UPDATE
   name = VALUES(name), email = VALUES(email), role = VALUES(role),
   department_id = VALUES(department_id), status = VALUES(status);
-
--- Cập nhật department cho các tài khoản hệ thống (nếu chưa có)
-UPDATE users SET department_id = 1 WHERE email = 'admin@example.com';
-UPDATE users SET department_id = 3 WHERE email = 'hr@example.com';
-UPDATE users SET department_id = 4 WHERE email = 'accountant@example.com';
-UPDATE users SET department_id = 2 WHERE email = 'manager@example.com';
-UPDATE users SET department_id = 2 WHERE email = 'user@example.com';
 
 -- ============================================================
 -- 3. PROFILES (thông tin cá nhân + bank account)

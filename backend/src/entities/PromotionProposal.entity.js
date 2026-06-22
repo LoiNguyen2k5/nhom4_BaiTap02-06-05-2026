@@ -5,35 +5,35 @@ const PromotionProposal = sequelize.define('PromotionProposal', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true
+    autoIncrement: true,
   },
   user_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   proposed_by: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
   },
   current_position: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
   proposed_position: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
   },
   reason: {
     type: DataTypes.TEXT,
-    allowNull: false
+    allowNull: false,
   },
   status: {
     type: DataTypes.ENUM('Pending', 'Approved', 'Rejected'),
-    defaultValue: 'Pending'
-  }
+    defaultValue: 'Pending',
+  },
 }, {
   tableName: 'promotion_proposals',
-  timestamps: true
+  timestamps: true,
 });
 
 module.exports = PromotionProposal;
