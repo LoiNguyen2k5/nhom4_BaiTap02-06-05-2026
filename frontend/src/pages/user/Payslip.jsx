@@ -49,20 +49,25 @@ export default function Payslip() {
         <p className="text-sm text-gray-500 mt-0.5">Xem chi tiết các khoản thu nhập, khấu trừ và thuế hàng tháng</p>
       </div>
 
+      {/* Empty state toàn trang khi chưa có phiếu lương */}
+      {!loading && payrolls.length === 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg py-16 flex flex-col items-center justify-center text-center">
+          <Receipt size={40} strokeWidth={1.25} className="text-gray-300 mb-4" />
+          <p className="text-[15px] font-medium text-gray-500">Chưa có phiếu lương nào</p>
+          <p className="text-[13px] text-gray-400 mt-1">Phiếu lương sẽ hiển thị ở đây sau khi kế toán duyệt và gửi.</p>
+        </div>
+      )}
+
+      {(loading || payrolls.length > 0) && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        
+
         {/* Cột trái: Lịch sử các tháng */}
         <div className="col-span-1 space-y-3">
           <h2 className="text-[13px] font-semibold text-gray-900 uppercase tracking-wider">Lịch sử phiếu lương</h2>
-          
+
           {loading ? (
             <div className="p-5 text-center text-[13px] text-gray-500 bg-white border border-gray-200 rounded-lg">
               Đang tải dữ liệu...
-            </div>
-          ) : payrolls.length === 0 ? (
-            <div className="p-5 text-center text-[13px] text-gray-500 bg-white border border-gray-200 rounded-lg flex flex-col items-center">
-              <Receipt size={24} className="text-gray-300 mb-2" />
-              Bạn chưa có phiếu lương nào được duyệt.
             </div>
           ) : (
             <div className="space-y-2">
@@ -198,6 +203,7 @@ export default function Payslip() {
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

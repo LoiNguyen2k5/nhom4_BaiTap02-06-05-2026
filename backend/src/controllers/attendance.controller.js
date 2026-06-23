@@ -3,11 +3,23 @@ const { Op } = require('sequelize');
 
 const FACE_MATCH_THRESHOLD = parseFloat(process.env.FACE_MATCH_THRESHOLD) || 0.55;
 
+// Giờ bắt đầu làm việc (có thể cấu hình qua env)
+const WORK_START_HOUR = parseInt(process.env.WORK_START_HOUR) || 8;
+const WORK_START_MINUTE = parseInt(process.env.WORK_START_MINUTE) || 30;
+
+// Lấy ngày/tháng theo múi giờ local của server (UTC+7 khi deploy tại VN)
+function getLocalDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 exports.checkIn = async (req, res) => {
   try {
     const userId = req.user.id;
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(today);
     const currentMonth = dateStr.substring(0, 7);
 
     // Kiểm tra tháng bị chốt
@@ -48,18 +60,23 @@ exports.checkIn = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Bạn đã check-in trong ngày hôm nay rồi!' });
     }
 
+    // Xác định trạng thái: Present nếu check-in đúng giờ, Late nếu trễ
+    const isLate = today.getHours() > WORK_START_HOUR ||
+      (today.getHours() === WORK_START_HOUR && today.getMinutes() > WORK_START_MINUTE);
+    const checkInStatus = isLate ? 'Late' : 'Present';
+
     // Nếu chưa có record thì tạo mới
     if (!attendance) {
       attendance = await Attendance.create({
         user_id: userId,
         date: dateStr,
         check_in_time: today,
-        status: 'Present' // Mặc định, có thể xử lý Late nếu cần
+        status: checkInStatus
       });
     } else {
       // Đã có record (ví dụ được tạo trước do OnLeave, nhưng user lại đi làm)
       attendance.check_in_time = today;
-      attendance.status = 'Present';
+      attendance.status = checkInStatus;
       await attendance.save();
     }
 
@@ -74,7 +91,7 @@ exports.checkOut = async (req, res) => {
   try {
     const userId = req.user.id;
     const today = new Date();
-    const dateStr = today.toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(today);
     const currentMonth = dateStr.substring(0, 7); // e.g. "2026-06"
 
     // Kiểm tra xem tháng hiện tại có bị chốt/khóa chưa

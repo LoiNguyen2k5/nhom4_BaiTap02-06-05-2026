@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LeaveService from '../../services/leave.service';
-import { Plus, CalendarDays, Clock, CheckCircle, XCircle, FileText, X } from 'lucide-react';
+import { Plus, CalendarDays, Clock, CheckCircle, XCircle, FileText, X, Ban } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import { fmtDate as fmt } from '../../utils/format';
 
@@ -96,6 +96,16 @@ const MyLeaves = () => {
     }
   };
 
+  const handleCancel = async (id) => {
+    if (!window.confirm('Bạn có chắc muốn hủy đơn này không?')) return;
+    try {
+      await LeaveService.cancelLeaveRequest(id);
+      fetchData();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Có lỗi xảy ra khi hủy đơn');
+    }
+  };
+
   const remaining = balance ? balance.total_days - balance.used_days - balance.pending_days : 0;
 
   return (
@@ -163,7 +173,7 @@ const MyLeaves = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  {['Ngày gửi', 'Loại', 'Thời gian', 'Thời lượng', 'Trạng thái'].map(col => (
+                  {['Ngày gửi', 'Loại', 'Thời gian', 'Thời lượng', 'Trạng thái', ''].map(col => (
                     <th key={col} className="h-10 px-5 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400 whitespace-nowrap">{col}</th>
                   ))}
                 </tr>
@@ -200,9 +210,21 @@ const MyLeaves = () => {
                         <div className="space-y-1">
                           <Badge variant={stCfg.variant} size="sm">{stCfg.label}</Badge>
                           {req.status === 'rejected' && req.reject_reason && (
-                            <p className="text-[11px] text-danger-600 max-w-48">{req.reject_reason}</p>
+                            <p className="text-[11px] text-danger-600 max-w-[200px] break-words">{req.reject_reason}</p>
                           )}
                         </div>
+                      </td>
+                      <td className="px-5 text-right">
+                        {req.status === 'pending' && (
+                          <button
+                            onClick={() => handleCancel(req.id)}
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-danger-600 hover:text-danger-700 transition-colors"
+                            title="Hủy đơn"
+                          >
+                            <Ban size={13} />
+                            Hủy
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

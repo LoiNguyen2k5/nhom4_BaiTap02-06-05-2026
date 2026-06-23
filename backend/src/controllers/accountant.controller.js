@@ -24,7 +24,7 @@ const getPayrolls = async (req, res) => {
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'email'],
+          attributes: ['id', 'name', 'email'],
           include: [
             {
               model: Profile,

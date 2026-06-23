@@ -9,17 +9,25 @@ const ActivityLogs = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [pagination, setPagination] = useState({ total: 0, page: 1, totalPages: 1 });
 
   const searchRef = useRef(search);
+  const dateFromRef = useRef(dateFrom);
+  const dateToRef = useRef(dateTo);
   useEffect(() => { searchRef.current = search; }, [search]);
+  useEffect(() => { dateFromRef.current = dateFrom; }, [dateFrom]);
+  useEffect(() => { dateToRef.current = dateTo; }, [dateTo]);
 
-  const fetchLogs = async (currentSearch, page = 1) => {
+  const fetchLogs = async (currentSearch, currentDateFrom, currentDateTo, page = 1) => {
     setLoading(true);
     setError('');
     try {
       const params = {
         search: currentSearch || undefined,
+        date_from: currentDateFrom || undefined,
+        date_to: currentDateTo || undefined,
         page,
         limit: 20,
       };
@@ -37,22 +45,24 @@ const ActivityLogs = () => {
   };
 
   useEffect(() => {
-    fetchLogs('', 1);
+    fetchLogs('', '', '', 1);
   }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchLogs(searchRef.current, 1);
+    fetchLogs(searchRef.current, dateFromRef.current, dateToRef.current, 1);
   };
 
   const handleReset = () => {
     setSearch('');
-    fetchLogs('', 1);
+    setDateFrom('');
+    setDateTo('');
+    fetchLogs('', '', '', 1);
   };
 
   const handlePageChange = (newPage) => {
     if (newPage < 1 || newPage > pagination.totalPages) return;
-    fetchLogs(searchRef.current, newPage);
+    fetchLogs(searchRef.current, dateFromRef.current, dateToRef.current, newPage);
   };
 
   const formatDateTime = (dateString) => {
@@ -79,7 +89,7 @@ const ActivityLogs = () => {
       <form onSubmit={handleSearchSubmit} className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="flex flex-wrap items-end gap-3">
           {/* Search */}
-          <div className="relative flex-1 min-w-[300px]">
+          <div className="relative flex-1 min-w-[220px]">
             <Search size={14} strokeWidth={2} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
             <input
               type="text"
@@ -90,20 +100,43 @@ const ActivityLogs = () => {
             />
           </div>
 
+          {/* Date From */}
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Từ ngày</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors"
+            />
+          </div>
+
+          {/* Date To */}
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Đến ngày</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              min={dateFrom || undefined}
+              className="h-9 px-3 text-[13px] border border-gray-300 rounded-md bg-white focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors"
+            />
+          </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="h-9 px-4 text-[13px] font-medium bg-navy-700 hover:bg-navy-800 disabled:opacity-60 text-white rounded-md transition-colors"
+            className="h-9 px-4 text-[13px] font-medium bg-navy-700 hover:bg-navy-800 disabled:opacity-60 text-white rounded-md transition-colors self-end"
           >
-            Tìm
+            Lọc
           </button>
           
-          {search && (
+          {(search || dateFrom || dateTo) && (
             <button
               type="button"
               onClick={handleReset}
               disabled={loading}
-              className="h-9 px-3 flex items-center gap-1.5 text-[13px] text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-60 transition-colors"
+              className="h-9 px-3 flex items-center gap-1.5 text-[13px] text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-60 transition-colors self-end"
             >
               <RefreshCw size={13} strokeWidth={2} />
               Reset

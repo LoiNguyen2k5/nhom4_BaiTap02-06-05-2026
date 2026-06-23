@@ -52,6 +52,19 @@ exports.createLeaveRequest = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Số ngày nghỉ không hợp lệ' });
       }
 
+      // Kiểm tra trùng lịch TRƯỚC khi chạm vào quỹ phép
+      const overlapping = await LeaveRequest.findOne({
+        where: {
+          user_id: userId,
+          status: { [Op.in]: ['pending', 'approved'] },
+          start_date: { [Op.lte]: end_date },
+          end_date: { [Op.gte]: start_date },
+        }
+      });
+      if (overlapping) {
+        return res.status(400).json({ success: false, message: 'Đã có đơn trong khoảng thời gian này, không thể tạo trùng' });
+      }
+
       const currentYear = new Date(start_date).getFullYear();
 
       // Lấy quỹ phép của năm đó ra để kiểm tra
@@ -82,21 +95,6 @@ exports.createLeaveRequest = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Số giờ OT không hợp lệ' });
       }
       // Đơn OT thì không trừ quỹ phép nên không cần kiểm tra LeaveBalance
-    }
-
-    // Kiểm tra trùng lịch nghỉ phép
-    if (type === 'leave') {
-      const overlapping = await LeaveRequest.findOne({
-        where: {
-          user_id: userId,
-          status: { [Op.in]: ['pending', 'approved'] },
-          start_date: { [Op.lte]: end_date },
-          end_date: { [Op.gte]: start_date },
-        }
-      });
-      if (overlapping) {
-        return res.status(400).json({ success: false, message: 'Bạn đã có đơn nghỉ phép trùng với khoảng thời gian này' });
-      }
     }
 
     // Lưu lá đơn vào Database
@@ -136,26 +134,72 @@ exports.getMyLeaveRequests = async (req, res) => {
   }
 };
 
+// 3b. Nhân viên hủy đơn đang chờ duyệt
+exports.cancelLeaveRequest = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const requestId = req.params.id;
+
+    const request = await LeaveRequest.findByPk(requestId);
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn' });
+    }
+    if (request.user_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền hủy đơn này' });
+    }
+    if (request.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'Chỉ có thể hủy đơn đang chờ duyệt' });
+    }
+
+    // Hoàn trả pending_days nếu là đơn nghỉ phép
+    if (request.type === 'leave') {
+      const currentYear = new Date(request.start_date).getFullYear();
+      const balance = await LeaveBalance.findOne({ where: { user_id: userId, year: currentYear } });
+      if (balance) {
+        balance.pending_days = Math.max(0, balance.pending_days - request.total_days);
+        await balance.save();
+      }
+    }
+
+    request.status = 'cancelled';
+    await request.save();
+
+    res.status(200).json({ success: true, message: 'Đã hủy đơn thành công', data: request });
+  } catch (error) {
+    console.error('Lỗi khi hủy đơn:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+};
+
 // ==========================================
 // API DÀNH CHO QUẢN LÝ (MANAGER)
 // ==========================================
 
-// 4. Lấy danh sách tất cả các đơn đang chờ duyệt (Pending)
+// 4. Lấy danh sách các đơn đang chờ duyệt — chỉ hiển thị nhân viên cùng phòng ban
 exports.getPendingRequests = async (req, res) => {
   try {
-    const { User, Profile } = require('../entities');
+    const { User } = require('../entities');
 
-    // Tìm các đơn có status = 'pending', kèm theo thông tin User nộp đơn
+    // Lấy department_id của manager đang đăng nhập
+    const manager = await User.findByPk(req.user.id, { attributes: ['department_id'] });
+    const managerDeptId = manager?.department_id;
+
+    // Nếu manager chưa được gán phòng ban → trả về rỗng thay vì lộ toàn bộ
+    if (!managerDeptId) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
     const pendingRequests = await LeaveRequest.findAll({
       where: { status: 'pending' },
       include: [
         {
           model: User,
           as: 'requester',
-          attributes: ['name', 'email', 'department_id']
+          attributes: ['name', 'email', 'department_id'],
+          where: { department_id: managerDeptId }
         }
       ],
-      order: [['created_at', 'ASC']] // Đơn nộp trước hiện lên trước
+      order: [['created_at', 'ASC']]
     });
 
     res.status(200).json({ success: true, data: pendingRequests });

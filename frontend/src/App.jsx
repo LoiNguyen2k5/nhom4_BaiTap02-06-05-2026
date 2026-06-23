@@ -44,9 +44,13 @@ import AdjustmentsPage from './pages/accountant/AdjustmentsPage';
 import AdvancesPage from './pages/accountant/AdvancesPage';
 
 import Layout from './components/Layout';
+import PublicLayout from './components/PublicLayout';
 import PerformanceDashboard from './pages/user/PerformanceDashboard';
 import UserToday from './pages/user/UserToday';
 import HRInterviews from './pages/hr/HRInterviews';
+import JobListPage from './pages/public/JobListPage';
+import JobDetailApplyPage from './pages/public/JobDetailApplyPage';
+import JobPostingManager from './pages/hr/JobPostingManager';
 
 // Redirect /profile đến đúng dashboard theo role
 const RoleRedirect = () => {
@@ -90,6 +94,12 @@ const App = () => {
 
       {/* Public routes với Navbar & Footer */}
       <Route element={<Layout />}>
+      </Route>
+
+      {/* Cổng tuyển dụng công khai — không cần đăng nhập */}
+      <Route element={<PublicLayout />}>
+        <Route path="/jobs" element={<JobListPage />} />
+        <Route path="/jobs/:id/apply" element={<JobDetailApplyPage />} />
       </Route>
 
       {/* User dashboard */}
@@ -163,10 +173,11 @@ const App = () => {
         <Route path="contracts"   element={<ContractManager />} />
         <Route path="evaluation"  element={<EmployeeEvaluation />} />
         <Route path="promotions"  element={<PromotionManager />} />
-        <Route path="recruitment" element={<RecruitmentPage />} />
-        <Route path="interviews"  element={<HRInterviews />} />
-        <Route path="reports"     element={<HRAttendanceReport />} />
-        <Route path="attendance"  element={<HRAttendanceReport />} />
+        <Route path="recruitment"    element={<RecruitmentPage />} />
+        <Route path="job-postings"   element={<JobPostingManager />} />
+        <Route path="interviews"     element={<HRInterviews />} />
+        <Route path="reports"        element={<HRAttendanceReport />} />
+        <Route path="attendance"     element={<HRAttendanceReport />} />
       </Route>
 
       {/* Admin dashboard */}
@@ -185,7 +196,8 @@ const App = () => {
         <Route path="departments" element={<AdminDepartments />} />
         <Route path="tasks"       element={<AdminTasks />} />
         <Route path="config"      element={<AdminConfig />} />
-        <Route path="recruitment" element={<RecruitmentPage />} />
+        <Route path="recruitment"  element={<RecruitmentPage />} />
+        <Route path="job-postings" element={<JobPostingManager />} />
         <Route path="activity-logs" element={<ActivityLogs />} />
       </Route>
     </Routes>

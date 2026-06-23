@@ -27,6 +27,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
+const publicRoutes = require('./routes/public.routes');
 const authRoutes = require('./routes/auth.routes');
 const profileRoutes = require('./routes/profile.routes');
 const passwordRoutes = require('./routes/password.routes');
@@ -42,7 +43,10 @@ const attendanceRoutes = require('./routes/attendance.routes');
 const accountantRoutes = require('./routes/accountant.routes');
 const adjustmentRoutes = require('./routes/adjustment.routes');
 const advanceRoutes = require('./routes/advance.routes');
+const jobPostingRoutes = require('./routes/jobPosting.routes');
+const chatbotRoutes = require('./routes/chatbot.routes');
 
+app.use('/api/public', publicRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordRoutes);
 app.use('/api/profile', profileRoutes);
@@ -58,5 +62,7 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/accountant', accountantRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
 app.use('/api/advances', advanceRoutes);
+app.use('/api/recruitment', jobPostingRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 module.exports = app;

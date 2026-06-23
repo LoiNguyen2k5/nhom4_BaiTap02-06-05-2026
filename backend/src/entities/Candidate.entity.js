@@ -41,7 +41,12 @@ const Candidate = sequelize.define(
       defaultValue: 'new',
     },
 
-    match_score: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 3.5 },
+    match_score: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+
+    // Kết quả phân tích AI
+    ai_summary: { type: DataTypes.TEXT, allowNull: true },
+    ai_reasoning: { type: DataTypes.TEXT, allowNull: true },
+    cv_file_path: { type: DataTypes.STRING(255), allowNull: true },
     onboard_date: { type: DataTypes.DATEONLY, allowNull: true },
 
     // Các trường phỏng vấn mới
@@ -50,7 +55,9 @@ const Candidate = sequelize.define(
     interviewer: { type: DataTypes.STRING(100), allowNull: true },
     interview_note: { type: DataTypes.TEXT, allowNull: true },
 
-    // Người tạo (admin/hr)
+    cv_file_path: { type: DataTypes.STRING(255), allowNull: true },
+
+    // Người tạo (admin/hr) — null nếu ứng viên tự nộp qua portal công khai
     created_by: { type: DataTypes.INTEGER, allowNull: true },
 
     created_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },

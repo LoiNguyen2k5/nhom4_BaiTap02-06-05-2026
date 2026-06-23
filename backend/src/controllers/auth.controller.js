@@ -56,10 +56,13 @@ const login = async (req, res) => {
     );
 
     // Buoc 5: Xac dinh URL chuyen huong theo Role
-    let redirectUrl = '/user/profile';
-    if (user.role === 'admin') {
-      redirectUrl = '/admin/dashboard';
-    }
+    const ROLE_REDIRECT = {
+      admin:      '/admin/dashboard',
+      hr:         '/hr/dashboard',
+      manager:    '/manager/leave-approvals',
+      accountant: '/accountant/dashboard',
+    };
+    const redirectUrl = ROLE_REDIRECT[user.role] || '/user/today';
 
     // Buoc 6: Tra ve Response thanh cong
     await logActivity({

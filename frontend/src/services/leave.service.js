@@ -24,6 +24,11 @@ const LeaveService = {
     return axiosClient.post('/leaves/request', data);
   },
 
+  // Hủy đơn đang chờ duyệt
+  cancelLeaveRequest: (id) => {
+    return axiosClient.patch(`/leaves/${id}/cancel`);
+  },
+
   // 2. DÀNH CHO QUẢN LÝ (MANAGER)
   // ----------------------------------------
 

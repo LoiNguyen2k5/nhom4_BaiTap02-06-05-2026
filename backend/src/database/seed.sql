@@ -28,6 +28,7 @@ TRUNCATE TABLE contracts;
 TRUNCATE TABLE otps;
 TRUNCATE TABLE profiles;
 TRUNCATE TABLE tax_insurance_configs;
+TRUNCATE TABLE users;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -50,7 +51,6 @@ ON DUPLICATE KEY UPDATE name = VALUES(name), description = VALUES(description), 
 -- ============================================================
 
 -- System accounts (IDs 1-5)
-DELETE FROM users WHERE id IN (1,2,3,4,5);
 INSERT INTO users (id, name, email, password, role, department_id, status, created_at) VALUES
 (1, 'Admin',      'admin@example.com',      '$2b$10$dM1Dn8ygkWxPm41du7ZFEOe/JL09liBtzsCv0sLYz9wiUIrubdoV.', 'admin',      1, 'active', NOW()),
 (2, 'HR',         'hr@example.com',          '$2b$10$ZyhnP7.vUXxd1XUU5n3JUOSN7O8ipOli.R.pjfNF4/r9EnrPBFEwO', 'hr',         3, 'active', NOW()),
@@ -60,7 +60,7 @@ INSERT INTO users (id, name, email, password, role, department_id, status, creat
 
 -- Test employee accounts (IDs 6-10)
 INSERT INTO users (id, name, email, password, role, department_id, status, created_at) VALUES
-(6,  'Lê Văn Bình',   'employee1@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 2, 'active', NOW()),
+(6,  'Lê Văn Bình',   'employee1@example.com', '$2b$10$KKJb7KDbtAWZzGkV16q6OOfoZkdk8YjjbxFp118t5xIM0fE28Ozc2', 'employee', 2, 'active', NOW()),
 (7,  'Phạm Thị Cúc',  'employee2@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 2, 'active', NOW()),
 (8,  'Ngô Văn Đức',   'employee3@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 5, 'active', NOW()),
 (9,  'Hoàng Thị Em',  'employee4@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'employee', 5, 'active', NOW()),

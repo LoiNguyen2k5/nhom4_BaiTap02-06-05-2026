@@ -4,7 +4,6 @@ import accountantService from '../../services/accountant.service';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 
-const currentYear = new Date().getFullYear();
 const toNum = (v) => Number(v) || 0;
 
 const AccountantPayroll = () => {
@@ -12,10 +11,11 @@ const AccountantPayroll = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [sendingId, setSendingId] = useState(null); // Track which row is sending
+  const [sendingId, setSendingId] = useState(null);
   const [batchSending, setBatchSending] = useState(false);
-  
+
   const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
   const [month, setMonth] = useState(currentDate.getMonth() + 1);
   const [year, setYear] = useState(currentDate.getFullYear());
   const [search, setSearch] = useState('');
@@ -194,8 +194,8 @@ const AccountantPayroll = () => {
                         </div>
                       </td>
                       <td className="px-4 text-[13px] text-gray-600">{Number(p.base_salary).toLocaleString()} đ</td>
-                      <td className="px-4 text-[13px] text-gray-600">{(toNum(p.allowances) + toNum(p.bonuses)).toLocaleString()} đ</td>
-                      <td className="px-4 text-[13px] text-danger-600">-{(toNum(p.deductions) + toNum(p.tax) + toNum(p.insurance)).toLocaleString()} đ</td>
+                      <td className="px-4 text-[13px] text-gray-600">{(toNum(p.allowance) + toNum(p.bonus)).toLocaleString()} đ</td>
+                      <td className="px-4 text-[13px] text-danger-600">-{(toNum(p.deduction) + toNum(p.tax) + toNum(p.insurance_employee)).toLocaleString()} đ</td>
                       <td className="px-4 text-[13px] font-semibold text-success-600">{Number(p.net_salary).toLocaleString()} đ</td>
                       <td className="px-4">
                         <Badge variant={p.status === 'approved' ? 'success' : p.status === 'paid' ? 'brand' : 'neutral'} size="sm">

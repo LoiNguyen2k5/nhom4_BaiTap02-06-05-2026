@@ -1,4 +1,4 @@
-const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest } = require('../entities');
+const { User, Contract, TaxInsuranceConfig, Payroll, SalaryAdjustment, AdvanceRequest, Profile, LeaveRequest } = require('../entities');
 const { Op } = require('sequelize');
 
 exports.calculatePayroll = async (req, res) => {
@@ -77,6 +77,27 @@ exports.calculatePayroll = async (req, res) => {
         }
       });
 
+      // Cộng thêm lương OT từ các đơn OT đã được duyệt trong tháng
+      const [monthYear, monthNum] = [month.split('-')[0], month.split('-')[1]];
+      const monthStart = `${monthYear}-${monthNum}-01`;
+      const lastDay = new Date(Number(monthYear), Number(monthNum), 0).getDate();
+      const monthEnd = `${monthYear}-${monthNum}-${String(lastDay).padStart(2, '0')}`;
+
+      const approvedOTs = await LeaveRequest.findAll({
+        where: {
+          user_id: user.id,
+          type: 'ot',
+          status: 'approved',
+          start_date: { [Op.gte]: monthStart, [Op.lte]: monthEnd }
+        }
+      });
+      const totalOtHours = approvedOTs.reduce((s, r) => s + (Number(r.ot_hours) || 0), 0);
+      if (totalOtHours > 0) {
+        // Quy đổi: lương/giờ × hệ số 1.5 × số giờ OT (giả định 176 giờ/tháng)
+        const hourlyRate = baseSalary / 176;
+        bonus += Math.round(hourlyRate * 1.5 * totalOtHours);
+      }
+
       // Truy vấn các khoản tạm ứng đang khấu trừ (deducting)
       let advance = 0;
       const activeAdvances = await AdvanceRequest.findAll({
@@ -112,13 +133,15 @@ exports.calculatePayroll = async (req, res) => {
         // Freelancer khấu trừ cứng 10%
         tax = (baseSalary + allowance + bonus) * 0.1;
       } else {
-        // Tính thuế bậc thang cơ bản
+        // Tính thuế TNCN lũy tiến 7 bậc (theo Luật Thuế TNCN hiện hành)
         if (taxableIncome > 0) {
-          if (taxableIncome <= 5000000) tax = taxableIncome * 0.05;
-          else if (taxableIncome <= 10000000) tax = 250000 + (taxableIncome - 5000000) * 0.1;
-          else if (taxableIncome <= 18000000) tax = 750000 + (taxableIncome - 10000000) * 0.15;
-          else if (taxableIncome <= 32000000) tax = 1950000 + (taxableIncome - 18000000) * 0.2;
-          else tax = 4750000 + (taxableIncome - 32000000) * 0.25; // Giản lược
+          if (taxableIncome <= 5000000)       tax = taxableIncome * 0.05;
+          else if (taxableIncome <= 10000000) tax = 250000   + (taxableIncome - 5000000)  * 0.1;
+          else if (taxableIncome <= 18000000) tax = 750000   + (taxableIncome - 10000000) * 0.15;
+          else if (taxableIncome <= 32000000) tax = 1950000  + (taxableIncome - 18000000) * 0.2;
+          else if (taxableIncome <= 52000000) tax = 4750000  + (taxableIncome - 32000000) * 0.25;
+          else if (taxableIncome <= 80000000) tax = 9750000  + (taxableIncome - 52000000) * 0.30;
+          else                                tax = 18150000 + (taxableIncome - 80000000) * 0.35;
         }
       }
 
@@ -165,10 +188,32 @@ exports.getPayrollsByMonth = async (req, res) => {
     const payrolls = await Payroll.findAll({
       where: whereClause,
       include: [
-        { model: User, as: 'user', attributes: ['id', 'name', 'email'] }
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'name', 'email'],
+          include: [
+            {
+              model: Contract,
+              as: 'contracts',
+              where: { status: 'active' },
+              required: false,
+              attributes: ['employee_type'],
+              limit: 1
+            }
+          ]
+        }
       ]
     });
-    res.status(200).json({ success: true, data: payrolls });
+
+    // Flatten employee_type lên tầng payroll để FE đọc dễ
+    const data = payrolls.map(p => {
+      const raw = p.toJSON();
+      raw.employee_type = raw.user?.contracts?.[0]?.employee_type || 'Full-time';
+      return raw;
+    });
+
+    res.status(200).json({ success: true, data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Lỗi server' });

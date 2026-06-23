@@ -463,7 +463,7 @@ const resetUserPassword = async (req, res) => {
 // ============================================================
 const getActivityLogs = async (req, res) => {
   try {
-    const { search, page, limit } = req.query;
+    const { search, date_from, date_to, page, limit } = req.query;
     const whereClause = {};
 
     if (search) {
@@ -471,6 +471,16 @@ const getActivityLogs = async (req, res) => {
         { action: { [Op.like]: `%${search}%` } },
         { detail: { [Op.like]: `%${search}%` } },
       ];
+    }
+
+    if (date_from || date_to) {
+      whereClause.created_at = {};
+      if (date_from) whereClause.created_at[Op.gte] = new Date(date_from);
+      if (date_to) {
+        const toDate = new Date(date_to);
+        toDate.setHours(23, 59, 59, 999);
+        whereClause.created_at[Op.lte] = toDate;
+      }
     }
 
     const pageNum = Math.max(1, parseInt(page) || 1);

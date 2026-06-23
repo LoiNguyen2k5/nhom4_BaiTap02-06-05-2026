@@ -131,4 +131,44 @@ const sendPayslipEmail = async (toEmail, userName, payroll) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendOTPEmail, sendPasswordResetEmail, sendPayslipEmail };
+const sendApplicationConfirmEmail = async (toEmail, candidateName, jobTitle) => {
+  if (process.env.BYPASS_LIMITER === 'true') {
+    console.log(`[MAIL MOCK] sendApplicationConfirmEmail to=${toEmail} job=${jobTitle}`);
+    return;
+  }
+  const mailOptions = {
+    from: `"Tuyển Dụng Nhóm 4" <${process.env.EMAIL_USER}>`,
+    to: toEmail,
+    subject: `[Nhóm 4] Xác nhận nhận hồ sơ - ${jobTitle}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+        <div style="background: linear-gradient(135deg, #2563eb, #1d4ed8); padding: 32px 24px; text-align: center;">
+          <h1 style="color: #fff; margin: 0; font-size: 22px; font-weight: 700;">Nhận Được Hồ Sơ Của Bạn</h1>
+          <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">Cảm ơn bạn đã ứng tuyển tại Nhóm 4</p>
+        </div>
+        <div style="padding: 32px 24px;">
+          <p style="color: #374151; font-size: 15px; margin: 0 0 16px;">Xin chào <strong>${candidateName}</strong>,</p>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.7; margin: 0 0 20px;">
+            Chúng tôi đã nhận được hồ sơ ứng tuyển của bạn cho vị trí:
+          </p>
+          <div style="background: #eff6ff; border-left: 4px solid #2563eb; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px;">
+            <p style="color: #1e40af; font-size: 16px; font-weight: 700; margin: 0;">${jobTitle}</p>
+          </div>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.7; margin: 0 0 16px;">
+            Đội ngũ tuyển dụng của chúng tôi sẽ xem xét hồ sơ và liên hệ lại với bạn trong thời gian sớm nhất nếu hồ sơ phù hợp với yêu cầu của vị trí.
+          </p>
+          <p style="color: #6b7280; font-size: 14px; line-height: 1.7; margin: 0;">
+            Nếu có bất kỳ câu hỏi nào, vui lòng liên hệ phòng Nhân sự qua địa chỉ email này.
+          </p>
+        </div>
+        <div style="border-top: 1px solid #e5e7eb; padding: 16px 24px; text-align: center; background: #f9fafb;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">© 2024 Nhóm 4. All rights reserved.</p>
+          <p style="color: #d1d5db; font-size: 11px; margin: 4px 0 0;">Đây là email tự động, vui lòng không trả lời trực tiếp.</p>
+        </div>
+      </div>
+    `,
+  };
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendOTPEmail, sendPasswordResetEmail, sendPayslipEmail, sendApplicationConfirmEmail };
