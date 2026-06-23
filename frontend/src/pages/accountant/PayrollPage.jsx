@@ -88,6 +88,7 @@ export default function PayrollPage() {
   // Tổng hợp nhanh
   const totalNet = payrolls.reduce((s, p) => s + Number(p.net_salary || 0), 0);
   const totalTax = payrolls.reduce((s, p) => s + Number(p.tax || 0), 0);
+  const hasDraft = payrolls.some(p => p.status === 'draft');
 
   return (
     <div className="space-y-5">
@@ -121,7 +122,7 @@ export default function PayrollPage() {
 
           <button
             onClick={handleApprove}
-            disabled={calculating || approving || payrolls.length === 0}
+            disabled={calculating || approving || !hasDraft}
             className="h-9 px-4 flex items-center gap-1.5 text-[13px] font-semibold bg-navy-700 hover:bg-navy-800 text-white rounded-md transition-colors disabled:opacity-60"
           >
             {approving ? (
@@ -208,7 +209,7 @@ export default function PayrollPage() {
                 </tr>
               ) : (
                 payrolls.map((pr) => {
-                  const empType = pr.contract_type || 'Full-time';
+                  const empType = pr.employee_type || 'Full-time';
                   const typeCfg = TYPE_BADGE[empType] || TYPE_BADGE['Full-time'];
                   const statusCfg = STATUS_BADGE[pr.status] || STATUS_BADGE.draft;
                   return (

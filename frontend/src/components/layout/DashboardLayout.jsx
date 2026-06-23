@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { HelpCircle, Bell, ChevronDown, Search } from 'lucide-react';
+import { HelpCircle, Bell, ChevronDown } from 'lucide-react';
 import axiosClient from '../../services/axiosClient';
 import Sidebar from './Sidebar';
 import Avatar from '../ui/Avatar';
@@ -12,14 +12,17 @@ const PATH_LABELS = {
   'admin/departments': ['Admin', 'Phòng ban'],
   'admin/tasks': ['Admin', 'Giao việc'],
   'admin/recruitment': ['Admin', 'Tuyển dụng'],
+  'admin/job-postings': ['Admin', 'Tin tuyển dụng'],
   'admin/config': ['Admin', 'Cấu hình'],
   'admin/profile': ['Admin', 'Hồ sơ'],
+  'admin/activity-logs': ['Admin', 'Nhật ký hệ thống'],
   'hr/dashboard': ['HR', 'Dashboard'],
   'hr/employees': ['HR', 'Hồ sơ nhân viên'],
   'hr/contracts': ['HR', 'Hợp đồng'],
   'hr/recruitment': ['HR', 'Tuyển dụng'],
+  'hr/job-postings': ['HR', 'Tin tuyển dụng'],
   'hr/interviews': ['HR', 'Lịch phỏng vấn'],
-  'hr/reports': ['HR', 'Báo cáo'],
+  'hr/reports': ['HR', 'Báo cáo chấm công'],
   'hr/promotions': ['HR', 'Đề xuất thăng chức'],
   'hr/evaluation': ['HR', 'Đánh giá KPI'],
   'manager/dashboard': ['Manager', 'Dashboard'],
@@ -31,6 +34,11 @@ const PATH_LABELS = {
   'manager/evaluation': ['Manager', 'Đánh giá KPI'],
   'manager/promotions': ['Manager', 'Đề xuất thăng chức'],
   'accountant/dashboard': ['Kế toán', 'Dashboard'],
+  'accountant/payroll': ['Kế toán', 'Tính lương tháng'],
+  'accountant/payroll-send': ['Kế toán', 'Gửi phiếu lương'],
+  'accountant/tax-config': ['Kế toán', 'Cấu hình thuế'],
+  'accountant/adjustments': ['Kế toán', 'Khoản thu nhập'],
+  'accountant/advances': ['Kế toán', 'Tạm ứng'],
   'user/today': ['Cá nhân', 'Hôm nay'],
   'user/profile': ['Cá nhân', 'Hồ sơ tôi'],
   'user/attendance': ['Cá nhân', 'Chấm công'],
@@ -58,6 +66,16 @@ const DashboardLayout = () => {
 
   const breadcrumb = buildBreadcrumb(location.pathname);
   const displayName = user?.name || user?.email || 'Người dùng';
+
+  // Fetch unread count khi mount để hiện red dot ngay
+  useEffect(() => {
+    axiosClient.get('/profile/activity?limit=1')
+      .then((res) => {
+        const payload = res.data.data || {};
+        setUnreadCount(payload.unreadCount || 0);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!notifOpen) return;
@@ -98,18 +116,6 @@ const DashboardLayout = () => {
               </span>
             ))}
           </nav>
-
-          {/* Search */}
-          <div className="relative hidden md:flex items-center w-[260px] h-8 bg-gray-50 border border-transparent rounded-md focus-within:border-navy-500 focus-within:bg-white transition-colors">
-            <Search size={13} className="absolute left-2.5 text-gray-400 pointer-events-none" />
-            <input
-              className="flex-1 h-full bg-transparent outline-none pl-8 pr-2 text-[13px] text-gray-700 placeholder-gray-400"
-              placeholder="Tìm kiếm..."
-            />
-            <span className="absolute right-2 text-[10px] font-medium text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-sm">
-              Ctrl K
-            </span>
-          </div>
 
           {/* Right actions */}
           <div className="flex items-center gap-1">

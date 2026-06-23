@@ -23,6 +23,9 @@ router.get('/my-requests', leaveController.getMyLeaveRequests);
 // [POST] /api/leaves/request -> Nộp đơn xin nghỉ phép hoặc xin OT
 router.post('/request', leaveController.createLeaveRequest);
 
+// [PATCH] /api/leaves/:id/cancel -> Nhân viên hủy đơn đang chờ duyệt
+router.patch('/:id/cancel', leaveController.cancelLeaveRequest);
+
 // ==========================================
 // API DÀNH CHO QUẢN LÝ (MANAGER)
 // ==========================================

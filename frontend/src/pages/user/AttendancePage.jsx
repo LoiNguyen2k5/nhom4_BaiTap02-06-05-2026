@@ -54,6 +54,8 @@ const AttendancePage = () => {
       }
     };
     init();
+    // Tắt camera khi người dùng rời trang
+    return () => stopVideo();
   }, []);
 
   const determineTodayStatus = (logs) => {
@@ -218,10 +220,10 @@ const AttendancePage = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {/* Widget chấm công */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col items-center justify-center p-8 relative min-h-[400px]">
+        <div className="lg:col-span-1 flex flex-col">
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col items-center justify-center p-8 relative flex-1 min-h-100">
             
             {/* Chế độ Camera đang tắt */}
             {mode === 'idle' && (
@@ -341,8 +343,8 @@ const AttendancePage = () => {
         </div>
 
         {/* Bảng lịch sử */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden h-full">
+        <div className="lg:col-span-2 flex flex-col">
+          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col flex-1">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h2 className="font-semibold text-gray-900 flex items-center gap-2">
                 <Calendar size={18} className="text-gray-400" />
@@ -350,7 +352,7 @@ const AttendancePage = () => {
               </h2>
             </div>
             
-            <div className="overflow-x-auto max-h-[400px] overflow-y-auto custom-scrollbar">
+            <div className="overflow-x-auto overflow-y-auto max-h-100 custom-scrollbar flex-1">
               <table className="w-full text-sm text-left">
                 <thead className="text-xs text-gray-500 uppercase bg-gray-50 sticky top-0 z-10">
                   <tr>
@@ -383,10 +385,17 @@ const AttendancePage = () => {
                         {record.work_hours !== null && record.work_hours !== undefined ? record.work_hours : '—'}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Badge 
-                          variant={record.status === 'Present' ? 'success' : 'warning'}
+                        <Badge
+                          variant={
+                            record.status === 'Present' ? 'success' :
+                            record.status === 'Late'    ? 'warning' :
+                            record.status === 'OnLeave' ? 'info'    : 'danger'
+                          }
                         >
-                          {record.status === 'Present' ? 'Có mặt' : record.status}
+                          {record.status === 'Present' ? 'Có mặt'   :
+                           record.status === 'Late'    ? 'Đi trễ'   :
+                           record.status === 'OnLeave' ? 'Nghỉ phép' :
+                           record.status === 'Absent'  ? 'Vắng mặt' : record.status}
                         </Badge>
                       </td>
                     </tr>
