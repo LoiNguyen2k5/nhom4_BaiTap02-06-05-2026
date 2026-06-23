@@ -24,7 +24,7 @@ const Register = () => {
     setLocalError('');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(form.email)) { setLocalError('Email không hợp lệ'); return; }
-    if (form.password.length < 6) { setLocalError('Mật khẩu phải có ít nhất 6 ký tự'); return; }
+    if (form.password.length < 8) { setLocalError('Mật khẩu phải có ít nhất 8 ký tự'); return; }
     if (form.password !== form.confirmPassword) { setLocalError('Mật khẩu xác nhận không khớp'); return; }
 
     const result = await dispatch(registerThunk({ name: form.name, email: form.email, password: form.password }));
@@ -114,7 +114,7 @@ const Register = () => {
               <div className="relative">
                 <Lock size={14} strokeWidth={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} required
-                  placeholder="Ít nhất 6 ký tự"
+                  placeholder="Ít nhất 8 ký tự"
                   className="w-full h-10 pl-9 pr-10 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors" />
                 <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPassword ? <EyeOff size={14} strokeWidth={1.75} /> : <Eye size={14} strokeWidth={1.75} />}

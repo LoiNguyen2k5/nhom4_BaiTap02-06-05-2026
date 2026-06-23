@@ -58,12 +58,18 @@ function Avatar({ name, size = 28 }) {
   );
 }
 
-/* ── Score color ─────────────────────────────────────────── */
+/* ── Score color (thang 0-100) ───────────────────────────── */
 function scoreColor(s) {
-  if (s >= 4.5) return 'var(--rc-success)';
-  if (s >= 4.0) return 'var(--rc-success-soft)';
-  if (s >= 3.5) return 'var(--rc-warning)';
+  if (s >= 80) return 'var(--rc-success)';
+  if (s >= 60) return 'var(--rc-success-soft)';
+  if (s >= 40) return 'var(--rc-warning)';
   return 'var(--rc-gray-500)';
+}
+function scoreBg(s) {
+  if (s >= 80) return '#dcfce7';
+  if (s >= 60) return '#d1fae5';
+  if (s >= 40) return '#fef9c3';
+  return '#f3f4f6';
 }
 
 /* ── Time display ─────────────────────────────────────────── */
@@ -92,8 +98,9 @@ const Icons = {
   Cal:     (s = 11) => <Icon size={s} d={["M3 4h18v18H3z","M16 2v4M8 2v4","M3 10h18"]} />,
   Refresh: <Icon d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />,
   Trash:   <Icon d={["M3 6h18","M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6","M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"]} />,
-  More:    <Icon d="M5 12a1 1 0 100 2 1 1 0 000-2zM12 12a1 1 0 100 2 1 1 0 000-2zM19 12a1 1 0 100 2 1 1 0 000-2z" />,
+  More:    <Icon d="M5 12a1 1 0 100 2 1 1 0 000-2zM12 12a1 1 0 100 2 1 1 0 000-2z" />,
   User:    <Icon d={["M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2", "M12 11a4 4 0 100-8 4 4 0 000 8z", "M16 11v1M19 8v6M22 11h-6"]} />,
+  AI:      <Icon size={14} d={["M12 2a2 2 0 012 2v2a2 2 0 01-2 2 2 2 0 01-2-2V4a2 2 0 012-2z","M12 16a2 2 0 012 2v2a2 2 0 01-2 2 2 2 0 01-2-2v-2a2 2 0 012-2z","M2 12a2 2 0 012-2h2a2 2 0 012 2 2 2 0 01-2 2H4a2 2 0 01-2-2z","M16 12a2 2 0 012-2h2a2 2 0 012 2 2 2 0 01-2 2h-2a2 2 0 01-2-2z","M5.6 5.6l1.4 1.4M16.9 16.9l1.5 1.5M5.6 18.4l1.5-1.5M16.9 7.1l1.4-1.5"]} />,
 };
 
 /* ── Toast ───────────────────────────────────────────────── */
@@ -121,10 +128,11 @@ function ToastList({ toasts }) {
 }
 
 /* ── Candidate Card ──────────────────────────────────────── */
-function CandidateCard({ candidate: c, dragging, selected, onSelect, onDragStart, onDragEnd, onDelete }) {
+function CandidateCard({ candidate: c, dragging, selected, onSelect, onDragStart, onDragEnd, onDelete, onAnalyze }) {
   const skills = Array.isArray(c.skills) ? c.skills : [];
   const visible = skills.slice(0, 3);
   const overflow = skills.length - 3;
+  const hasScore = c.match_score !== null && c.match_score !== undefined;
 
   return (
     <div
@@ -155,23 +163,188 @@ function CandidateCard({ candidate: c, dragging, selected, onSelect, onDragStart
         </div>
       )}
 
+      {/* AI Score Badge */}
+      {hasScore ? (
+        <div className="rc-ai-badge" style={{ background: scoreBg(c.match_score), borderColor: scoreColor(c.match_score) }} title={c.ai_reasoning || ''}>
+          <span style={{ color: scoreColor(c.match_score), fontWeight: 700 }}>🤖 {Math.round(c.match_score)}%</span>
+          {c.ai_summary && <span className="rc-ai-summary">{c.ai_summary}</span>}
+        </div>
+      ) : (
+        <button
+          className="rc-ai-btn"
+          title="Phân tích CV bằng AI"
+          onClick={(e) => { e.stopPropagation(); onAnalyze(c); }}
+        >
+          🤖 Phân tích CV
+        </button>
+      )}
+
       <div className="rc-card__foot">
         <span className="rc-card__time">{Icons.Cal()} {timeAgo(c.created_at)}</span>
-        {c.match_score && (
-          <span className="rc-card__score" style={{ color: scoreColor(c.match_score) }}>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            {Number(c.match_score).toFixed(1)}
-          </span>
+        {hasScore && (
+          <button
+            className="rc-reanalyze-btn"
+            title="Phân tích lại CV"
+            onClick={(e) => { e.stopPropagation(); onAnalyze(c); }}
+          >
+            ↺ Phân tích lại
+          </button>
         )}
       </div>
     </div>
   );
 }
 
+/* ── AI CV Modal ─────────────────────────────────────────── */
+function AICVModal({ candidate, onClose, onSuccess }) {
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleFile = (f) => {
+    if (!f) return;
+    const ext = f.name.split('.').pop().toLowerCase();
+    if (!['pdf','doc','docx'].includes(ext)) {
+      setError('Chỉ chấp nhận file PDF, DOC, DOCX'); return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      setError('File quá lớn (tối đa 5MB)'); return;
+    }
+    setFile(f); setError('');
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); setDragOver(false);
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  const submit = async () => {
+    if (!file) { setError('Vui lòng chọn file CV'); return; }
+    setLoading(true); setError('');
+    try {
+      const res = await recruitmentService.analyzeCV(candidate.id, file);
+      setResult(res.data);
+      onSuccess();
+    } catch (e) {
+      setError(e.response?.data?.message || 'Lỗi khi phân tích CV');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const scoreNum = result?.match_score ?? 0;
+
+  return (
+    <div className="rc-modal-bg" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="rc-modal" style={{ maxWidth: 520 }}>
+        <div className="rc-modal__header">
+          <div>
+            <h2 className="rc-modal__title">🤖 Phân tích CV bằng AI</h2>
+            <p className="rc-modal__sub">{candidate.name} — {candidate.position}</p>
+          </div>
+          <button className="rc-modal__close" onClick={onClose}>{Icons.X()}</button>
+        </div>
+
+        <div className="rc-modal__body">
+          {error && <div className="rc-error-banner">{error}</div>}
+
+          {!result ? (
+            <>
+              {/* Drop zone */}
+              <div
+                className={`rc-dropzone${dragOver ? ' rc-dropzone--over' : ''}${file ? ' rc-dropzone--has-file' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => inputRef.current?.click()}
+              >
+                <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }}
+                  onChange={(e) => handleFile(e.target.files[0])} />
+                {file ? (
+                  <>
+                    <div className="rc-dropzone__icon">📄</div>
+                    <p className="rc-dropzone__name">{file.name}</p>
+                    <p className="rc-dropzone__size">{(file.size / 1024).toFixed(0)} KB</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="rc-dropzone__icon">📂</div>
+                    <p className="rc-dropzone__text">Kéo thả file CV vào đây</p>
+                    <p className="rc-dropzone__hint">hoặc click để chọn file · PDF, DOC, DOCX · tối đa 5MB</p>
+                  </>
+                )}
+              </div>
+
+              <div className="rc-ai-info">
+                <span>✨</span>
+                <span>AI sẽ đọc CV, trích xuất kỹ năng và chấm điểm phù hợp với vị trí <strong>{candidate.position}</strong></span>
+              </div>
+            </>
+          ) : (
+            /* Kết quả AI */
+            <div className="rc-ai-result">
+              <div className="rc-score-circle" style={{ '--score-color': scoreColor(scoreNum) }}>
+                <svg viewBox="0 0 100 100" className="rc-score-svg">
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="10" />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke={scoreColor(scoreNum)} strokeWidth="10"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - scoreNum / 100)}`}
+                    strokeLinecap="round"
+                    transform="rotate(-90 50 50)" />
+                </svg>
+                <div className="rc-score-text">
+                  <span className="rc-score-num" style={{ color: scoreColor(scoreNum) }}>{Math.round(scoreNum)}</span>
+                  <span className="rc-score-unit">/100</span>
+                </div>
+              </div>
+
+              <div className="rc-ai-sections">
+                <div className="rc-ai-section">
+                  <p className="rc-ai-label">📝 Tóm tắt ứng viên</p>
+                  <p className="rc-ai-text">{result.summary}</p>
+                </div>
+                <div className="rc-ai-section">
+                  <p className="rc-ai-label">💡 Lý giải điểm số</p>
+                  <p className="rc-ai-text">{result.reasoning}</p>
+                </div>
+                {result.extracted_skills?.length > 0 && (
+                  <div className="rc-ai-section">
+                    <p className="rc-ai-label">🔧 Kỹ năng phát hiện</p>
+                    <div className="rc-card__skills" style={{ marginTop: 6 }}>
+                      {result.extracted_skills.map((s) => <span key={s} className="rc-skill">{s}</span>)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="rc-modal__footer">
+          <button className="rc-btn rc-btn--ghost" onClick={onClose}>
+            {result ? 'Đóng' : 'Huỷ'}
+          </button>
+          {!result && (
+            <button className="rc-btn rc-btn--primary" onClick={submit} disabled={loading || !file}
+              style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
+              {loading ? (
+                <><span className="rc-btn-spinner" /> Đang phân tích...</>
+              ) : (
+                '🤖 Phân tích ngay'
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Kanban Column ───────────────────────────────────────── */
-function KanbanColumn({ stage, candidates, draggingId, selectedId, dropTarget, onCardSelect, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onAddClick, onDelete }) {
+function KanbanColumn({ stage, candidates, draggingId, selectedId, dropTarget, onCardSelect, onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop, onAddClick, onDelete, onAnalyze }) {
   const isTarget = dropTarget === stage.id;
   return (
     <div
@@ -206,6 +379,7 @@ function KanbanColumn({ stage, candidates, draggingId, selectedId, dropTarget, o
               onDragStart={() => onDragStart(c.id, stage.id)}
               onDragEnd={onDragEnd}
               onDelete={onDelete}
+              onAnalyze={onAnalyze}
             />
           ))
         }
@@ -231,6 +405,16 @@ function StatsBar({ stats, total }) {
           {it.note && <p className="rc-stat__note">{it.note}</p>}
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ── FormField ── (module-level để tránh re-mount khi re-render) ── */
+function FormField({ label, req, children }) {
+  return (
+    <div className="rc-form-grp">
+      <label className="rc-lbl">{label}{req && <span className="rc-lbl-req">*</span>}</label>
+      {children}
     </div>
   );
 }
@@ -267,12 +451,6 @@ function AddCandidateModal({ positions, onClose, onSuccess }) {
     }
   };
 
-  const Field = ({ label, req, children }) => (
-    <div className="rc-form-grp">
-      <label className="rc-lbl">{label}{req && <span className="rc-lbl-req">*</span>}</label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="rc-modal-bg" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -289,56 +467,56 @@ function AddCandidateModal({ positions, onClose, onSuccess }) {
           {error && <div className="rc-error-banner">{error}</div>}
 
           <div className="rc-form-grid">
-            <Field label="Họ và tên" req>
+            <FormField label="Họ và tên" req>
               <input className="rc-inp" placeholder="Nguyễn Văn A" value={form.name}
                 onChange={(e) => set('name', e.target.value)} />
-            </Field>
-            <Field label="Email">
+            </FormField>
+            <FormField label="Email">
               <input className="rc-inp" type="email" placeholder="email@example.com" value={form.email}
                 onChange={(e) => set('email', e.target.value)} />
-            </Field>
-            <Field label="Số điện thoại">
+            </FormField>
+            <FormField label="Số điện thoại">
               <input className="rc-inp" placeholder="+84 9XX XXX XXX" value={form.phone}
                 onChange={(e) => set('phone', e.target.value)} />
-            </Field>
-            <Field label="Năm kinh nghiệm">
+            </FormField>
+            <FormField label="Năm kinh nghiệm">
               <input className="rc-inp" type="number" min="0" placeholder="0" value={form.experience_years}
                 onChange={(e) => set('experience_years', e.target.value)} />
-            </Field>
-            <Field label="Vị trí ứng tuyển" req>
+            </FormField>
+            <FormField label="Vị trí ứng tuyển" req>
               <input className="rc-inp" list="pos-list" placeholder="Ví dụ: Backend Engineer"
                 value={form.position} onChange={(e) => set('position', e.target.value)} />
               <datalist id="pos-list">
                 {positions.map((p) => <option key={p} value={p} />)}
               </datalist>
-            </Field>
-            <Field label="Nguồn">
+            </FormField>
+            <FormField label="Nguồn">
               <select className="rc-inp rc-select" value={form.source} onChange={(e) => set('source', e.target.value)}>
                 {['LinkedIn','TopCV','Referral','Direct','Other'].map((s) => <option key={s}>{s}</option>)}
               </select>
-            </Field>
+            </FormField>
           </div>
 
-          <Field label="Skills (cách nhau bằng dấu phẩy)">
+          <FormField label="Skills (cách nhau bằng dấu phẩy)">
             <input className="rc-inp" placeholder="React, TypeScript, Node.js" value={form.skills}
               onChange={(e) => set('skills', e.target.value)} />
-          </Field>
+          </FormField>
 
           <div className="rc-form-grid">
-            <Field label="Đang làm tại">
+            <FormField label="Đang làm tại">
               <input className="rc-inp" placeholder="ABC Company" value={form.current_company}
                 onChange={(e) => set('current_company', e.target.value)} />
-            </Field>
-            <Field label="Lương kỳ vọng (₫)">
+            </FormField>
+            <FormField label="Lương kỳ vọng (₫)">
               <input className="rc-inp rc-mono" type="number" placeholder="25000000" value={form.expected_salary}
                 onChange={(e) => set('expected_salary', e.target.value)} />
-            </Field>
+            </FormField>
           </div>
 
-          <Field label="Ghi chú">
+          <FormField label="Ghi chú">
             <textarea className="rc-inp rc-textarea" placeholder="Ghi chú nội bộ, người giới thiệu..."
               value={form.note} onChange={(e) => set('note', e.target.value)} />
-          </Field>
+          </FormField>
         </div>
 
         <div className="rc-modal__footer">
@@ -419,12 +597,6 @@ function CandidateDetailModal({ candidate, onClose, onSuccess, onDeleteClick, pu
     }
   };
 
-  const Field = ({ label, children }) => (
-    <div className="rc-form-grp">
-      <label className="rc-lbl">{label}</label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="rc-modal-bg" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -446,50 +618,50 @@ function CandidateDetailModal({ candidate, onClose, onSuccess, onDeleteClick, pu
               <h4 className="rc-modal-section-title">Thông tin hồ sơ</h4>
               
               <div className="rc-form-grid">
-                <Field label="Họ và tên">
+                <FormField label="Họ và tên">
                   <input className="rc-inp" value={form.name} onChange={(e) => set('name', e.target.value)} />
-                </Field>
-                <Field label="Vị trí ứng tuyển">
+                </FormField>
+                <FormField label="Vị trí ứng tuyển">
                   <input className="rc-inp" value={form.position} onChange={(e) => set('position', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
 
               <div className="rc-form-grid">
-                <Field label="Email">
+                <FormField label="Email">
                   <input className="rc-inp" value={form.email} onChange={(e) => set('email', e.target.value)} />
-                </Field>
-                <Field label="Số điện thoại">
+                </FormField>
+                <FormField label="Số điện thoại">
                   <input className="rc-inp" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
 
               <div className="rc-form-grid">
-                <Field label="Kinh nghiệm (năm)">
+                <FormField label="Kinh nghiệm (năm)">
                   <input className="rc-inp" type="number" value={form.experience_years} onChange={(e) => set('experience_years', e.target.value)} />
-                </Field>
-                <Field label="Lương mong muốn (₫)">
+                </FormField>
+                <FormField label="Lương mong muốn (₫)">
                   <input className="rc-inp rc-mono" type="number" value={form.expected_salary} onChange={(e) => set('expected_salary', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
 
               <div className="rc-form-grid">
-                <Field label="Nguồn ứng tuyển">
+                <FormField label="Nguồn ứng tuyển">
                   <select className="rc-inp rc-select" value={form.source} onChange={(e) => set('source', e.target.value)}>
                     {['LinkedIn','TopCV','Referral','Direct','Other'].map((s) => <option key={s}>{s}</option>)}
                   </select>
-                </Field>
-                <Field label="Đang làm tại">
+                </FormField>
+                <FormField label="Đang làm tại">
                   <input className="rc-inp" value={form.current_company} onChange={(e) => set('current_company', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
 
-              <Field label="Kỹ năng (cách nhau bằng dấu phẩy)">
+              <FormField label="Kỹ năng (cách nhau bằng dấu phẩy)">
                 <input className="rc-inp" value={form.skills} onChange={(e) => set('skills', e.target.value)} />
-              </Field>
+              </FormField>
 
-              <Field label="Ghi chú hồ sơ">
+              <FormField label="Ghi chú hồ sơ">
                 <textarea className="rc-inp rc-textarea" style={{ height: '70px' }} value={form.note} onChange={(e) => set('note', e.target.value)} />
-              </Field>
+              </FormField>
             </div>
 
             {/* Cột phải: Lịch phỏng vấn & Trạng thái */}
@@ -497,30 +669,30 @@ function CandidateDetailModal({ candidate, onClose, onSuccess, onDeleteClick, pu
               <h4 className="rc-modal-section-title">Tiến trình & Lịch phỏng vấn</h4>
 
               <div className="rc-form-grid">
-                <Field label="Trạng thái hiện tại">
+                <FormField label="Trạng thái hiện tại">
                   <select className="rc-inp rc-select" value={form.stage} onChange={(e) => { set('stage', e.target.value); handleActionStage(e.target.value); }}>
                     {STAGES.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
                   </select>
-                </Field>
-                <Field label="Điểm đánh giá AI (1-5)">
+                </FormField>
+                <FormField label="Điểm đánh giá AI (1-5)">
                   <input className="rc-inp" type="number" step="0.1" min="1" max="5" value={form.match_score} onChange={(e) => set('match_score', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
 
               <div className="rc-interview-box">
                 <p className="rc-interview-box-title">Thông tin phỏng vấn</p>
-                <Field label="Thời gian phỏng vấn">
+                <FormField label="Thời gian phỏng vấn">
                   <input className="rc-inp" type="datetime-local" value={form.interview_date} onChange={(e) => set('interview_date', e.target.value)} />
-                </Field>
-                <Field label="Link phỏng vấn (Google Meet / Zoom)">
+                </FormField>
+                <FormField label="Link phỏng vấn (Google Meet / Zoom)">
                   <input className="rc-inp" placeholder="https://meet.google.com/..." value={form.interview_link} onChange={(e) => set('interview_link', e.target.value)} />
-                </Field>
-                <Field label="Người phỏng vấn">
+                </FormField>
+                <FormField label="Người phỏng vấn">
                   <input className="rc-inp" placeholder="Tên người phỏng vấn..." value={form.interviewer} onChange={(e) => set('interviewer', e.target.value)} />
-                </Field>
-                <Field label="Ghi chú buổi phỏng vấn">
+                </FormField>
+                <FormField label="Ghi chú buổi phỏng vấn">
                   <textarea className="rc-inp rc-textarea" style={{ height: '80px' }} placeholder="Nhận xét đánh giá phỏng vấn..." value={form.interview_note} onChange={(e) => set('interview_note', e.target.value)} />
-                </Field>
+                </FormField>
               </div>
             </div>
           </div>
@@ -589,6 +761,7 @@ export default function RecruitmentPage() {
 
   const [showAdd, setShowAdd]     = useState(false);
   const [delTarget, setDelTarget] = useState(null);
+  const [aiTarget, setAiTarget]   = useState(null);
   const [filterPos, setFilterPos] = useState('');
   const [filterStatus, setFilterStatus] = useState('all'); // all | active | hired | rejected
 
@@ -756,6 +929,7 @@ export default function RecruitmentPage() {
                 onDrop={() => handleDrop(stage.id)}
                 onAddClick={() => setShowAdd(true)}
                 onDelete={(c) => setDelTarget(c)}
+                onAnalyze={(c) => setAiTarget(c)}
               />
             ))}
           </div>
@@ -784,6 +958,13 @@ export default function RecruitmentPage() {
           candidate={delTarget}
           onClose={() => setDelTarget(null)}
           onConfirm={handleDelete}
+        />
+      )}
+      {aiTarget && (
+        <AICVModal
+          candidate={aiTarget}
+          onClose={() => setAiTarget(null)}
+          onSuccess={() => { loadBoard(); push('success', `✅ Phân tích CV ${aiTarget.name} thành công!`); }}
         />
       )}
     </div>

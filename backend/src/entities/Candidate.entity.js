@@ -41,7 +41,12 @@ const Candidate = sequelize.define(
       defaultValue: 'new',
     },
 
-    match_score: { type: DataTypes.FLOAT, allowNull: true, defaultValue: 3.5 },
+    match_score: { type: DataTypes.FLOAT, allowNull: true, defaultValue: null },
+
+    // Kết quả phân tích AI
+    ai_summary: { type: DataTypes.TEXT, allowNull: true },
+    ai_reasoning: { type: DataTypes.TEXT, allowNull: true },
+    cv_file_path: { type: DataTypes.STRING(255), allowNull: true },
     onboard_date: { type: DataTypes.DATEONLY, allowNull: true },
 
     // Các trường phỏng vấn mới

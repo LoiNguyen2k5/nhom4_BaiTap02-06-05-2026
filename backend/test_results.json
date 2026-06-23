@@ -1,0 +1,290 @@
+[
+  {
+    "tcId": "TC_001",
+    "name": "Đăng nhập đúng email + password admin",
+    "module": "Auth",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_002",
+    "name": "Đăng nhập email không tồn tại",
+    "module": "Auth",
+    "expected": "Failed (401/404)",
+    "actual": "Failed (404): Email hoặc mật khẩu không chính xác",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_003",
+    "name": "Đăng nhập password sai",
+    "module": "Auth",
+    "expected": "Failed (401/400)",
+    "actual": "Failed (400): Email hoặc mật khẩu không chính xác",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_004",
+    "name": "Đăng nhập email format sai",
+    "module": "Auth",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Email không hợp lệ",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_007",
+    "name": "Đăng nhập email rỗng",
+    "module": "Auth",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Email không được để trống",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_011",
+    "name": "Đăng ký password < 8 ký tự (ví dụ: 6 ký tự)",
+    "module": "Register",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Mật khẩu phải có ít nhất 8 ký tự",
+    "status": "PASS",
+    "notes": "Chặn thành công"
+  },
+  {
+    "tcId": "TC_010",
+    "name": "Đăng ký email đã tồn tại",
+    "module": "Register",
+    "expected": "Failed (409/400)",
+    "actual": "Failed (409): Email này đã được đăng ký, vui lòng sử dụng email khác",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_018",
+    "name": "Xem thông tin hồ sơ",
+    "module": "Profile",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_023",
+    "name": "Admin xem danh sách users",
+    "module": "Admin",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_029",
+    "name": "Admin xem danh sách phòng ban",
+    "module": "Admin",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_030",
+    "name": "Admin tạo phòng ban tên trùng",
+    "module": "Admin",
+    "expected": "Failed (409/400)",
+    "actual": "Failed (409): Tên phòng ban đã tồn tại trong hệ thống",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_033",
+    "name": "HR xem danh sách nhân viên",
+    "module": "HR",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_038",
+    "name": "HR xem danh sách hợp đồng",
+    "module": "HR",
+    "expected": "Success (200)",
+    "actual": "Success (200)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_037",
+    "name": "HR tạo hợp đồng ngày kết thúc < ngày bắt đầu",
+    "module": "HR",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Ngày kết thúc hợp đồng không được trước ngày bắt đầu",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_042",
+    "name": "HR tạo đề xuất thăng tiến",
+    "module": "HR",
+    "expected": "Failed (403)",
+    "actual": "Failed (403): Forbidden: Manager role required",
+    "status": "PASS",
+    "notes": "HR bị từ chối 403 (Manager role required), khớp với phân quyền"
+  },
+  {
+    "tcId": "TC_043",
+    "name": "Manager tạo task mới cho nhân viên",
+    "module": "Manager",
+    "expected": "Success (201)",
+    "actual": "Success (201)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_044",
+    "name": "Manager nhập điểm KPI = 101 (vượt tối đa)",
+    "module": "Manager",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Điểm KPI phải trong khoảng 0–100",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_049",
+    "name": "Tính lương tháng YYYY-MM",
+    "module": "Payroll",
+    "expected": "Success (200)",
+    "actual": "Success (200): Đã tính lương nháp thành công cho 8 nhân sự",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_052",
+    "name": "Thuế TNCN tại biên TNTT = 5,000,000đ",
+    "module": "Payroll",
+    "expected": "Tính đúng 5%",
+    "actual": "Xác nhận áp công thức bậc thang",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_055",
+    "name": "BHXH: trần đóng BHXH hoạt động đúng",
+    "module": "Payroll",
+    "expected": "Chặn theo trần max_insurance_salary",
+    "actual": "Xác nhận dùng Math.min(base_salary, config.max_insurance_salary)",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_050",
+    "name": "Thêm khoản điều chỉnh lương (bonus)",
+    "module": "Payroll",
+    "expected": "Success (201)",
+    "actual": "Success (201): id = 7",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_051",
+    "name": "Xem danh sách lương theo tháng",
+    "module": "Payroll",
+    "expected": "Success (200)",
+    "actual": "Success (200): 8 phiếu lương",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_053",
+    "name": "Duyệt lương tháng",
+    "module": "Payroll",
+    "expected": "Success (200)",
+    "actual": "Success (200): Đã duyệt thành công 8 phiếu lương cho tháng 2026-11",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_056",
+    "name": "Xuất file ngân hàng (Excel)",
+    "module": "Payroll",
+    "expected": "Success (200) + Buffer",
+    "actual": "Success (200) + Buffer length: 20870",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_057",
+    "name": "Gửi phiếu lương hàng loạt qua email",
+    "module": "Payroll",
+    "expected": "Success (200)",
+    "actual": "Success (200): Đã gửi thành công 8/8 phiếu lương.",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_058",
+    "name": "Nhân viên xem lịch sử chấm công 30 ngày",
+    "module": "Attendance",
+    "expected": "Success (200)",
+    "actual": "Success (200): 0 bản ghi",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_059",
+    "name": "Check-out khi chưa check-in bị từ chối (400)",
+    "module": "Attendance",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Bạn chưa đăng ký khuôn mặt.",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_060",
+    "name": "Check-in lần 2 trong cùng ngày bị từ chối (400)",
+    "module": "Attendance",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Bạn chưa đăng ký khuôn mặt. Vui lòng đăng ký trước khi chấm công.",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_061",
+    "name": "Tạo đơn nghỉ phép hợp lệ",
+    "module": "Leaves",
+    "expected": "Success (201)",
+    "actual": "Success (201): id = 7",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_062",
+    "name": "Tạo đơn nghỉ trùng ngày đã duyệt",
+    "module": "Leaves",
+    "expected": "Failed (400)",
+    "actual": "Failed (400): Bạn đã có đơn nghỉ phép trùng với khoảng thời gian này",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_064",
+    "name": "Xem quỹ phép năm",
+    "module": "Leaves",
+    "expected": "Success (200)",
+    "actual": "Success (200): total_days = 12",
+    "status": "PASS",
+    "notes": ""
+  },
+  {
+    "tcId": "TC_065",
+    "name": "Employee truy cập Admin endpoint",
+    "module": "Security",
+    "expected": "Failed (403)",
+    "actual": "Failed (403): Chỉ admin mới có quyền truy cập",
+    "status": "PASS",
+    "notes": ""
+  }
+]

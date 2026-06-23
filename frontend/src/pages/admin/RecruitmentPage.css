@@ -551,3 +551,173 @@
   color: var(--rc-navy-700);
   margin-bottom: 4px;
 }
+
+/* ── AI Score Badge (on Kanban card) ────────────────────── */
+.rc-ai-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: var(--rc-r-md);
+  border: 1px solid;
+  margin-bottom: 8px;
+  flex-direction: column;
+  gap: 2px;
+}
+.rc-ai-summary {
+  font-size: 10px;
+  color: var(--rc-gray-600, #4b5563);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── AI Analyze button (on card, no score yet) ───────────── */
+.rc-ai-btn {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #5b21b6;
+  border: 1px solid #c4b5fd;
+  border-radius: var(--rc-r-md);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 150ms, transform 100ms;
+}
+.rc-ai-btn:hover {
+  background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+  transform: translateY(-1px);
+}
+
+/* ── Re-analyze button (footer of card) ─────────────────── */
+.rc-reanalyze-btn {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--rc-gray-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  transition: color 150ms;
+}
+.rc-reanalyze-btn:hover { color: #7c3aed; }
+
+/* ── AI CV Modal: Drop zone ──────────────────────────────── */
+.rc-dropzone {
+  border: 2px dashed var(--rc-gray-300);
+  border-radius: var(--rc-r-lg);
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+  background: var(--rc-gray-50);
+  margin-bottom: 16px;
+}
+.rc-dropzone:hover,
+.rc-dropzone--over  { border-color: #7c3aed; background: #faf5ff; }
+.rc-dropzone--has-file { border-color: var(--rc-success-soft); background: var(--rc-success-50); }
+
+.rc-dropzone__icon { font-size: 32px; margin-bottom: 8px; }
+.rc-dropzone__text { font-size: 14px; font-weight: 600; color: var(--rc-gray-700); margin-bottom: 4px; }
+.rc-dropzone__hint { font-size: 12px; color: var(--rc-gray-400); }
+.rc-dropzone__name { font-size: 13px; font-weight: 600; color: var(--rc-success); margin-bottom: 2px; }
+.rc-dropzone__size { font-size: 11px; color: var(--rc-gray-400); }
+
+/* ── AI info banner ──────────────────────────────────────── */
+.rc-ai-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #faf5ff;
+  border: 1px solid #e9d5ff;
+  border-radius: var(--rc-r-md);
+  font-size: 12px;
+  color: #6d28d9;
+  line-height: 1.5;
+}
+
+/* ── AI Result panel ─────────────────────────────────────── */
+.rc-ai-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Circular score */
+.rc-score-circle {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+.rc-score-svg { width: 100%; height: 100%; }
+.rc-score-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.rc-score-num {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: var(--rc-font-mono);
+  line-height: 1;
+}
+.rc-score-unit {
+  font-size: 11px;
+  color: var(--rc-gray-400);
+  font-weight: 500;
+}
+
+/* AI sections */
+.rc-ai-sections {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.rc-ai-section {
+  background: var(--rc-gray-50);
+  border: 1px solid var(--rc-gray-200);
+  border-radius: var(--rc-r-md);
+  padding: 12px 14px;
+}
+.rc-ai-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rc-gray-500);
+  margin-bottom: 5px;
+}
+.rc-ai-text {
+  font-size: 13px;
+  color: var(--rc-gray-700);
+  line-height: 1.6;
+}
+
+/* ── Button spinner ──────────────────────────────────────── */
+.rc-btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: rc-spin .6s linear infinite;
+  display: inline-block;
+}
+

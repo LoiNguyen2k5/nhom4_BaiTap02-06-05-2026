@@ -1,0 +1,90 @@
+
+> nhom4_baitap@1.0.0 dev
+> nodemon server.js
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong
+analyzeCV error: TypeError: pdfParse is not a function
+    at analyzeCV (E:\Study\HocKy2_Dot2\CacCongNghePhanMemMoi\BaiTapNhom\nhom4_BaiTap02-06-05-2026\backend\src\controllers\candidate.controller.js:194:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong
+analyzeCV error: TypeError: pdfParse is not a function
+    at analyzeCV (E:\Study\HocKy2_Dot2\CacCongNghePhanMemMoi\BaiTapNhom\nhom4_BaiTap02-06-05-2026\backend\src\controllers\candidate.controller.js:195:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+analyzeCV error: TypeError: pdfParse is not a function
+    at analyzeCV (E:\Study\HocKy2_Dot2\CacCongNghePhanMemMoi\BaiTapNhom\nhom4_BaiTap02-06-05-2026\backend\src\controllers\candidate.controller.js:195:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+analyzeCV error: TypeError: pdfParse is not a function
+    at analyzeCV (E:\Study\HocKy2_Dot2\CacCongNghePhanMemMoi\BaiTapNhom\nhom4_BaiTap02-06-05-2026\backend\src\controllers\candidate.controller.js:195:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+analyzeCV error: TypeError: pdfParse is not a function
+    at analyzeCV (E:\Study\HocKy2_Dot2\CacCongNghePhanMemMoi\BaiTapNhom\nhom4_BaiTap02-06-05-2026\backend\src\controllers\candidate.controller.js:195:29)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ suppress logs { quiet: true }
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong
+[Gemini] Lỗi khi gọi API: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [404 Not Found] models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+◇ injected env (10) from .env // tip: ⌘ enable debugging { debug: true }
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+✓ Server đang chạy trên http://localhost:3000
+✓ Database 'nhom4_baitap' được tạo hoặc đã tồn tại
+✓ Kết nối database thành công
+✓ Database da duoc cap nhat thanh cong

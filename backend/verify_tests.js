@@ -498,7 +498,7 @@ async function runTests() {
       const loginRes = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'nva@example.com', password: 'Nva@123456' })
+        body: JSON.stringify({ email: 'employee1@example.com', password: 'User@123456' })
       });
       const loginData = await loginRes.json();
       const nvaToken = loginData.token;
@@ -515,7 +515,7 @@ async function runTests() {
           recordResult('TC_059', 'Check-out khi chưa check-in bị từ chối (400)', 'Attendance', 'Failed (400)', `Unexpected (${res.status})`, 'FAIL');
         }
       } else {
-        recordResult('TC_059', 'Check-out khi chưa check-in bị từ chối (400)', 'Attendance', 'Failed (400)', 'Không đăng nhập được tài khoản nva@example.com', 'FAIL');
+        recordResult('TC_059', 'Check-out khi chưa check-in bị từ chối (400)', 'Attendance', 'Failed (400)', 'Không đăng nhập được tài khoản employee1@example.com', 'FAIL');
       }
     } catch (err) {
       recordResult('TC_059', 'Check-out khi chưa check-in bị từ chối (400)', 'Attendance', 'Failed (400)', `Error: ${err.message}`, 'FAIL');
@@ -648,6 +648,10 @@ async function runTests() {
   const reportPath = path.join(__dirname, '../TC_VERIFICATION_RESULTS.md');
   fs.writeFileSync(reportPath, md, 'utf8');
   console.log(`✓ Đã lưu kết quả đối chiếu chi tiết vào: ${reportPath}`);
+
+  const jsonReportPath = path.join(__dirname, 'test_results.json');
+  fs.writeFileSync(jsonReportPath, JSON.stringify(results, null, 2), 'utf8');
+  console.log(`✓ Đã lưu kết quả dạng JSON vào: ${jsonReportPath}`);
 }
 
 runTests().catch(console.error);
