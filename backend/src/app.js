@@ -44,6 +44,7 @@ const accountantRoutes = require('./routes/accountant.routes');
 const adjustmentRoutes = require('./routes/adjustment.routes');
 const advanceRoutes = require('./routes/advance.routes');
 const jobPostingRoutes = require('./routes/jobPosting.routes');
+const chatbotRoutes = require('./routes/chatbot.routes');
 
 app.use('/api/public', publicRoutes);
 app.use('/api/auth', authRoutes);
@@ -62,5 +63,6 @@ app.use('/api/accountant', accountantRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
 app.use('/api/advances', advanceRoutes);
 app.use('/api/recruitment', jobPostingRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 module.exports = app;
