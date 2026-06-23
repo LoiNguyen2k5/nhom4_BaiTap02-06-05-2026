@@ -17,6 +17,7 @@ const Payroll = require('./Payroll.entity');
 const SalaryAdjustment = require('./SalaryAdjustment.entity');
 const AdvanceRequest = require('./AdvanceRequest.entity');
 const AttendanceLock = require('./AttendanceLock.entity');
+const JobPosting = require('./JobPosting.entity');
 
 // Define Associations
 Department.hasMany(User, {
@@ -131,4 +132,5 @@ module.exports = {
   SalaryAdjustment,
   AdvanceRequest,
   AttendanceLock,
+  JobPosting,
 };
