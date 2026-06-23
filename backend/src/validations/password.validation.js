@@ -23,8 +23,8 @@ const resetPasswordValidation = (data) => {
       'string.pattern.base': 'Mã OTP phải là 6 chữ số',
       'any.required': 'Vui lòng nhập OTP'
     }),
-    newPassword: Joi.string().min(6).required().messages({
-      'string.min': 'Mật khẩu phải có ít nhất 6 ký tự',
+    newPassword: Joi.string().min(8).required().messages({
+      'string.min': 'Mật khẩu phải có ít nhất 8 ký tự',
       'any.required': 'Vui lòng nhập mật khẩu mới'
     })
   });

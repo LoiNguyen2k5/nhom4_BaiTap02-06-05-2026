@@ -28,4 +28,13 @@ export const recruitmentService = {
   // Xoá ứng viên
   deleteCandidate: (id) =>
     axiosClient.delete(`/recruitment/candidates/${id}`).then((r) => r.data),
+
+  // 🤖 AI: Phân tích CV và chấm điểm Match Score
+  analyzeCV: (id, file) => {
+    const formData = new FormData();
+    formData.append('cv', file);
+    return axiosClient.post(`/recruitment/candidates/${id}/analyze-cv`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data);
+  },
 };

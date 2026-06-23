@@ -95,7 +95,7 @@ exports.createLeaveRequest = async (req, res) => {
         }
       });
       if (overlapping) {
-        return res.status(400).json({ success: false, message: 'Bạn đã có đơn nghỉ phép trùng với khoảng thời gian này' });
+        return res.status(400).json({ success: false, message: 'Đã có đơn trong khoảng thời gian này, không thể tạo trùng' });
       }
     }
 

@@ -33,7 +33,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setLocalError('');
     if (newPassword !== confirmPassword) { setLocalError('Mật khẩu xác nhận không khớp'); return; }
-    if (newPassword.length < 6) { setLocalError('Mật khẩu phải có ít nhất 6 ký tự'); return; }
+    if (newPassword.length < 8) { setLocalError('Mật khẩu phải có ít nhất 8 ký tự'); return; }
     dispatch(resetPassword({ email: savedEmail, otp, newPassword }));
   };
 
@@ -127,7 +127,7 @@ const ForgotPassword = () => {
                     <div className="relative">
                       <Lock size={14} strokeWidth={1.75} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                       <input type={showPw ? 'text' : 'password'} value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                        placeholder="Ít nhất 6 ký tự" required
+                        placeholder="Ít nhất 8 ký tự" required
                         className="w-full h-10 pl-9 pr-10 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors" />
                       <button type="button" onClick={() => setShowPw(p => !p)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">

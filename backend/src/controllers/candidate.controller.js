@@ -1,6 +1,11 @@
 const { Op } = require('sequelize');
+const path = require('path');
+const fs = require('fs');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
 const { Candidate } = require('../entities');
 const { logActivity } = require('../utils/activityLogger');
+const { analyzeCV: analyzeWithGemini } = require('../services/gemini.service');
 
 // ── helpers ─────────────────────────────────────────────
 const VALID_STAGES = ['new', 'screening', 'iv1', 'iv2', 'offer', 'hired', 'rejected'];
@@ -120,7 +125,7 @@ const updateCandidate = async (req, res) => {
     const candidate = await Candidate.findByPk(req.params.id);
     if (!candidate) return res.status(404).json({ success: false, message: 'Không tìm thấy ứng viên' });
 
-    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'onboard_date', 'interview_date', 'interview_link', 'interviewer', 'interview_note'];
+    const allowed = ['name', 'email', 'phone', 'position', 'skills', 'experience_years', 'expected_salary', 'source', 'current_company', 'note', 'match_score', 'ai_summary', 'ai_reasoning', 'cv_file_path', 'onboard_date', 'interview_date', 'interview_link', 'interviewer', 'interview_note'];
     const updates = {};
     allowed.forEach((f) => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
     updates.updated_at = new Date();
@@ -167,6 +172,79 @@ const deleteCandidate = async (req, res) => {
   }
 };
 
+// ── POST /api/recruitment/candidates/:id/analyze-cv ───────────────
+const analyzeCV = async (req, res) => {
+  let filePath = null;
+  try {
+    const candidate = await Candidate.findByPk(req.params.id);
+    if (!candidate) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy ứng viên' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Vui lòng upload file CV (PDF/DOCX)' });
+    }
+
+    filePath = req.file.path;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    let cvText = '';
+
+    // Trích xuất text từ file
+    if (ext === '.pdf') {
+      const dataBuffer = fs.readFileSync(filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      cvText = pdfData.text;
+    } else if (ext === '.doc' || ext === '.docx') {
+      const result = await mammoth.extractRawText({ path: filePath });
+      cvText = result.value;
+    } else {
+      return res.status(400).json({ success: false, message: 'Chỉ hỗ trợ file PDF, DOC, DOCX' });
+    }
+
+    if (!cvText || cvText.trim().length < 30) {
+      return res.status(400).json({ success: false, message: 'Không thể đọc nội dung từ file CV này. Vui lòng kiểm tra file.' });
+    }
+
+    // Gọi Gemini AI phân tích
+    const currentSkills = Array.isArray(candidate.skills) ? candidate.skills : [];
+    const aiResult = await analyzeWithGemini(cvText, candidate.position, currentSkills);
+
+    // Cập nhật vào database
+    const cvRelativePath = `/uploads/cv/${req.file.filename}`;
+    await candidate.update({
+      match_score: aiResult.match_score,
+      ai_summary: aiResult.summary,
+      ai_reasoning: aiResult.reasoning,
+      cv_file_path: cvRelativePath,
+      // Merge skills từ AI vào skills hiện tại (loại trùng)
+      skills: [...new Set([...currentSkills, ...aiResult.extracted_skills])],
+      updated_at: new Date(),
+    });
+
+    await logActivity({
+      userId: req.user?.id,
+      action: 'analyze_cv',
+      detail: `Phân tích CV ${candidate.name} — Match Score: ${aiResult.match_score.toFixed(1)}/100`,
+      req,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Phân tích CV thành công!',
+      data: {
+        match_score: aiResult.match_score,
+        summary: aiResult.summary,
+        reasoning: aiResult.reasoning,
+        extracted_skills: aiResult.extracted_skills,
+        cv_file_path: cvRelativePath,
+      },
+    });
+  } catch (err) {
+    console.error('analyzeCV error:', err);
+    return res.status(500).json({ success: false, message: `Lỗi phân tích CV: ${err.message}` });
+  }
+};
+
 // ── GET /api/recruitment/stats ──────────────────────────
 const getStats = async (req, res) => {
   try {
@@ -208,4 +286,4 @@ const getPositions = async (req, res) => {
   }
 };
 
-module.exports = { getCandidates, getCandidateById, createCandidate, moveStage, updateCandidate, deleteCandidate, getStats, getPositions };
+module.exports = { getCandidates, getCandidateById, createCandidate, moveStage, updateCandidate, deleteCandidate, getStats, getPositions, analyzeCV };
