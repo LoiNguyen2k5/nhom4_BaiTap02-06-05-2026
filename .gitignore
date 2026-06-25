@@ -32,7 +32,7 @@ dist/
 build/
 
 # Face API models (large binary files - run: node download-models.js)
-frontend/public/models/
+# frontend/public/models/ (Removed to allow deployment on Vercel)
 
 # Excel files
 *.xlsx
