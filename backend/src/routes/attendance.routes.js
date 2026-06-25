@@ -12,4 +12,9 @@ router.get('/my-history', attendanceController.getMyHistory);
 router.get('/check-face-registered', attendanceController.checkFaceRegistered);
 router.post('/register-face', attendanceController.registerFace);
 
+// HR: Đăng ký / kiểm tra khuôn mặt cho nhân viên cụ thể
+router.get('/check-face-registered/:userId', attendanceController.checkFaceRegisteredForEmployee);
+router.post('/register-face/:userId', attendanceController.registerFaceForEmployee);
+
 module.exports = router;
+

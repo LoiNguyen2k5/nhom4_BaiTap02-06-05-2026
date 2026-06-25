@@ -170,22 +170,54 @@ exports.registerFace = async (req, res) => {
     const userId = req.user.id;
     const { face_descriptor } = req.body;
 
+    // Block self-registration for security (Only Admin can register via registerFaceForEmployee)
+    return res.status(403).json({ success: false, message: 'Chức năng tự đăng ký khuôn mặt đã bị vô hiệu hóa vì lý do bảo mật. Vui lòng liên hệ Admin.' });
+  } catch (error) {
+    console.error('Lỗi đăng ký khuôn mặt:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server khi đăng ký khuôn mặt' });
+  }
+};
+
+// Admin đăng ký khuôn mặt thay cho nhân viên (truyền :userId)
+exports.registerFaceForEmployee = async (req, res) => {
+  try {
+    // SECURITY: Chỉ Admin mới được dùng endpoint này
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Bảo mật: Chỉ Admin mới có quyền đăng ký khuôn mặt cho nhân viên.' });
+    }
+
+    const targetUserId = req.params.userId;
+    const { face_descriptor } = req.body;
+
     if (!face_descriptor || !Array.isArray(face_descriptor)) {
       return res.status(400).json({ success: false, message: 'Dữ liệu khuôn mặt không hợp lệ.' });
     }
 
-    const profile = await Profile.findOne({ where: { user_id: userId } });
+    const profile = await Profile.findOne({ where: { user_id: targetUserId } });
     if (!profile) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ người dùng.' });
+      return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ nhân viên.' });
     }
 
     profile.face_descriptor = JSON.stringify(face_descriptor);
     await profile.save();
 
-    res.status(200).json({ success: true, message: 'Đăng ký khuôn mặt thành công!' });
+    res.status(200).json({ success: true, message: 'Đăng ký khuôn mặt cho nhân viên thành công!' });
   } catch (error) {
-    console.error('Lỗi đăng ký khuôn mặt:', error);
+    console.error('Lỗi HR đăng ký khuôn mặt nhân viên:', error);
     res.status(500).json({ success: false, message: 'Lỗi server khi đăng ký khuôn mặt' });
+  }
+};
+
+// HR kiểm tra trạng thái đăng ký khuôn mặt của nhân viên
+exports.checkFaceRegisteredForEmployee = async (req, res) => {
+  try {
+    const targetUserId = req.params.userId;
+    const profile = await Profile.findOne({ where: { user_id: targetUserId } });
+    const isRegistered = !!(profile && profile.face_descriptor);
+    res.status(200).json({ success: true, isRegistered });
+  } catch (error) {
+    console.error('Lỗi kiểm tra đăng ký khuôn mặt nhân viên:', error);
+    res.status(500).json({ success: false, message: 'Lỗi server' });
   }
 };
 

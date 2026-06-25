@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, X } from 'lucide-react';
+import { Search, Plus, RefreshCw, ChevronLeft, ChevronRight, CheckCircle, X, Camera, UserCheck } from 'lucide-react';
+import * as faceapi from 'face-api.js';
 import { adminService } from '../../services/admin.service';
+import attendanceService from '../../services/attendance.service';
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 
@@ -41,6 +43,15 @@ const AdminUsers = () => {
   const [creating, setCreating] = useState(false);
   const [createResult, setCreateResult] = useState(null);
   const [departments, setDepartments] = useState([]);
+
+  // Face registration modal state
+  const [faceModal, setFaceModal] = useState(null); // { id, name } | null
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [faceStatus, setFaceStatus] = useState('idle'); // idle | scanning | success | error
+  const [faceMsg, setFaceMsg] = useState('');
+  const [faceLoading, setFaceLoading] = useState(false);
+  const videoRef = useRef(null);
 
   const filtersRef = useRef(filters);
   useEffect(() => { filtersRef.current = filters; }, [filters]);
@@ -116,6 +127,91 @@ const AdminUsers = () => {
     setShowCreateModal(false);
     setCreateForm(EMPTY_CREATE_FORM);
     setCreateResult(null);
+  };
+
+  // --- FACE REGISTRATION LOGIC ---
+  const loadModels = async () => {
+    if (modelsLoaded) return true;
+    setModelsLoading(true);
+    setFaceMsg('Đang tải Models AI...');
+    try {
+      await Promise.all([
+        faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+        faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+      ]);
+      setModelsLoaded(true);
+      return true;
+    } catch {
+      setFaceMsg('Không thể tải Models AI. Kiểm tra thư mục /models.');
+      return false;
+    } finally {
+      setModelsLoading(false);
+    }
+  };
+
+  const startVideo = () => {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      })
+      .catch(() => setFaceMsg('Không thể mở Camera. Vui lòng cấp quyền truy cập.'));
+  };
+
+  const stopVideo = () => {
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+    }
+  };
+
+  const openFaceModal = async (user) => {
+    setFaceModal({ id: user.id, name: user.name || user.email });
+    setFaceStatus('idle');
+    setFaceMsg('');
+    const ok = await loadModels();
+    if (ok) {
+      setFaceStatus('scanning');
+      setFaceMsg('Camera đang bật. Đặt khuôn mặt nhân viên vào khung hình rồi nhấn "Chụp & Lưu".');
+      setTimeout(() => startVideo(), 300);
+    } else {
+      setFaceStatus('error');
+    }
+  };
+
+  const closeFaceModal = () => {
+    stopVideo();
+    setFaceModal(null);
+    setFaceStatus('idle');
+    setFaceMsg('');
+  };
+
+  const submitFaceForUser = async () => {
+    if (!videoRef.current) return;
+    setFaceLoading(true);
+    setFaceMsg('Đang nhận diện khuôn mặt...');
+    try {
+      const detection = await faceapi.detectSingleFace(videoRef.current)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection) {
+        setFaceMsg('Không nhận diện được khuôn mặt. Hãy đảm bảo mặt nhìn thẳng vào camera.');
+        setFaceLoading(false);
+        return;
+      }
+
+      const descriptor = Array.from(detection.descriptor);
+      await attendanceService.registerFaceForEmployee(faceModal.id, { face_descriptor: descriptor });
+
+      stopVideo();
+      setFaceStatus('success');
+      setFaceMsg(`Đã đăng ký khuôn mặt cho ${faceModal.name} thành công!`);
+    } catch (err) {
+      setFaceMsg(err.response?.data?.message || 'Có lỗi khi đăng ký khuôn mặt.');
+      setFaceStatus('error');
+    } finally {
+      setFaceLoading(false);
+    }
   };
 
   const hasFilters = Object.values(filters).some(v => v !== '');
@@ -248,7 +344,7 @@ const AdminUsers = () => {
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
-                {['ID', 'Nhân viên', 'Vai trò', 'Phòng ban', 'Trạng thái', 'Ngày tạo', ''].map((col) => (
+                {['ID', 'Nhân viên', 'Vai trò', 'Phòng ban', 'Trạng thái', 'Ngày tạo', 'Khuôn mặt', ''].map((col) => (
                   <th key={col} className="h-10 px-4 text-left text-[11px] font-semibold uppercase tracking-[.04em] text-gray-400 whitespace-nowrap">
                     {col}
                   </th>
@@ -315,6 +411,18 @@ const AdminUsers = () => {
                         <span className="font-mono tabular-nums text-[12px] text-gray-500">
                           {new Date(user.created_at).toLocaleDateString('vi-VN')}
                         </span>
+                      </td>
+                      <td className="px-4">
+                        {user.role !== 'admin' && (
+                          <button
+                            onClick={() => openFaceModal(user)}
+                            title="Đăng ký khuôn mặt"
+                            className="flex items-center gap-1.5 text-[12px] font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-full transition-colors border border-indigo-200"
+                          >
+                            <Camera size={13} />
+                            Đăng ký mặt
+                          </button>
+                        )}
                       </td>
                       <td className="px-4">
                         <Link
@@ -510,6 +618,108 @@ const AdminUsers = () => {
               </form>
             </>
           )}
+        </div>
+      </div>
+    )}
+
+    {/* ======== MODAL: ĐĂNG KÝ KHUÔN MẶT ======== */}
+    {faceModal && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+          {/* Modal Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Camera size={16} className="text-indigo-600" />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-gray-900">Đăng ký khuôn mặt</h2>
+                <p className="text-[12px] text-gray-500">{faceModal.name}</p>
+              </div>
+            </div>
+            <button onClick={closeFaceModal} className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors">
+              <X size={16} className="text-gray-500" />
+            </button>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-6 flex flex-col items-center gap-4">
+            {/* Loading models */}
+            {modelsLoading && (
+              <div className="flex flex-col items-center gap-3 py-6">
+                <RefreshCw size={28} className="animate-spin text-indigo-500" />
+                <p className="text-sm text-gray-500">Đang tải Models AI...</p>
+              </div>
+            )}
+
+            {/* Success state */}
+            {faceStatus === 'success' && (
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <div className="w-16 h-16 rounded-full bg-success-100 flex items-center justify-center">
+                  <CheckCircle size={32} className="text-success-500" />
+                </div>
+                <p className="text-success-700 font-semibold">{faceMsg}</p>
+                <button onClick={closeFaceModal}
+                  className="mt-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition-colors">
+                  Đóng
+                </button>
+              </div>
+            )}
+
+            {/* Camera scanning */}
+            {faceStatus === 'scanning' && !modelsLoading && (
+              <>
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    className="absolute inset-0 w-full h-full object-cover transform scale-x-[-1]"
+                  />
+                  {/* Khung ngắm */}
+                  <div className="absolute inset-0 border-4 border-white/20 rounded-2xl m-4 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-indigo-400" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-indigo-400" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-indigo-400" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-indigo-400" />
+                  </div>
+                </div>
+
+                {/* Thông báo hướng dẫn */}
+                <p className="text-[12px] text-gray-500 text-center leading-relaxed">{faceMsg}</p>
+
+                {/* Actions */}
+                <div className="flex w-full gap-3">
+                  <button onClick={closeFaceModal} disabled={faceLoading}
+                    className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                    Hủy
+                  </button>
+                  <button onClick={submitFaceForUser} disabled={faceLoading}
+                    className="flex-[2] flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl text-sm font-medium transition-colors">
+                    {faceLoading ? (
+                      <RefreshCw size={16} className="animate-spin" />
+                    ) : (
+                      <>
+                        <UserCheck size={16} />
+                        Chụp & Lưu khuôn mặt
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Error state */}
+            {faceStatus === 'error' && (
+              <div className="text-center py-4">
+                <p className="text-danger-600 text-sm mb-4">{faceMsg}</p>
+                <button onClick={closeFaceModal}
+                  className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                  Đóng
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     )}

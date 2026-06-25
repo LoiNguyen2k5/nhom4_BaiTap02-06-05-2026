@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, CheckCircle, LogOut, Calendar, RefreshCw, Camera, AlertTriangle } from 'lucide-react';
+import { Clock, CheckCircle, LogOut, Calendar, RefreshCw, AlertTriangle, UserCheck } from 'lucide-react';
 import * as faceapi from 'face-api.js';
 import attendanceService from '../../services/attendance.service';
 import Badge from '../../components/ui/Badge';
@@ -13,10 +13,10 @@ const AttendancePage = () => {
   const [successMsg, setSuccessMsg] = useState('');
   
   // Face API & Status states
-  const [isFaceRegistered, setIsFaceRegistered] = useState(true);
+  const [isFaceRegistered, setIsFaceRegistered] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [todayStatus, setTodayStatus] = useState('idle'); // idle | checked_in | done
-  const [mode, setMode] = useState('idle'); // idle | registering | scanning
+  const [mode, setMode] = useState('idle'); // idle | scanning
 
   const videoRef = useRef();
 
@@ -96,36 +96,6 @@ const AttendancePage = () => {
       .withFaceLandmarks()
       .withFaceDescriptor();
     return detection ? Array.from(detection.descriptor) : null;
-  };
-
-  const handleRegisterFace = async () => {
-    setError('');
-    setSuccessMsg('');
-    setMode('registering');
-    startVideo();
-  };
-
-  const submitFaceRegistration = async () => {
-    setError('');
-    setActionLoading(true);
-    try {
-      const descriptor = await getFaceDescriptor();
-      if (!descriptor) {
-        setError('Không nhận diện được khuôn mặt. Hãy nhìn thẳng vào camera.');
-        setActionLoading(false);
-        return;
-      }
-      
-      await attendanceService.registerFace({ face_descriptor: descriptor });
-      setSuccessMsg('Đăng ký khuôn mặt thành công!');
-      setIsFaceRegistered(true);
-      setMode('idle');
-      stopVideo();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Có lỗi khi đăng ký khuôn mặt.');
-    } finally {
-      setActionLoading(false);
-    }
   };
 
   const handleAttendanceClick = () => {
@@ -238,18 +208,14 @@ const AttendancePage = () => {
                 </div>
 
                 {!isFaceRegistered ? (
-                  <div className="text-center">
-                    <div className="bg-warning-50 p-4 rounded-xl mb-6 border border-warning-100">
-                      <p className="text-warning-800 text-sm font-medium mb-2">Bạn chưa đăng ký khuôn mặt!</p>
-                      <p className="text-warning-600 text-xs">Vui lòng đăng ký dữ liệu khuôn mặt để có thể sử dụng chức năng chấm công.</p>
+                  <div className="text-center w-full px-2">
+                    <div className="bg-warning-50 p-5 rounded-2xl mb-4 border border-warning-100 flex flex-col items-center gap-2">
+                      <UserCheck size={32} className="text-warning-500" />
+                      <p className="text-warning-800 text-sm font-semibold">Chưa đăng ký khuôn mặt</p>
+                      <p className="text-warning-600 text-xs leading-relaxed">
+                        Vui lòng liên hệ <strong>Quản trị viên (Admin)</strong> để được đăng ký khuôn mặt trước khi sử dụng chức năng chấm công.
+                      </p>
                     </div>
-                    <button
-                      onClick={handleRegisterFace}
-                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors flex items-center gap-2 mx-auto"
-                    >
-                      <Camera size={18} />
-                      Đăng ký khuôn mặt
-                    </button>
                   </div>
                 ) : todayStatus === 'done' ? (
                   <div className="flex flex-col items-center justify-center text-center p-6 bg-success-50 border border-success-100 rounded-2xl w-full">
@@ -278,17 +244,6 @@ const AttendancePage = () => {
                         <span className="text-white font-bold text-xl uppercase tracking-wider">Check Out</span>
                       </>
                     )}
-                  </button>
-                )}
-
-                {/* Nút đăng ký lại khi đã đăng ký rồi */}
-                {mode === 'idle' && isFaceRegistered && (
-                  <button
-                    onClick={handleRegisterFace}
-                    className="absolute top-4 left-4 flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-indigo-600 bg-gray-50 hover:bg-indigo-50 px-3 py-1.5 rounded-full transition-colors border border-gray-200 hover:border-indigo-200"
-                  >
-                    <Camera size={14} />
-                    Cập nhật mặt
                   </button>
                 )}
               </>
@@ -323,14 +278,12 @@ const AttendancePage = () => {
                     Hủy
                   </button>
                   <button
-                    onClick={mode === 'registering' ? submitFaceRegistration : executeAttendance}
+                    onClick={executeAttendance}
                     disabled={actionLoading}
                     className="flex-[2] flex items-center justify-center py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-medium transition-colors"
                   >
                     {actionLoading ? (
                       <RefreshCw size={20} className="animate-spin" />
-                    ) : mode === 'registering' ? (
-                      'Xác nhận đăng ký'
                     ) : (
                       'Chụp & Chấm công'
                     )}

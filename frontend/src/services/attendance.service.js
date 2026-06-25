@@ -15,7 +15,14 @@ const attendanceService = {
   },
   registerFace: (data) => {
     return axiosClient.post('/attendance/register-face', data);
-  }
+  },
+  // HR: đăng ký khuôn mặt cho nhân viên cụ thể
+  registerFaceForEmployee: (userId, data) => {
+    return axiosClient.post(`/attendance/register-face/${userId}`, data);
+  },
+  checkFaceRegisteredForEmployee: (userId) => {
+    return axiosClient.get(`/attendance/check-face-registered/${userId}`);
+  },
 };
 
 export default attendanceService;

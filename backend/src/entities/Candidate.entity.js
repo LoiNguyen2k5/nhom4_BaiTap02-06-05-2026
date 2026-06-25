@@ -55,8 +55,6 @@ const Candidate = sequelize.define(
     interviewer: { type: DataTypes.STRING(100), allowNull: true },
     interview_note: { type: DataTypes.TEXT, allowNull: true },
 
-    cv_file_path: { type: DataTypes.STRING(255), allowNull: true },
-
     // Người tạo (admin/hr) — null nếu ứng viên tự nộp qua portal công khai
     created_by: { type: DataTypes.INTEGER, allowNull: true },
 

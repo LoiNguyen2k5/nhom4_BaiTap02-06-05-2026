@@ -63,6 +63,7 @@ const NAV_CONFIG = {
       {
         title: 'Cá nhân',
         items: [
+          { label: 'Chấm công',          path: '/user/attendance',    icon: Clock },
           { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
           { label: 'Đơn của tôi',        path: '/user/leaves',        icon: ClipboardList },
         ],
@@ -97,6 +98,7 @@ const NAV_CONFIG = {
       {
         title: 'Cá nhân',
         items: [
+          { label: 'Chấm công',          path: '/user/attendance',    icon: Clock },
           { label: 'Hồ sơ tôi',          path: '/user/profile',       icon: UserCircle },
           { label: 'Đơn của tôi',        path: '/user/leaves',        icon: ClipboardList },
         ],
@@ -125,6 +127,7 @@ const NAV_CONFIG = {
       {
         title: 'Cá nhân',
         items: [
+          { label: 'Chấm công',          path: '/user/attendance',    icon: Clock },
           { label: 'Hồ sơ tôi',          path: '/user/profile',         icon: UserCircle },
           { label: 'Đơn của tôi',        path: '/user/leaves',          icon: ClipboardList },
         ],

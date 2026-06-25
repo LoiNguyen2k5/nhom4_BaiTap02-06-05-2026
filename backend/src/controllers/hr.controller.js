@@ -86,6 +86,10 @@ exports.updateUserProfile = async (req, res) => {
     // Update User level info
     let userUpdated = false;
     if (role && role !== user.role) {
+      // Bảo mật: Nếu người gọi là HR, không được phép set role thành admin
+      if (req.user.role !== 'admin' && role === 'admin') {
+        return res.status(403).json({ success: false, message: 'HR không có quyền cấp vai trò Admin' });
+      }
       user.role = role;
       userUpdated = true;
     }
