@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: 'https://nhom4-baitap02-06-05-2026-7.onrender.com',
+  baseURL: 'https://nhom4-baitap02-06-05-2026-7.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
