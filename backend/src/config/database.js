@@ -1,9 +1,13 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Chỉ dùng socketPath khi được cấu hình (Linux/Mac)
-// Trên Windows dùng TCP (host + port) — không cần socketPath
-const dialectOptions = { charset: 'utf8mb4' };
+const dialectOptions = {
+  charset: 'utf8mb4',
+  ssl: {
+    rejectUnauthorized: false
+  }
+};
+
 if (process.env.DB_SOCKET) {
   dialectOptions.socketPath = process.env.DB_SOCKET;
 }
