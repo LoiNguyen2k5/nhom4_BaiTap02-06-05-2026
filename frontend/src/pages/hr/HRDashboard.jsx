@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { UserPlus, X } from 'lucide-react';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
 import Callout from '../../components/ui/Callout';
-
-const BACKEND_URL = 'http://localhost:3000';
 
 const PIPELINE_STAGES = [
   { label: 'Mới nộp',           key: 'new',       color: 'bg-navy-700' },
@@ -32,8 +30,8 @@ const HRDashboard = () => {
   const fetchData = async () => {
     try {
       const [reqRes, depRes] = await Promise.all([
-        axios.get(`${BACKEND_URL}/api/hr/account-requests`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${BACKEND_URL}/api/admin/departments`, { headers: { Authorization: `Bearer ${token}` } }),
+        axiosClient.get('/hr/account-requests'),
+        axiosClient.get('/admin/departments'),
       ]);
       if (reqRes.data.success) setRequests(reqRes.data.data);
       if (depRes.data.success) setDepartments(depRes.data.data.filter((d) => d.status === 'active'));
@@ -46,10 +44,9 @@ const HRDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        `${BACKEND_URL}/api/hr/account-requests`,
-        { ...formData, department_id: formData.department_id || null },
-        { headers: { Authorization: `Bearer ${token}` } },
+      const res = await axiosClient.post(
+        '/hr/account-requests',
+        { ...formData, department_id: formData.department_id || null }
       );
       if (res.data.success) {
         setShowModal(false);

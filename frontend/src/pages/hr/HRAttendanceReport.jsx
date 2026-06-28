@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { ShieldAlert, CheckCircle, Lock, Unlock, Calendar, Download, RefreshCw } from 'lucide-react';
-import axios from 'axios';
+import axiosClient from '../../services/axiosClient';
 import * as XLSX from 'xlsx';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
-
-const BACKEND_URL = 'http://localhost:3000';
 
 const HRAttendanceReport = () => {
   const { token } = useSelector((state) => state.auth);
@@ -20,9 +18,7 @@ const HRAttendanceReport = () => {
   const fetchReport = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${BACKEND_URL}/api/hr/attendance/report?month=${month}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axiosClient.get(`/hr/attendance/report?month=${month}`);
       if (res.data.success) {
         setReportData(res.data.data);
         setIsLocked(res.data.isLocked);
@@ -45,9 +41,7 @@ const HRAttendanceReport = () => {
     }
     setSubmitting(true);
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/hr/attendance/lock`, { month }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axiosClient.post('/hr/attendance/lock', { month });
       if (res.data.success) {
         setIsLocked(true);
         alert(res.data.message);
@@ -66,9 +60,7 @@ const HRAttendanceReport = () => {
     }
     setSubmitting(true);
     try {
-      const res = await axios.post(`${BACKEND_URL}/api/hr/attendance/unlock`, { month }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axiosClient.post('/hr/attendance/unlock', { month });
       if (res.data.success) {
         setIsLocked(false);
         alert(res.data.message);
