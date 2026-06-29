@@ -12,7 +12,8 @@ import {
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 
-const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 
+  (import.meta.env.DEV ? 'http://localhost:3000' : 'https://nhom4-baitap02-06-05-2026-7.onrender.com');
 
 const PHONE_REGEX = /^0\d{9,10}$/;
 

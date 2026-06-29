@@ -8,7 +8,8 @@ import {
 import { logout } from '../../redux/authSlice';
 import Avatar from '../ui/Avatar';
 
-const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 
+  (import.meta.env.DEV ? 'http://localhost:3000' : 'https://nhom4-baitap02-06-05-2026-7.onrender.com');
 
 const NAV_CONFIG = {
   admin: {

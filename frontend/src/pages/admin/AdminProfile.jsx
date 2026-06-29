@@ -12,7 +12,8 @@ import {
 import Avatar from '../../components/ui/Avatar';
 import Badge from '../../components/ui/Badge';
 
-const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 
+  (import.meta.env.DEV ? 'http://localhost:3000' : 'https://nhom4-baitap02-06-05-2026-7.onrender.com');
 const PHONE_REGEX = /^0\d{9,10}$/;
 
 const inputClass = "w-full h-10 px-3 text-[13px] border border-gray-300 rounded-md bg-white placeholder-gray-400 focus:outline-none focus:border-navy-700 focus:ring-2 focus:ring-navy-100 transition-colors";
