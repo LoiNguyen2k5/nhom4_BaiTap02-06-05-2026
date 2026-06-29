@@ -6,6 +6,8 @@ import axiosClient from '../../services/axiosClient';
 import Sidebar from './Sidebar';
 import Avatar from '../ui/Avatar';
 
+const BACKEND = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+
 const PATH_LABELS = {
   'admin/dashboard': ['Admin', 'Dashboard'],
   'admin/users': ['Admin', 'Tài khoản'],
@@ -171,15 +173,7 @@ const DashboardLayout = () => {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="w-px h-5 bg-gray-200 mx-1" />
 
-            {/* User */}
-            <button className="flex items-center gap-2 h-8 px-2 rounded-md hover:bg-gray-100 transition-colors">
-              <Avatar name={displayName} size="sm" />
-              <span className="text-[13px] font-medium text-gray-700 hidden md:block">{displayName.split(' ').at(-1)}</span>
-              <ChevronDown size={14} strokeWidth={1.75} className="text-gray-400" />
-            </button>
           </div>
         </header>
 

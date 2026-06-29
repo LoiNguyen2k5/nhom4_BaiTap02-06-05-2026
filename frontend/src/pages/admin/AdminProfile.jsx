@@ -38,11 +38,11 @@ const AdminProfile = () => {
     if (!profile) return;
     setFormData({ full_name: profile.full_name || '', phone: profile.phone || '', address: profile.address || '' });
     if (profile.avatar_url) setAvatarPreview(`${BACKEND}${profile.avatar_url}`);
+    dispatch(updateProfile({
+      name: profile.full_name || user?.name,
+      avatar_url: profile.avatar_url || null,
+    }));
   }, [profile]);
-
-  useEffect(() => {
-    if (!user && profile) dispatch(updateProfile({ name: profile.full_name }));
-  }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (success) {
@@ -54,11 +54,21 @@ const AdminProfile = () => {
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setLocalError('Kích thước ảnh không được vượt quá 2MB');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    setLocalError('');
     const prevPreview = avatarPreview;
     setAvatarPreview(URL.createObjectURL(file));
+
     const result = await dispatch(uploadAvatarThunk(file));
     if (uploadAvatarThunk.fulfilled.match(result)) {
       setAvatarPreview(`${BACKEND}${result.payload.avatar_url}`);
+      dispatch(updateProfile({ avatar_url: result.payload.avatar_url }));
     } else {
       setAvatarPreview(prevPreview);
     }
